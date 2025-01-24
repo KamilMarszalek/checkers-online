@@ -84,7 +84,7 @@ public class GameService {
         boolean b = validateMove(gameState, move);
         if (!b) {
             return null;
-        };
+        }
         Piece[][] board = gameState.getBoard();
         Piece pawn = board[move.getFromRow()][move.getFromColumn()];
         board[move.getToRow()][move.getToColumn()] = pawn;
