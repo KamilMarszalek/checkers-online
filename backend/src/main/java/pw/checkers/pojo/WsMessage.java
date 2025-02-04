@@ -12,7 +12,7 @@ import lombok.Setter;
 public class WsMessage {
     private String type;
     private String gameId;
-    private Move move;
+    private MoveInput move;
     private int row;
     private int col;
 }
