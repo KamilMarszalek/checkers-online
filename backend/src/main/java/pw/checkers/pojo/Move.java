@@ -9,9 +9,12 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MoveInput {
+public class Move {
     private int fromRow;
     private int fromColumn;
     private int toRow;
     private int toColumn;
+    private boolean captured;
+    private Integer capturedRow;
+    private Integer capturedCol;
 }
