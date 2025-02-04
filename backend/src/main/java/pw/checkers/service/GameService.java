@@ -107,4 +107,27 @@ public class GameService {
         }
         return gameState;
     }
+
+    public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
+        Piece[][] board = gameState.getBoard();
+        Piece pawn = board[row][col];
+        if (pawn.getType().equals(PieceType.KING)) {
+            return getPossibleMovesForKing(gameState, row, col);
+        }
+        return getPossibleMovesForPawn(gameState, row, col);
+    }
+
+    private PossibleMoves getPossibleMovesForKing(GameState gameState, int row, int col) {
+        PossibleMoves possibleMoves = new PossibleMoves();
+        Piece[][] board = gameState.getBoard();
+        //TODO
+        return possibleMoves;
+    }
+
+    private PossibleMoves getPossibleMovesForPawn(GameState gameState, int row, int col) {
+        PossibleMoves possibleMoves = new PossibleMoves();
+        Piece[][] board = gameState.getBoard();
+        // TODO
+        return possibleMoves;
+    }
 }
