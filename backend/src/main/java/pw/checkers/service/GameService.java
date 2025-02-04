@@ -48,8 +48,7 @@ public class GameService {
     }
 
     private boolean validateMove(GameState gameState, Move move) {
-        // TODO move validation
-        return true;
+        return getPossibleMovesHelper(gameState, move.getFromRow(), move.getFromColumn());
     }
 
     private void doTake(Piece[][] board, Move move) {
@@ -101,19 +100,19 @@ public class GameService {
         return gameState;
     }
 
-    public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
+    public PossibleMoves getPossibleMovesHelper(GameState gameState, int row, int col) {
         Piece[][] board = gameState.getBoard();
         Piece pawn = board[row][col];
         if (pawn == null) {
             return new PossibleMoves();
         }
         if (pawn.getType().equals(PieceType.KING)) {
-            return getPossibleMoves(gameState, row, col, true);
+            return getPossibleMovesHelper(gameState, row, col, true);
         }
-        return getPossibleMoves(gameState, row, col, false);
+        return getPossibleMovesHelper(gameState, row, col, false);
     }
 
-    private PossibleMoves getPossibleMoves(GameState gameState, int row, int col, boolean isKing) {
+    private PossibleMoves getPossibleMovesHelper(GameState gameState, int row, int col, boolean isKing) {
         PossibleMoves possibleMoves = new PossibleMoves();
         possibleMoves.setMoves(new ArrayList<>());
         Piece[][] board = gameState.getBoard();
