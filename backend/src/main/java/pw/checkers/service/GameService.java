@@ -61,8 +61,7 @@ public class GameService {
 
     private boolean colorMatchesCurrentPlayer(PieceColor color, String currentPlayer) {
         if (color == PieceColor.WHITE && "white".equals(currentPlayer)) return true;
-        if (color == PieceColor.BLACK && "black".equals(currentPlayer)) return true;
-        return false;
+        return color == PieceColor.BLACK && "black".equals(currentPlayer);
     }
 
     private void doTake(Piece[][] board, Move move) {
