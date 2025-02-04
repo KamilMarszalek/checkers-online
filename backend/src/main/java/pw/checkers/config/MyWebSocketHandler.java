@@ -53,7 +53,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 }
                 break;
             case "possibilities":
-                PossibleMoves possibleMoves = gameService.getPossibleMoves(currentState, wsMessage.getRow(), wsMessage.getCol());
+                PossibleMoves possibleMoves = gameService.getPossibleMovesHelper(currentState, wsMessage.getRow(), wsMessage.getCol());
                 session.sendMessage(new TextMessage(objectMapper.writeValueAsString(possibleMoves)));
                 break;
             default:
