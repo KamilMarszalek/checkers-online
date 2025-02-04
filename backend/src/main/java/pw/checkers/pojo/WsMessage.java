@@ -13,4 +13,6 @@ public class WsMessage {
     private String type;
     private String gameId;
     private Move move;
+    private int row;
+    private int col;
 }
