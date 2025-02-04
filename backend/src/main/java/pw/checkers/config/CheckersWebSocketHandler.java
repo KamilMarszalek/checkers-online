@@ -14,12 +14,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MyWebSocketHandler extends TextWebSocketHandler {
+public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private final GameService gameService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, Set<WebSocketSession>> sessionsByGame = new ConcurrentHashMap<>();
 
-    public MyWebSocketHandler(GameService gameService) {
+    public CheckersWebSocketHandler(GameService gameService) {
         this.gameService = gameService;
     }
 
