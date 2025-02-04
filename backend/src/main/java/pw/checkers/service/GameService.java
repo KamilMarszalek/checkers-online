@@ -110,6 +110,9 @@ public class GameService {
     public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
         Piece[][] board = gameState.getBoard();
         Piece pawn = board[row][col];
+        if (pawn == null) {
+            return new PossibleMoves();
+        }
         if (pawn.getType().equals(PieceType.KING)) {
             return getPossibleMovesForKing(gameState, row, col);
         }
