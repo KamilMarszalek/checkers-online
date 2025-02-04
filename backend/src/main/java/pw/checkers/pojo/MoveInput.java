@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Move {
+public class MoveInput {
     private int fromRow;
     private int fromColumn;
     private int toRow;
