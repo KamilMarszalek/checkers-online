@@ -157,15 +157,11 @@ public class GameService {
         PieceColor color = piece.getColor();
         boolean anyCaptureInColor = hasAnyCapture(gameState, color);
         if (anyCaptureInColor) {
-            if (findTakes(possibleMoves, board, row, col, isKing)) {
-                return possibleMoves;
-            } else {
-                return possibleMoves;
-            }
+            findTakes(possibleMoves, board, row, col, isKing);
         } else {
             findOtherMoves(possibleMoves, board, row, col, isKing);
-            return possibleMoves;
         }
+        return possibleMoves;
     }
 
     private void findOtherMoves(PossibleMoves possibleMoves,Piece[][] board, int row, int col, boolean isKing) {
