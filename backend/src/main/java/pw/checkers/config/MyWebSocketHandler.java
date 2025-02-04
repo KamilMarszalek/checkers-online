@@ -6,6 +6,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pw.checkers.pojo.GameState;
+import pw.checkers.pojo.PossibleMoves;
 import pw.checkers.pojo.WsMessage;
 import pw.checkers.service.GameService;
 
@@ -35,10 +36,10 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         sessionsByGame
                 .computeIfAbsent(gameId, k -> ConcurrentHashMap.newKeySet())
                 .add(session);
+        GameState currentState = gameService.getGame(gameId);
 
         switch (wsMessage.getType()) {
             case "join":
-                GameState currentState = gameService.getGame(gameId);
                 String joinResponse = objectMapper.writeValueAsString(currentState);
                 session.sendMessage(new TextMessage(joinResponse));
                 break;
@@ -50,6 +51,10 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                         ws.sendMessage(new TextMessage(moveResponse));
                     }
                 }
+                break;
+            case "possibilities":
+                PossibleMoves possibleMoves = gameService.getPossibleMoves(currentState, wsMessage.getRow(), wsMessage.getCol());
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(possibleMoves)));
                 break;
             default:
                 session.sendMessage(new TextMessage("Unknown message type"));
