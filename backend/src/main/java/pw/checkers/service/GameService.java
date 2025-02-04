@@ -3,9 +3,7 @@ package pw.checkers.service;
 import org.springframework.stereotype.Service;
 import pw.checkers.pojo.*;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Math.abs;
@@ -132,45 +130,66 @@ public class GameService {
         if (findTakesPawn(possibleMoves, board, row, col)) {
             return possibleMoves;
         }
+        findOtherMovesPawn(possibleMoves, board, row, col);
         return possibleMoves;
     }
 
-    private boolean findTakesPawn(PossibleMoves possibleMoves, Piece[][] board, int i, int j) {
-        Piece pawn = board[i][j];
-        if (pawn.getColor().equals(PieceColor.BLACK)) {
-            if (i + 2 < board.length && j + 2 < board[i].length) {
-                if (board[i + 1][j + 1] != null) {
-                    if (board[i + 1][j + 1].getColor().equals(PieceColor.WHITE) && board[i + 2][j + 2] == null) {
-                        possibleMoves.getMoves().add(new Move(i, j, i + 2, j + 2));
-                    }
-                }
+    private void findOtherMovesPawn(PossibleMoves possibleMoves,Piece[][] board, int row, int col) {
+        Piece pawn = board[row][col];
+        PieceColor color = pawn.getColor();
+        List<int[]> directions = (color == PieceColor.BLACK)
+                ? Arrays.asList(new int[]{1,1}, new int[]{1,-1})
+                : Arrays.asList(new int[]{-1,1}, new int[]{-1,-1});
+        for (int[] direction : directions) {
+            int deltaRow = direction[0];
+            int deltaCol = direction[1];
+
+            int landingRow = row + deltaRow;
+            int landingCol = col + deltaCol;
+
+            if (landingRow < 0 || landingRow >= board.length
+                    || landingCol < 0 || landingCol >= board[0].length) {
+                continue;
             }
 
-            if (i + 2 < board.length && j - 2 >= 0) {
-                if ( board[i + 1][j - 1] != null) {
-                    if (board[i + 1][j - 1].getColor().equals(PieceColor.WHITE) && board[i + 2][j - 2] == null) {
-                        possibleMoves.getMoves().add(new Move(i, j, i + 2, j - 2));
-                    }
-                }
+            if (board[landingRow][landingCol] == null) {
+                possibleMoves.getMoves().add(new Move(row, col, landingRow, landingCol));
             }
         }
-        if (pawn.getColor().equals(PieceColor.WHITE)) {
-            if (i - 2 >= 0 && j + 2 < board[i].length) {
-                if (board[i - 1][j + 1] != null) {
-                    if (board[i - 1][j + 1].getColor().equals(PieceColor.BLACK) && board[i - 2][j + 2] == null) {
-                        possibleMoves.getMoves().add(new Move(i, j, i - 2, j + 2));
-                    }
-                }
+    }
+
+    private boolean findTakesPawn(PossibleMoves possibleMoves, Piece[][] board, int row, int col) {
+        Piece pawn = board[row][col];
+        PieceColor color = pawn.getColor();
+
+        PieceColor opponentColor = (color == PieceColor.BLACK) ? PieceColor.WHITE : PieceColor.BLACK;
+        List<int[]> directions = (color == PieceColor.BLACK)
+                ? Arrays.asList(new int[]{1,1}, new int[]{1,-1})
+                : Arrays.asList(new int[]{-1,1}, new int[]{-1,-1});
+
+        for (int[] direction : directions) {
+            int deltaRow = direction[0];
+            int deltaCol = direction[1];
+
+            int middleRow = row + deltaRow;
+            int middleCol = col + deltaCol;
+
+            int landingRow = row + 2 * deltaRow;
+            int landingCol = col + 2 * deltaCol;
+
+            if (landingRow < 0 || landingRow >= board.length
+                    || landingCol < 0 || landingCol >= board[0].length) {
+                continue;
             }
 
-            if (i - 2 >= 0 && j - 2 >= 0) {
-                if ( board[i - 1][j - 1] != null) {
-                    if (board[i - 1][j - 1].getColor().equals(PieceColor.BLACK) && board[i - 2][j - 2] == null) {
-                        possibleMoves.getMoves().add(new Move(i, j, i - 2, j - 2));
-                    }
-                }
+            if (board[middleRow][middleCol] != null
+                    && board[middleRow][middleCol].getColor() == opponentColor
+                    && board[landingRow][landingCol] == null) {
+                possibleMoves.getMoves().add(new Move(row, col, landingRow, landingCol));
             }
         }
+
         return !possibleMoves.getMoves().isEmpty();
     }
+
 }
