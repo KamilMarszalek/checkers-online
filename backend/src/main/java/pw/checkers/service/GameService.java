@@ -55,7 +55,7 @@ public class GameService {
         if (!colorMatchesCurrentPlayer(piece.getColor(), gameState.getCurrentPlayer())) {
             return false;
         }
-        PossibleMoves pm = getPossibleMovesHelper(gameState, move.getFromRow(), move.getFromColumn());
+        PossibleMoves pm = getPossibleMoves(gameState, move.getFromRow(), move.getFromColumn());
         return pm.getMoves().contains(move);
     }
 
@@ -113,7 +113,7 @@ public class GameService {
         return gameState;
     }
 
-    public PossibleMoves getPossibleMovesHelper(GameState gameState, int row, int col) {
+    public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
         Piece[][] board = gameState.getBoard();
         Piece pawn = board[row][col];
         if (pawn == null) {
