@@ -112,15 +112,47 @@ public class GameService {
         return getPossibleMovesHelper(gameState, row, col, false);
     }
 
+    private boolean hasAnyCapture(GameState gameState, PieceColor color) {
+        Piece[][] board = gameState.getBoard();
+
+        for (int row = 0; row < board.length; row++) {
+            for (int col = 0; col < board[row].length; col++) {
+                Piece p = board[row][col];
+                if (p != null && p.getColor() == color) {
+                    boolean isKing = (p.getType() == PieceType.KING);
+                    PossibleMoves temp = new PossibleMoves();
+                    temp.setMoves(new ArrayList<>());
+                    if (findTakes(temp, board, row, col, isKing)) {
+                        if (!temp.getMoves().isEmpty()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private PossibleMoves getPossibleMovesHelper(GameState gameState, int row, int col, boolean isKing) {
         PossibleMoves possibleMoves = new PossibleMoves();
         possibleMoves.setMoves(new ArrayList<>());
         Piece[][] board = gameState.getBoard();
-        if (findTakes(possibleMoves, board, row, col, isKing)) {
+        Piece piece = board[row][col];
+        if (piece == null) {
             return possibleMoves;
         }
-        findOtherMoves(possibleMoves, board, row, col, isKing);
-        return possibleMoves;
+        PieceColor color = piece.getColor();
+        boolean anyCaptureInColor = hasAnyCapture(gameState, color);
+        if (anyCaptureInColor) {
+            if (findTakes(possibleMoves, board, row, col, isKing)) {
+                return possibleMoves;
+            } else {
+                return possibleMoves;
+            }
+        } else {
+            findOtherMoves(possibleMoves, board, row, col, isKing);
+            return possibleMoves;
+        }
     }
 
     private void findOtherMoves(PossibleMoves possibleMoves,Piece[][] board, int row, int col, boolean isKing) {
