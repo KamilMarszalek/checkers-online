@@ -48,7 +48,21 @@ public class GameService {
     }
 
     private boolean validateMove(GameState gameState, Move move) {
-        return getPossibleMovesHelper(gameState, move.getFromRow(), move.getFromColumn()).getMoves().contains(move);
+        Piece[][] board = gameState.getBoard();
+        Piece piece = board[move.getFromRow()][move.getFromColumn()];
+        if (piece == null) return false;
+
+        if (!colorMatchesCurrentPlayer(piece.getColor(), gameState.getCurrentPlayer())) {
+            return false;
+        }
+        PossibleMoves pm = getPossibleMovesHelper(gameState, move.getFromRow(), move.getFromColumn());
+        return pm.getMoves().contains(move);
+    }
+
+    private boolean colorMatchesCurrentPlayer(PieceColor color, String currentPlayer) {
+        if (color == PieceColor.WHITE && "white".equals(currentPlayer)) return true;
+        if (color == PieceColor.BLACK && "black".equals(currentPlayer)) return true;
+        return false;
     }
 
     private void doTake(Piece[][] board, Move move) {
