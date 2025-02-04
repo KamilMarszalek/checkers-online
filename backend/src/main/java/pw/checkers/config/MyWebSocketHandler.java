@@ -6,7 +6,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pw.checkers.pojo.GameState;
-import pw.checkers.pojo.MoveRequest;
 import pw.checkers.pojo.WsMessage;
 import pw.checkers.service.GameService;
 
