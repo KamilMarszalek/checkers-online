@@ -5,16 +5,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
 @Setter
-@AllArgsConstructor
+@Getter
 @NoArgsConstructor
-public class Move {
-    private int fromRow;
-    private int fromColumn;
-    private int toRow;
-    private int toColumn;
+@AllArgsConstructor
+public class MoveOutput extends MoveInput{
     private boolean captured;
     private Integer capturedRow;
     private Integer capturedCol;
+    private boolean hasMoreTakes;
+
+    public MoveOutput (MoveInput move) {
+        super(move.getFromRow(), move.getFromColumn(), move.getToRow(), move.getToColumn());
+    }
 }

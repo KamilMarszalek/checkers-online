@@ -47,7 +47,7 @@ public class GameService {
         return games.get(gameId);
     }
 
-    private boolean validateMove(GameState gameState, Move move) {
+    private boolean validateMove(GameState gameState, MoveInput move) {
         Piece[][] board = gameState.getBoard();
         Piece piece = board[move.getFromRow()][move.getFromColumn()];
         if (piece == null) return false;
@@ -64,21 +64,24 @@ public class GameService {
         return color == PieceColor.BLACK && "black".equals(currentPlayer);
     }
 
-    private void doTake(Piece[][] board, Move move) {
+    private void doTake(Piece[][] board, MoveOutput move) {
         if (abs(move.getFromColumn() - move.getToColumn()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1) {
             int opponentRow = (move.getToRow() + move.getFromRow()) / 2;
             int opponentCol = (move.getToColumn() + move.getFromColumn()) / 2;
             board[opponentRow][opponentCol] = null;
+            move.setCapturedRow(opponentRow);
+            move.setCapturedCol(opponentCol);
+            move.setCaptured(true);
         }
     }
 
-    private void promotePiece(Piece pawn, Move move, GameState gameState) {
+    private void promotePiece(Piece pawn, MoveInput move, GameState gameState) {
         if ((gameState.getCurrentPlayer().equals("white") && move.getToRow() == 0) || (gameState.getCurrentPlayer().equals("black") && move.getToRow() == 7)) {
             pawn.setType(PieceType.KING);
         }
     }
 
-    private boolean hasMoreTakes(GameState gameState, Move move) {
+    private boolean hasMoreTakes(GameState gameState, MoveInput move) {
         Piece[][] board = gameState.getBoard();
         boolean isKing = board[move.getToRow()][move.getToColumn()].getType().equals(PieceType.KING);
         if (abs(move.getFromColumn() - move.getToColumn()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1 ) {
@@ -87,7 +90,8 @@ public class GameService {
         return false;
     }
 
-    public GameState makeMove(String gameId, Move move) {
+    public MoveOutput makeMove(String gameId, MoveInput move) {
+        MoveOutput response = new MoveOutput(move);
         GameState gameState = getGame(gameId);
         if (gameState == null || gameState.isFinished()){
             return null;
@@ -101,16 +105,17 @@ public class GameService {
         promotePiece(pawn, move, gameState);
         board[move.getToRow()][move.getToColumn()] = pawn;
         board[move.getFromRow()][move.getFromColumn()] = null;
-        doTake(board, move);
-        if (hasMoreTakes(gameState, move)) {
-            return gameState;
+        doTake(board, response);
+        if (hasMoreTakes(gameState, response)) {
+            response.setHasMoreTakes(true);
+            return response;
         }
         if (gameState.getCurrentPlayer().equals("white")) {
             gameState.setCurrentPlayer("black");
         } else {
             gameState.setCurrentPlayer("white");
         }
-        return gameState;
+        return response;
     }
 
     public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
@@ -186,7 +191,7 @@ public class GameService {
             }
 
             if (board[landingRow][landingCol] == null) {
-                possibleMoves.getMoves().add(new Move(row, col, landingRow, landingCol, false, null, null));
+                possibleMoves.getMoves().add(new MoveInput(row, col, landingRow, landingCol));
             }
         }
     }
@@ -221,7 +226,7 @@ public class GameService {
             if (board[middleRow][middleCol] != null
                     && board[middleRow][middleCol].getColor() == opponentColor
                     && board[landingRow][landingCol] == null) {
-                possibleMoves.getMoves().add(new Move(row, col, landingRow, landingCol, true, middleRow, middleCol));
+                possibleMoves.getMoves().add(new MoveInput(row, col, landingRow, landingCol));
             }
         }
 

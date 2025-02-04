@@ -5,9 +5,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import pw.checkers.pojo.GameState;
-import pw.checkers.pojo.PossibleMoves;
-import pw.checkers.pojo.WsMessage;
+import pw.checkers.pojo.*;
 import pw.checkers.service.GameService;
 
 import java.util.Map;
@@ -44,8 +42,8 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 session.sendMessage(new TextMessage(joinResponse));
                 break;
             case "move":
-                GameState updatedState = gameService.makeMove(gameId, wsMessage.getMove());
-                String moveResponse = objectMapper.writeValueAsString(updatedState);
+                MoveOutput move = gameService.makeMove(gameId, wsMessage.getMove());
+                String moveResponse = objectMapper.writeValueAsString(move);
                 for (WebSocketSession ws : sessionsByGame.getOrDefault(gameId, Set.of())) {
                     if (ws.isOpen()) {
                         ws.sendMessage(new TextMessage(moveResponse));
