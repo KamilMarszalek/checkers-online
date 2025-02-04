@@ -48,7 +48,7 @@ public class GameService {
     }
 
     private boolean validateMove(GameState gameState, Move move) {
-        return getPossibleMovesHelper(gameState, move.getFromRow(), move.getFromColumn());
+        return getPossibleMovesHelper(gameState, move.getFromRow(), move.getFromColumn()).getMoves().contains(move);
     }
 
     private void doTake(Piece[][] board, Move move) {
