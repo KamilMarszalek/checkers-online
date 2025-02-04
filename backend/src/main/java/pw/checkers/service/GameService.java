@@ -61,6 +61,12 @@ public class GameService {
         }
     }
 
+    private void promotePiece(Piece pawn, Move move, GameState gameState) {
+        if ((gameState.getCurrentPlayer().equals("white") && move.getToRow() == 0) || (gameState.getCurrentPlayer().equals("black") && move.getToColumn() == 7)) {
+            pawn.setType(PieceType.KING);
+        }
+    }
+
     private boolean hasMoreTakes(GameState gameState, Move move) {
         Piece[][] board = gameState.getBoard();
         if (abs(move.getFromColumn() - move.getToColumn()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1 ) {
@@ -87,6 +93,7 @@ public class GameService {
         }
         Piece[][] board = gameState.getBoard();
         Piece pawn = board[move.getFromRow()][move.getFromColumn()];
+        promotePiece(pawn, move, gameState);
         board[move.getToRow()][move.getToColumn()] = pawn;
         board[move.getFromRow()][move.getFromColumn()] = null;
         doTake(board, move);
