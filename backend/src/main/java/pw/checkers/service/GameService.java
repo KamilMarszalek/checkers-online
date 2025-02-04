@@ -61,22 +61,16 @@ public class GameService {
     }
 
     private void promotePiece(Piece pawn, Move move, GameState gameState) {
-        if ((gameState.getCurrentPlayer().equals("white") && move.getToRow() == 0) || (gameState.getCurrentPlayer().equals("black") && move.getToColumn() == 7)) {
+        if ((gameState.getCurrentPlayer().equals("white") && move.getToRow() == 0) || (gameState.getCurrentPlayer().equals("black") && move.getToRow() == 7)) {
             pawn.setType(PieceType.KING);
         }
     }
 
     private boolean hasMoreTakes(GameState gameState, Move move) {
         Piece[][] board = gameState.getBoard();
+        boolean isKing = board[move.getToRow()][move.getToColumn()].getType().equals(PieceType.KING);
         if (abs(move.getFromColumn() - move.getToColumn()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1 ) {
-            if (gameState.getCurrentPlayer().equals("white")) {
-                //TODO find next take
-                return true;
-            }
-            else {
-                //TODO find next take
-                return true;
-            }
+            return findTakes(new PossibleMoves(), board, move.getToRow(), move.getToColumn(), isKing);
         }
         return false;
     }
@@ -114,35 +108,31 @@ public class GameService {
             return new PossibleMoves();
         }
         if (pawn.getType().equals(PieceType.KING)) {
-            return getPossibleMovesForKing(gameState, row, col);
+            return getPossibleMoves(gameState, row, col, true);
         }
-        return getPossibleMovesForPawn(gameState, row, col);
+        return getPossibleMoves(gameState, row, col, false);
     }
 
-    private PossibleMoves getPossibleMovesForKing(GameState gameState, int row, int col) {
-        PossibleMoves possibleMoves = new PossibleMoves();
-        Piece[][] board = gameState.getBoard();
-        //TODO
-        return possibleMoves;
-    }
-
-    private PossibleMoves getPossibleMovesForPawn(GameState gameState, int row, int col) {
+    private PossibleMoves getPossibleMoves(GameState gameState, int row, int col, boolean isKing) {
         PossibleMoves possibleMoves = new PossibleMoves();
         possibleMoves.setMoves(new ArrayList<>());
         Piece[][] board = gameState.getBoard();
-        if (findTakesPawn(possibleMoves, board, row, col)) {
+        if (findTakes(possibleMoves, board, row, col, isKing)) {
             return possibleMoves;
         }
-        findOtherMovesPawn(possibleMoves, board, row, col);
+        findOtherMoves(possibleMoves, board, row, col, isKing);
         return possibleMoves;
     }
 
-    private void findOtherMovesPawn(PossibleMoves possibleMoves,Piece[][] board, int row, int col) {
+    private void findOtherMoves(PossibleMoves possibleMoves,Piece[][] board, int row, int col, boolean isKing) {
         Piece pawn = board[row][col];
         PieceColor color = pawn.getColor();
         List<int[]> directions = (color == PieceColor.BLACK)
                 ? Arrays.asList(new int[]{1,1}, new int[]{1,-1})
                 : Arrays.asList(new int[]{-1,1}, new int[]{-1,-1});
+        if (isKing) {
+            directions = Arrays.asList(new int[]{1, 1}, new int[]{1, -1}, new int[]{-1, 1}, new int[]{-1, -1});
+        }
         for (int[] direction : directions) {
             int deltaRow = direction[0];
             int deltaCol = direction[1];
@@ -161,7 +151,7 @@ public class GameService {
         }
     }
 
-    private boolean findTakesPawn(PossibleMoves possibleMoves, Piece[][] board, int row, int col) {
+    private boolean findTakes(PossibleMoves possibleMoves, Piece[][] board, int row, int col, boolean isKing) {
         Piece pawn = board[row][col];
         PieceColor color = pawn.getColor();
 
@@ -169,6 +159,9 @@ public class GameService {
         List<int[]> directions = (color == PieceColor.BLACK)
                 ? Arrays.asList(new int[]{1,1}, new int[]{1,-1})
                 : Arrays.asList(new int[]{-1,1}, new int[]{-1,-1});
+        if (isKing) {
+            directions = Arrays.asList(new int[]{1,1}, new int[]{-1,1}, new int[]{-1,-1}, new int[]{1,-1});
+        }
 
         for (int[] direction : directions) {
             int deltaRow = direction[0];
