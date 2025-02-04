@@ -7,6 +7,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pw.checkers.pojo.GameState;
 import pw.checkers.pojo.MoveRequest;
+import pw.checkers.pojo.WsMessage;
 import pw.checkers.service.GameService;
 
 import java.util.Map;
@@ -30,17 +31,30 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        MoveRequest moveRequest = objectMapper.readValue(message.getPayload(), MoveRequest.class);
+        WsMessage wsMessage = objectMapper.readValue(message.getPayload(), WsMessage.class);
+        String gameId = wsMessage.getGameId();
         sessionsByGame
-                .computeIfAbsent(moveRequest.getGameId(), k -> ConcurrentHashMap.newKeySet())
+                .computeIfAbsent(gameId, k -> ConcurrentHashMap.newKeySet())
                 .add(session);
 
-        GameState updatedState = gameService.makeMove(moveRequest.getGameId(), moveRequest.getMove());
-        String responseJson = objectMapper.writeValueAsString(updatedState);
-        for (WebSocketSession ws : sessionsByGame.getOrDefault(moveRequest.getGameId(), Set.of())) {
-            if (ws.isOpen()) {
-                ws.sendMessage(new TextMessage(responseJson));
-            }
+        switch (wsMessage.getType()) {
+            case "join":
+                GameState currentState = gameService.getGame(gameId);
+                String joinResponse = objectMapper.writeValueAsString(currentState);
+                session.sendMessage(new TextMessage(joinResponse));
+                break;
+            case "move":
+                GameState updatedState = gameService.makeMove(gameId, wsMessage.getMove());
+                String moveResponse = objectMapper.writeValueAsString(updatedState);
+                for (WebSocketSession ws : sessionsByGame.getOrDefault(gameId, Set.of())) {
+                    if (ws.isOpen()) {
+                        ws.sendMessage(new TextMessage(moveResponse));
+                    }
+                }
+                break;
+            default:
+                session.sendMessage(new TextMessage("Unknown message type"));
+                break;
         }
     }
 
