@@ -12,5 +12,5 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PossibleMoves {
-    private List<MoveInput> moves;
+    private List<Move> moves;
 }
