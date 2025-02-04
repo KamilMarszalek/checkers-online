@@ -3,6 +3,7 @@ package pw.checkers.service;
 import org.springframework.stereotype.Service;
 import pw.checkers.pojo.*;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -126,8 +127,50 @@ public class GameService {
 
     private PossibleMoves getPossibleMovesForPawn(GameState gameState, int row, int col) {
         PossibleMoves possibleMoves = new PossibleMoves();
+        possibleMoves.setMoves(new ArrayList<>());
         Piece[][] board = gameState.getBoard();
-        // TODO
+        if (findTakesPawn(possibleMoves, board, row, col)) {
+            return possibleMoves;
+        }
         return possibleMoves;
+    }
+
+    private boolean findTakesPawn(PossibleMoves possibleMoves, Piece[][] board, int i, int j) {
+        Piece pawn = board[i][j];
+        if (pawn.getColor().equals(PieceColor.BLACK)) {
+            if (i + 2 < board.length && j + 2 < board[i].length) {
+                if (board[i + 1][j + 1] != null) {
+                    if (board[i + 1][j + 1].getColor().equals(PieceColor.WHITE) && board[i + 2][j + 2] == null) {
+                        possibleMoves.getMoves().add(new Move(i, j, i + 2, j + 2));
+                    }
+                }
+            }
+
+            if (i + 2 < board.length && j - 2 >= 0) {
+                if ( board[i + 1][j - 1] != null) {
+                    if (board[i + 1][j - 1].getColor().equals(PieceColor.WHITE) && board[i + 2][j - 2] == null) {
+                        possibleMoves.getMoves().add(new Move(i, j, i + 2, j - 2));
+                    }
+                }
+            }
+        }
+        if (pawn.getColor().equals(PieceColor.WHITE)) {
+            if (i - 2 >= 0 && j + 2 < board[i].length) {
+                if (board[i - 1][j + 1] != null) {
+                    if (board[i - 1][j + 1].getColor().equals(PieceColor.BLACK) && board[i - 2][j + 2] == null) {
+                        possibleMoves.getMoves().add(new Move(i, j, i - 2, j + 2));
+                    }
+                }
+            }
+
+            if (i - 2 >= 0 && j - 2 >= 0) {
+                if ( board[i - 1][j - 1] != null) {
+                    if (board[i - 1][j - 1].getColor().equals(PieceColor.BLACK) && board[i - 2][j - 2] == null) {
+                        possibleMoves.getMoves().add(new Move(i, j, i - 2, j - 2));
+                    }
+                }
+            }
+        }
+        return !possibleMoves.getMoves().isEmpty();
     }
 }
