@@ -184,4 +184,38 @@ public class GameServiceTests {
 
         assertEquals(PieceType.KING, board[0][3].getType());
     }
+
+    @Test
+    void makeMove_ShouldReturnNull_WhenMovingPieceOfWrongColor() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+
+        MoveInput blackMove = new MoveInput(2, 1, 3, 2);
+        MoveOutput result = gameService.makeMove(gameId, blackMove);
+
+        assertNull(result);
+    }
+
+    @Test
+    void makeMove_ShouldReturnNull_WhenFromFieldIsEmpty() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+
+        MoveInput emptyFieldMove = new MoveInput(4, 4, 3, 3);
+        MoveOutput result = gameService.makeMove(gameId, emptyFieldMove);
+
+        assertNull(result);
+    }
+
+    @Test
+    void makeMove_ShouldReturnNull_WhenGameIsAlreadyFinished() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+        gameState.setFinished(true);
+
+        MoveInput anyMove = new MoveInput(5, 2, 4, 3);
+        MoveOutput result = gameService.makeMove(gameId, anyMove);
+
+        assertNull(result);
+    }
 }
