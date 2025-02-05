@@ -374,4 +374,49 @@ public class GameServiceTests {
         assertTrue(gameState.isFinished());
         assertEquals("white", gameState.getWinner());
     }
+
+    @Test
+    void testNoPossibleMovesForEitherSide_ShouldResultInDraw() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+        Piece[][] board = gameState.getBoard();
+
+        for (Piece[] pieces : board) {
+            Arrays.fill(pieces, null);
+        }
+        board[0][0] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[0][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[7][5] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+        board[7][7] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+        board[2][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        gameService.makeMove(gameId, new MoveInput(2,2,1,1));
+        boolean isDraw = (gameState.isFinished() && gameState.getWinner() == null);
+        assertTrue(isDraw, "Game should be finished as a draw if no moves are possible for both sides.");
+    }
+
+    @Test
+    void testFiftyMovesWithoutCapture_ShouldResultInDraw() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+        Piece[][] board = gameState.getBoard();
+        gameState.setNoCapturesCounter(49);
+        MoveInput move = new MoveInput(5, 2, 4, 3);
+        MoveOutput moveResult = gameService.makeMove(gameId, move);
+
+        assertNotNull(moveResult, "Move itself should be valid (assuming it was indeed valid on board).");
+        boolean isDraw = (gameState.isFinished() && gameState.getWinner() == null);
+
+        assertTrue(isDraw, "Game should be finished as a draw after 50 moves without capture.");
+    }
+
+    @Test
+    void testThreefoldRepetition_ShouldResultInDraw() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+        gameService.makeMove(gameId, new MoveInput(5, 2, 4, 3));
+        gameService.makeMove(gameId, new MoveInput(2, 3, 3, 2));
+
+        boolean isDraw = (gameState.isFinished() && gameState.getWinner() == null);
+        assertTrue(isDraw);
+    }
 }
