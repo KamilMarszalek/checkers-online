@@ -15,6 +15,8 @@ public class GameService {
     public GameState createGame() {
         String newGameId = UUID.randomUUID().toString();
         GameState gameState = new GameState();
+        gameState.setWhitePiecesLeft(12);
+        gameState.setBlackPiecesLeft(12);
         gameState.setGameId(newGameId);
         initializeBoard(gameState);
         gameState.setCurrentPlayer("white");
@@ -64,10 +66,17 @@ public class GameService {
         return color == PieceColor.BLACK && "black".equals(currentPlayer);
     }
 
-    private void doTake(Piece[][] board, MoveOutput move) {
+    private void doTake(GameState gameState, MoveOutput move) {
+        Piece[][] board = gameState.getBoard();
         if (abs(move.getFromColumn() - move.getToColumn()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1) {
             int opponentRow = (move.getToRow() + move.getFromRow()) / 2;
             int opponentCol = (move.getToColumn() + move.getFromColumn()) / 2;
+            Piece capturedPiece = board[opponentRow][opponentCol];
+            if (capturedPiece.getColor().equals(PieceColor.BLACK)) {
+                gameState.setBlackPiecesLeft(gameState.getBlackPiecesLeft() - 1);
+            } else if (capturedPiece.getColor().equals(PieceColor.WHITE)) {
+                gameState.setWhitePiecesLeft(gameState.getWhitePiecesLeft() - 1);
+            }
             board[opponentRow][opponentCol] = null;
             move.setCapturedRow(opponentRow);
             move.setCapturedCol(opponentCol);
@@ -105,10 +114,13 @@ public class GameService {
         promotePiece(pawn, move, gameState);
         board[move.getToRow()][move.getToColumn()] = pawn;
         board[move.getFromRow()][move.getFromColumn()] = null;
-        doTake(board, response);
+        doTake(gameState, response);
         if (hasMoreTakes(gameState, response)) {
             response.setHasMoreTakes(true);
             return response;
+        }
+        if (gameEnded(gameState)) {
+            setWinner(gameState);
         }
         if (gameState.getCurrentPlayer().equals("white")) {
             gameState.setCurrentPlayer("black");
@@ -116,6 +128,20 @@ public class GameService {
             gameState.setCurrentPlayer("white");
         }
         return response;
+    }
+
+    private boolean gameEnded(GameState gameState) {
+        return gameState.getBlackPiecesLeft() == 0 || gameState.getWhitePiecesLeft() == 0;
+    }
+
+    private void setWinner(GameState gameState) {
+        if (gameState.getWhitePiecesLeft() > 0 && gameState.getBlackPiecesLeft() == 0) {
+            gameState.setWinner("white");
+            gameState.setFinished(true);
+        } else if (gameState.getBlackPiecesLeft() > 0 && gameState.getWhitePiecesLeft() == 0) {
+            gameState.setWinner("black");
+            gameState.setFinished(true);
+        }
     }
 
     public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
