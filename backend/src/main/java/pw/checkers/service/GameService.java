@@ -17,7 +17,9 @@ public class GameService {
         GameState gameState = new GameState();
         gameState.setWhitePiecesLeft(12);
         gameState.setBlackPiecesLeft(12);
+        gameState.setNoCapturesCounter(0);
         gameState.setGameId(newGameId);
+        gameState.setNumberOfPositions(new HashMap<>());
         initializeBoard(gameState);
         gameState.setCurrentPlayer("white");
         gameState.setWinner(null);
@@ -81,6 +83,7 @@ public class GameService {
             move.setCapturedRow(opponentRow);
             move.setCapturedCol(opponentCol);
             move.setCaptured(true);
+            gameState.setNoCapturesCounter(0);
         }
     }
 
@@ -114,13 +117,19 @@ public class GameService {
         promotePiece(pawn, move, gameState);
         board[move.getToRow()][move.getToColumn()] = pawn;
         board[move.getFromRow()][move.getFromColumn()] = null;
+        gameState.setNoCapturesCounter(gameState.getNoCapturesCounter() + 1);
         doTake(gameState, response);
         if (hasMoreTakes(gameState, response)) {
             response.setHasMoreTakes(true);
             return response;
         }
-        if (gameEnded(gameState)) {
+        if (hasSomebodyWon(gameState)) {
             setWinner(gameState);
+        }
+        int posCounter = gameState.getNumberOfPositions().get(gameState.boardToString()) == null ? 0 : gameState.getNumberOfPositions().get(gameState.boardToString());
+        gameState.getNumberOfPositions().put(gameState.boardToString(), posCounter + 1);
+        if (isDraw(gameState) && gameState.getWinner() != null) {
+            setDraw(gameState);
         }
         if (gameState.getCurrentPlayer().equals("white")) {
             gameState.setCurrentPlayer("black");
@@ -130,7 +139,49 @@ public class GameService {
         return response;
     }
 
-    private boolean gameEnded(GameState gameState) {
+    private void setDraw(GameState gameState) {
+        gameState.setFinished(true);
+    }
+
+    private boolean isDraw(GameState gameState) {
+        String currentPlayer = gameState.getCurrentPlayer();
+        String otherPlayer = gameState.getCurrentPlayer().equals("white") ? "black" : "white";
+        if (!playerHasMoves(gameState, currentPlayer) && !playerHasMoves(gameState, otherPlayer)) {
+            return true;
+        }
+        if (isFiftyMoveViolation(gameState)) {
+            return true;
+        }
+        if (isPositionRepeatedThreeTimes(gameState)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean playerHasMoves(GameState gameState, String player) {
+        for (int row = 0; row < gameState.getBoard().length; row++) {
+            for (int column = 0; column < gameState.getBoard()[row].length; column++) {
+                if (gameState.getBoard()[row][column] != null) {
+                    if (colorMatchesCurrentPlayer(gameState.getBoard()[row][column].getColor(), player)) {
+                        if (!getPossibleMoves(gameState, row, column).getMoves().isEmpty()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isPositionRepeatedThreeTimes(GameState gameState) {
+        return gameState.getNumberOfPositions().get(gameState.boardToString()) >= 3;
+    }
+
+    private boolean isFiftyMoveViolation(GameState gameState) {
+        return gameState.getNoCapturesCounter() >= 50;
+    }
+
+    private boolean hasSomebodyWon(GameState gameState) {
         return gameState.getBlackPiecesLeft() == 0 || gameState.getWhitePiecesLeft() == 0;
     }
 
