@@ -119,18 +119,19 @@ public class GameService {
         board[move.getFromRow()][move.getFromColumn()] = null;
         gameState.setNoCapturesCounter(gameState.getNoCapturesCounter() + 1);
         doTake(gameState, response);
+        int posCounter = gameState.getNumberOfPositions().get(gameState.boardToString()) == null ? 0 : gameState.getNumberOfPositions().get(gameState.boardToString());
+        gameState.getNumberOfPositions().put(gameState.boardToString(), posCounter + 1);
         if (hasMoreTakes(gameState, response)) {
             response.setHasMoreTakes(true);
             return response;
         }
+
         if (hasSomebodyWon(gameState)) {
             setWinner(gameState);
-        }
-        int posCounter = gameState.getNumberOfPositions().get(gameState.boardToString()) == null ? 0 : gameState.getNumberOfPositions().get(gameState.boardToString());
-        gameState.getNumberOfPositions().put(gameState.boardToString(), posCounter + 1);
-        if (isDraw(gameState) && gameState.getWinner() == null) {
+        } else if (isDraw(gameState)) {
             setDraw(gameState);
         }
+
         if (gameState.getCurrentPlayer().equals("white")) {
             gameState.setCurrentPlayer("black");
         } else {
@@ -187,10 +188,9 @@ public class GameService {
 
         String currentPlayer = gameState.getCurrentPlayer();
         String otherPlayer = "white".equals(currentPlayer) ? "black" : "white";
-        if (!playerHasMoves(gameState, currentPlayer) && playerHasMoves(gameState, otherPlayer)) {
+        if (!playerHasMoves(gameState, otherPlayer) && playerHasMoves(gameState, currentPlayer)) {
             return true;
         }
-
         return false;
     }
 
@@ -207,8 +207,8 @@ public class GameService {
             gameState.setFinished(true);
             return;
         }
-        if (!playerHasMoves(gameState, currentPlayer) && playerHasMoves(gameState, otherPlayer)) {
-            gameState.setWinner(otherPlayer);
+        if (!playerHasMoves(gameState, otherPlayer) && playerHasMoves(gameState, currentPlayer)) {
+            gameState.setWinner(currentPlayer);
             gameState.setFinished(true);
         }
     }
