@@ -128,7 +128,7 @@ public class GameService {
         }
         int posCounter = gameState.getNumberOfPositions().get(gameState.boardToString()) == null ? 0 : gameState.getNumberOfPositions().get(gameState.boardToString());
         gameState.getNumberOfPositions().put(gameState.boardToString(), posCounter + 1);
-        if (isDraw(gameState) && gameState.getWinner() != null) {
+        if (isDraw(gameState) && gameState.getWinner() == null) {
             setDraw(gameState);
         }
         if (gameState.getCurrentPlayer().equals("white")) {
