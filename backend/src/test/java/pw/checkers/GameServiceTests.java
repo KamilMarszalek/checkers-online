@@ -116,7 +116,7 @@ public class GameServiceTests {
     }
 
     @Test
-    void makeMove_ShouldHandleCaptureCorrectly() {
+    void makeMove_ShouldHandleSingleCaptureCorrectly() {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
         Piece[][] board = gameState.getBoard();
@@ -128,6 +128,13 @@ public class GameServiceTests {
         MoveOutput result = gameService.makeMove(gameId, captureMove);
 
         assertNotNull(result);
+        assertEquals(result.getFromColumn(), captureMove.getFromColumn());
+        assertEquals(result.getFromRow(), captureMove.getFromRow());
+        assertEquals(result.getToColumn(), captureMove.getToColumn());
+        assertEquals(result.getToRow(), captureMove.getToRow());
+        assertEquals(result.getCapturedRow(), 4);
+        assertEquals(result.getCapturedCol(), 3);
+        assertFalse(result.isHasMoreTakes());
         assertTrue(result.isCaptured());
         assertNull(board[4][3]);
     }
