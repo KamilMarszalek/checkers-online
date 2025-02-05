@@ -7,9 +7,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class MoveRequest {
+@AllArgsConstructor
+public class WsMessage {
+    private String type;
     private String gameId;
-    private Move move;
+    private MoveInput move;
+    private int row;
+    private int col;
 }
