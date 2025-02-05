@@ -362,6 +362,9 @@ public class GameServiceTests {
         board[3][2] = new Piece(PieceColor.BLACK, PieceType.PAWN);
         board[4][1] = new Piece(PieceColor.WHITE, PieceType.PAWN);
 
+        gameState.setBlackPiecesLeft(1);
+        gameState.setWhitePiecesLeft(1);
+
         MoveInput captureMove = new MoveInput(4, 1, 2, 3);
         MoveOutput result = gameService.makeMove(gameId, captureMove);
 
