@@ -349,4 +349,26 @@ public class GameServiceTests {
         }
     }
 
+    @Test
+    void shouldEndGame_WhenAllBlackPiecesAreCaptured() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+        Piece[][] board = gameState.getBoard();
+
+        for (Piece[] pieces : board) {
+            Arrays.fill(pieces, null);
+        }
+
+        board[3][2] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+        board[4][1] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+
+        MoveInput captureMove = new MoveInput(4, 1, 2, 3);
+        MoveOutput result = gameService.makeMove(gameId, captureMove);
+
+        assertNotNull(result);
+        assertTrue(result.isCaptured());
+        assertFalse(result.isHasMoreTakes());
+        assertTrue(gameState.isFinished());
+        assertEquals("white", gameState.getWinner());
+    }
 }
