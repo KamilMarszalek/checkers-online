@@ -182,15 +182,33 @@ public class GameService {
     }
 
     private boolean hasSomebodyWon(GameState gameState) {
-        return gameState.getBlackPiecesLeft() == 0 || gameState.getWhitePiecesLeft() == 0;
+        if (gameState.getBlackPiecesLeft() == 0) return true;
+        if (gameState.getWhitePiecesLeft() == 0) return true;
+
+        String currentPlayer = gameState.getCurrentPlayer();
+        String otherPlayer = "white".equals(currentPlayer) ? "black" : "white";
+        if (!playerHasMoves(gameState, currentPlayer) && playerHasMoves(gameState, otherPlayer)) {
+            return true;
+        }
+
+        return false;
     }
 
     private void setWinner(GameState gameState) {
-        if (gameState.getWhitePiecesLeft() > 0 && gameState.getBlackPiecesLeft() == 0) {
+        String currentPlayer = gameState.getCurrentPlayer();
+        String otherPlayer = "white".equals(currentPlayer) ? "black" : "white";
+
+        if (gameState.getWhitePiecesLeft() == 0) {
+            gameState.setWinner("black");
+            gameState.setFinished(true);
+            return;
+        } else if (gameState.getBlackPiecesLeft() == 0) {
             gameState.setWinner("white");
             gameState.setFinished(true);
-        } else if (gameState.getBlackPiecesLeft() > 0 && gameState.getWhitePiecesLeft() == 0) {
-            gameState.setWinner("black");
+            return;
+        }
+        if (!playerHasMoves(gameState, currentPlayer) && playerHasMoves(gameState, otherPlayer)) {
+            gameState.setWinner(otherPlayer);
             gameState.setFinished(true);
         }
     }
