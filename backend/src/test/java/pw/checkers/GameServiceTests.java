@@ -398,7 +398,6 @@ public class GameServiceTests {
     void testFiftyMovesWithoutCapture_ShouldResultInDraw() {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
-        Piece[][] board = gameState.getBoard();
         gameState.setNoCapturesCounter(49);
         MoveInput move = new MoveInput(5, 2, 4, 3);
         MoveOutput moveResult = gameService.makeMove(gameId, move);
