@@ -167,6 +167,7 @@ public class GameServiceTests {
         assertTrue(result.isHasMoreTakes());
         assertTrue(result.isCaptured());
         assertNull(board[4][3]);
+        assertEquals(gameService.getGame(gameId).getCurrentPlayer(), "white");
     }
 
     @Test
