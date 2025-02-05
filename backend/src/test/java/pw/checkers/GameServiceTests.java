@@ -270,4 +270,42 @@ public class GameServiceTests {
         assertTrue(hasDownLeft);
         assertTrue(hasDownRight);
     }
+
+    @Test
+    void multipleCapturesInOneTurn_ByWhitePawn() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+
+        Piece[][] board = gameState.getBoard();
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                board[r][c] = null;
+            }
+        }
+
+        board[5][0] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+
+        board[4][1] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+        board[2][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+
+        MoveInput firstCapture = new MoveInput(5, 0, 3, 2);
+        MoveOutput firstOutput = gameService.makeMove(gameId, firstCapture);
+
+        assertNotNull(firstOutput);
+        assertTrue(firstOutput.isCaptured());
+        assertEquals(4, firstOutput.getCapturedRow());
+        assertEquals(1, firstOutput.getCapturedCol());
+        assertTrue(firstOutput.isHasMoreTakes());
+
+        MoveInput secondCapture = new MoveInput(3, 2, 1, 4);
+        MoveOutput secondOutput = gameService.makeMove(gameId, secondCapture);
+
+        assertNotNull(secondOutput);
+        assertTrue(secondOutput.isCaptured());
+        assertEquals(2, secondOutput.getCapturedRow());
+        assertEquals(3, secondOutput.getCapturedCol());
+        assertFalse(secondOutput.isHasMoreTakes());
+        assertEquals("black", gameService.getGame(gameId).getCurrentPlayer());
+    }
+
 }
