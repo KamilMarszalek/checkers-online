@@ -140,6 +140,36 @@ public class GameServiceTests {
     }
 
     @Test
+    void makeMove_ShouldHandleMultipleCaptureCorrectly() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+        Piece[][] board = gameState.getBoard();
+        for (int row = 0; row < board.length; row++) {
+            for (int col = 0; col < board.length; col++) {
+                board[row][col] = null;
+            }
+        }
+
+        board[4][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+        board[2][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+        board[5][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+
+        MoveInput captureMove = new MoveInput(5, 2, 3, 4);
+        MoveOutput result = gameService.makeMove(gameId, captureMove);
+
+        assertNotNull(result);
+        assertEquals(result.getFromColumn(), captureMove.getFromColumn());
+        assertEquals(result.getFromRow(), captureMove.getFromRow());
+        assertEquals(result.getToColumn(), captureMove.getToColumn());
+        assertEquals(result.getToRow(), captureMove.getToRow());
+        assertEquals(result.getCapturedRow(), 4);
+        assertEquals(result.getCapturedCol(), 3);
+        assertTrue(result.isHasMoreTakes());
+        assertTrue(result.isCaptured());
+        assertNull(board[4][3]);
+    }
+
+    @Test
     void makeMove_ShouldPromotePawnToKing() {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
