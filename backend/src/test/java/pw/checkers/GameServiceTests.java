@@ -31,13 +31,43 @@ public class GameServiceTests {
     @Test
     void createGame_ShouldInitializeGameCorrectly() {
         GameState gameState = gameService.createGame();
-
         assertNotNull(gameState);
         assertNotNull(gameState.getGameId());
         assertEquals("white", gameState.getCurrentPlayer());
         assertFalse(gameState.isFinished());
         assertNull(gameState.getWinner());
         assertNotNull(gameState.getBoard());
+        Piece[][] board = gameState.getBoard();
+        assertNotNull(board);
+
+        int boardSize = 8;
+        assertEquals(boardSize, board.length);
+
+        for (int row = 0; row < boardSize; row++) {
+            for (int col = 0; col < boardSize; col++) {
+                Piece piece = board[row][col];
+
+                if (row < 3) {
+                    if ((row + col) % 2 == 1) {
+                        assertNotNull(piece);
+                        assertEquals(PieceColor.BLACK, piece.getColor());
+                        assertEquals(PieceType.PAWN, piece.getType());
+                    } else {
+                        assertNull(piece);
+                    }
+                } else if (row > 4) {
+                    if ((row + col) % 2 == 1) {
+                        assertNotNull(piece);
+                        assertEquals(PieceColor.WHITE, piece.getColor());
+                        assertEquals(PieceType.PAWN, piece.getType());
+                    } else {
+                        assertNull(piece);
+                    }
+                } else {
+                    assertNull(piece);
+                }
+            }
+        }
     }
 
     @Test
