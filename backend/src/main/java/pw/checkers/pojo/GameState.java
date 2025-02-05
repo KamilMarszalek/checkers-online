@@ -16,4 +16,6 @@ public class GameState {
     private String currentPlayer;
     private boolean isFinished;
     private String winner;
+    private int whitePiecesLeft;
+    private int blackPiecesLeft;
 }
