@@ -8,6 +8,7 @@ import org.mockito.MockitoAnnotations;
 import pw.checkers.pojo.*;
 import pw.checkers.service.GameService;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -217,5 +218,56 @@ public class GameServiceTests {
         MoveOutput result = gameService.makeMove(gameId, anyMove);
 
         assertNull(result);
+    }
+
+    @Test
+    void getPossibleMoves_ShouldReturnOnlyCaptureMoves_IfCaptureExists() {
+        GameState gameState = gameService.createGame();
+        Piece[][] board = gameState.getBoard();
+
+        for (Piece[] pieces : board) {
+            Arrays.fill(pieces, null);
+        }
+        board[4][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+        board[5][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+
+
+        PossibleMoves pm = gameService.getPossibleMoves(gameState, 5, 2);
+
+        assertEquals(1, pm.getMoves().size());
+        MoveInput move = pm.getMoves().getFirst();
+        assertEquals(5, move.getFromRow());
+        assertEquals(2, move.getFromColumn());
+        assertEquals(3, move.getToRow());
+        assertEquals(4, move.getToColumn());
+    }
+
+    @Test
+    void getPossibleMoves_ShouldReturnAllDirectionsForKing() {
+        GameState gameState = gameService.createGame();
+        Piece[][] board = gameState.getBoard();
+
+        for (Piece[] pieces : board) {
+            Arrays.fill(pieces, null);
+        }
+        board[4][4] = new Piece(PieceColor.WHITE, PieceType.KING);
+
+        PossibleMoves pm = gameService.getPossibleMoves(gameState, 4, 4);
+
+        assertEquals(4, pm.getMoves().size(), "King in the middle should have 4 possible moves if no captures exist");
+
+        boolean hasUpLeft = pm.getMoves().stream()
+                .anyMatch(m -> m.getToRow() == 3 && m.getToColumn() == 3);
+        boolean hasUpRight = pm.getMoves().stream()
+                .anyMatch(m -> m.getToRow() == 3 && m.getToColumn() == 5);
+        boolean hasDownLeft = pm.getMoves().stream()
+                .anyMatch(m -> m.getToRow() == 5 && m.getToColumn() == 3);
+        boolean hasDownRight = pm.getMoves().stream()
+                .anyMatch(m -> m.getToRow() == 5 && m.getToColumn() == 5);
+
+        assertTrue(hasUpLeft);
+        assertTrue(hasUpRight);
+        assertTrue(hasDownLeft);
+        assertTrue(hasDownRight);
     }
 }
