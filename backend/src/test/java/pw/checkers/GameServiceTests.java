@@ -105,6 +105,13 @@ public class GameServiceTests {
         MoveOutput result = gameService.makeMove(gameId, validMove);
 
         assertNotNull(result);
+        assertFalse(result.isCaptured());
+        assertEquals(result.getFromColumn(), validMove.getFromColumn());
+        assertEquals(result.getFromRow(), validMove.getFromRow());
+        assertEquals(result.getToColumn(), validMove.getToColumn());
+        assertEquals(result.getToRow(), validMove.getToRow());
+        assertNull(result.getCapturedCol());
+        assertNull(result.getCapturedRow());
         assertEquals("black", gameService.getGame(gameId).getCurrentPlayer());
     }
 
