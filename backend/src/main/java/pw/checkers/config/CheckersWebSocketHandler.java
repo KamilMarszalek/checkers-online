@@ -101,13 +101,24 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         }
 
         MoveOutput moveOutput = gameService.makeMove(gameId, wsMessage.getMove(), assignedColor);
-
+        GameState updatedState = gameService.getGame(gameId);
         String response = objectMapper.writeValueAsString(moveOutput);
         for (WebSocketSession ws : sessionsByGame.getOrDefault(gameId, Set.of())) {
             if (ws.isOpen()) {
                 ws.sendMessage(new TextMessage(response));
+                if (updatedState.isFinished()) {
+                    if (updatedState.getWinner() == null) {
+                        String gameEndMessage = objectMapper.writeValueAsString(new GameEnd("draw"));
+                        ws.sendMessage(new TextMessage(gameEndMessage));
+                    } else {
+                        String gameEndMessage = objectMapper.writeValueAsString(new GameEnd(updatedState.getWinner()));
+                        ws.sendMessage(new TextMessage(gameEndMessage));
+                    }
+                }
             }
         }
+
+
     }
 
     private void handlePossibilities(WebSocketSession session, WsMessage wsMessage) throws Exception {
