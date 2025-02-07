@@ -149,17 +149,11 @@ public class GameService {
 
     private boolean isDraw(GameState gameState) {
         String currentPlayer = gameState.getCurrentPlayer();
-        String otherPlayer = gameState.getCurrentPlayer().equals("white") ? "black" : "white";
-        if (!playerHasMoves(gameState, currentPlayer) && !playerHasMoves(gameState, otherPlayer)) {
-            return true;
-        }
-        if (isFiftyMoveViolation(gameState)) {
-            return true;
-        }
-        if (isPositionRepeatedThreeTimes(gameState)) {
-            return true;
-        }
-        return false;
+        String otherPlayer = currentPlayer.equals("white") ? "black" : "white";
+
+        return (!playerHasMoves(gameState, currentPlayer) && !playerHasMoves(gameState, otherPlayer))
+                || isFiftyMoveViolation(gameState)
+                || isPositionRepeatedThreeTimes(gameState);
     }
 
     private boolean playerHasMoves(GameState gameState, String player) {
@@ -186,15 +180,12 @@ public class GameService {
     }
 
     private boolean hasSomebodyWon(GameState gameState) {
-        if (gameState.getBlackPiecesLeft() == 0) return true;
-        if (gameState.getWhitePiecesLeft() == 0) return true;
-
         String currentPlayer = gameState.getCurrentPlayer();
         String otherPlayer = "white".equals(currentPlayer) ? "black" : "white";
-        if (!playerHasMoves(gameState, otherPlayer) && playerHasMoves(gameState, currentPlayer)) {
-            return true;
-        }
-        return false;
+
+        return gameState.getBlackPiecesLeft() == 0
+                || gameState.getWhitePiecesLeft() == 0
+                || (!playerHasMoves(gameState, otherPlayer) && playerHasMoves(gameState, currentPlayer));
     }
 
     private void setWinner(GameState gameState) {
