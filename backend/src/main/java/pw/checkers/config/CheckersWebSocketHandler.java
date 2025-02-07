@@ -14,9 +14,11 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
 
 public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private final GameService gameService;
+    private final Semaphore mutex = new Semaphore(1);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, Set<WebSocketSession>> sessionsByGame = new ConcurrentHashMap<>();
     private final Map<String, Map<String, String>> colorAssignmentsByGame = new ConcurrentHashMap<>();
@@ -57,6 +59,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleJoinQueue(WebSocketSession session) throws Exception {
+        mutex.acquire();
         WebSocketSession waiting = waitingQueue.poll();
 
         if (waiting == null) {
@@ -82,6 +85,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             waiting.sendMessage(new TextMessage(waitingPlayerJsonResponse));
             session.sendMessage(new TextMessage(sessionPlayerJsonResponse));
         }
+        mutex.release();
     }
 
     private void handleMove(WebSocketSession session, WsMessage wsMessage) throws Exception {
