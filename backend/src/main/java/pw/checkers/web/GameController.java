@@ -1,5 +1,9 @@
 package pw.checkers.web;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +20,18 @@ public class GameController {
     }
 
     @PostMapping("")
+    @Operation(summary = "Create and set up new game of checkers")
+    @ApiResponse(responseCode = "200", description = "Game successfully created",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = GameState.class)))
     public ResponseEntity<GameState> createGame() {
         GameState gameState = gameService.createGame();
         return ResponseEntity.ok(gameState);
     }
 
     @GetMapping("/{gameId}")
+    @Operation(summary = "Retrieve game by id")
+    @ApiResponse(responseCode = "200", description = "Game state successfully delivered",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = GameState.class)))
     public ResponseEntity<GameState> getGame(@PathVariable String gameId) {
         GameState gameState = gameService.getGame(gameId);
         if (gameState == null) {
