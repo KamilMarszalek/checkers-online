@@ -107,13 +107,13 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             if (ws.isOpen()) {
                 ws.sendMessage(new TextMessage(response));
                 if (updatedState.isFinished()) {
+                    String gameEndMessage;
                     if (updatedState.getWinner() == null) {
-                        String gameEndMessage = objectMapper.writeValueAsString(new GameEnd("draw"));
-                        ws.sendMessage(new TextMessage(gameEndMessage));
+                        gameEndMessage = objectMapper.writeValueAsString(new GameEnd("draw"));
                     } else {
-                        String gameEndMessage = objectMapper.writeValueAsString(new GameEnd(updatedState.getWinner()));
-                        ws.sendMessage(new TextMessage(gameEndMessage));
+                        gameEndMessage = objectMapper.writeValueAsString(new GameEnd(updatedState.getWinner()));
                     }
+                    ws.sendMessage(new TextMessage(gameEndMessage));
                 }
             }
         }
