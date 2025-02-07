@@ -9,7 +9,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pw.checkers.pojo.*;
 import pw.checkers.service.GameService;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
