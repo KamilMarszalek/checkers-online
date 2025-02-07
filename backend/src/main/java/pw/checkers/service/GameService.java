@@ -102,10 +102,13 @@ public class GameService {
         return false;
     }
 
-    public MoveOutput makeMove(String gameId, MoveInput move) {
+    public MoveOutput makeMove(String gameId, MoveInput move, String turn) {
         MoveOutput response = new MoveOutput(move);
         GameState gameState = getGame(gameId);
         if (gameState == null || gameState.isFinished()){
+            return null;
+        }
+        if (!gameState.getCurrentPlayer().equals(turn)) {
             return null;
         }
         boolean b = validateMove(gameState, move);
