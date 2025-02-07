@@ -1,0 +1,189 @@
+asyncapi: '2.6.0'
+info:
+  title: Checkers WebSocket API
+  version: '1.0.0'
+  description: >
+    Demonstration of multiple specialized messages for each `type` value
+    in a WebSocket-based Checkers game.
+
+servers:
+  local:
+    url: ws://localhost:8080/ws
+    protocol: ws
+    description: Local WebSocket server for testing
+
+channels:
+  /ws:
+    description: "Main WebSocket channel for the Checkers game."
+    publish:
+      # These are messages the server sends out (the client receives).
+      operationId: "serverToClient"
+      message:
+        oneOf:
+          - $ref: "#/components/messages/GameCreatedMessage"
+          - $ref: "#/components/messages/MoveResultMessage"
+          - $ref: "#/components/messages/PossibleMovesMessage"
+          - $ref: "#/components/messages/JoinedWaitingQueueMessage"
+      description: >
+        Messages that the server publishes to the client.
+        For example: when a game is created, a move is processed, etc.
+
+    subscribe:
+      # These are messages the server listens for (the client sends).
+      operationId: "clientToServer"
+      message:
+        oneOf:
+          - $ref: "#/components/messages/JoinQueueMessage"
+          - $ref: "#/components/messages/MoveMessage"
+          - $ref: "#/components/messages/PossibilitiesMessage"
+      description: >
+        Messages that the client publishes to the server.
+        For example: "joinQueue", "move", or "possibilities" requests.
+
+components:
+  messages:
+    ############################################
+    # MESSAGES CLIENT -> SERVER (subscribe)
+    ############################################
+
+    JoinQueueMessage:
+      name: JoinQueueMessage
+      title: "joinQueue"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "joinQueue" ]  # This message always has type = "joinQueue"
+        required: [ type ]
+        additionalProperties: false
+
+    MoveMessage:
+      name: MoveMessage
+      title: "move"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "move" ]
+          gameId:
+            type: string
+            description: "ID of the existing game"
+          move:
+            type: object
+            description: "Move details"
+            properties:
+              fromRow:
+                type: integer
+              fromColumn:
+                type: integer
+              toRow:
+                type: integer
+              toColumn:
+                type: integer
+            required: [ fromRow, fromColumn, toRow, toColumn ]
+        required: [ type, gameId, move ]
+        additionalProperties: false
+
+    PossibilitiesMessage:
+      name: PossibilitiesMessage
+      title: "possibilities"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "possibilities" ]
+          gameId:
+            type: string
+            description: "ID of the game"
+          row:
+            type: integer
+            description: "Row for which to get possible moves"
+          col:
+            type: integer
+            description: "Column for which to get possible moves"
+        required: [ type, gameId, row, col ]
+        additionalProperties: false
+
+
+    ############################################
+    # MESSAGES SERVER -> CLIENT (publish)
+    ############################################
+
+    GameCreatedMessage:
+      name: GameCreatedMessage
+      title: "GameCreated"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "Game created" ]
+          gameId:
+            type: string
+            description: "ID of the newly created game"
+          assignedColor:
+            type: string
+            enum: ["white", "black"]
+            description: "Color assigned to the recipient (e.g. 'white' or 'black')"
+        required: [ type, gameId, assignedColor ]
+        additionalProperties: false
+
+    MoveResultMessage:
+      name: MoveResultMessage
+      title: "MoveResult"
+      payload:
+        type: object
+        properties:
+          fromRow:
+            type: integer
+          fromColumn:
+            type: integer
+          toRow:
+            type: integer
+          toColumn:
+            type: integer
+          captured:
+            type: boolean
+          capturedRow:
+            type: integer
+          capturedCol:
+            type: integer
+          hasMoreTakes:
+            type: boolean
+        required: [ fromRow, fromColumn, toRow, toColumn, captured, capturedRow, capturedCol, hasMoreTakes ]
+        additionalProperties: false
+
+    PossibleMovesMessage:
+      name: PossibleMovesMessage
+      title: "PossibleMoves"
+      payload:
+        type: object
+        properties:
+          moves:
+            type: array
+            items:
+              type: object
+              properties:
+                fromRow:
+                  type: integer
+                fromColumn:
+                  type: integer
+                toRow:
+                  type: integer
+                toColumn:
+                  type: integer
+              required: [ fromRow, fromColumn, toRow, toColumn ]
+            description: "List of possible moves from the requested position. If empty then there are no possible moves"
+        required: [ moves ]
+        additionalProperties: false
+    JoinedWaitingQueueMessage:
+      name: JoinedWaitingQueueMessage
+      title: "JoinedWaitingQueue"
+      payload:
+        type: string
+        default: "Waiting for an opponent..."
+
+
