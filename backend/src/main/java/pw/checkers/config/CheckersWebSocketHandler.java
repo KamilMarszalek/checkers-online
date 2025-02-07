@@ -16,7 +16,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private final GameService gameService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, Set<WebSocketSession>> sessionsByGame = new ConcurrentHashMap<>();
-
+    private final Map<String, Map<String, String>> colorAssignmentsByGame = new ConcurrentHashMap<>();
     public CheckersWebSocketHandler(GameService gameService) {
         this.gameService = gameService;
     }
@@ -34,15 +34,36 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         sessionsByGame
                 .computeIfAbsent(gameId, k -> ConcurrentHashMap.newKeySet())
                 .add(session);
+        Map<String, String> colorAssignments = colorAssignmentsByGame
+                .computeIfAbsent(gameId, k -> new ConcurrentHashMap<>());
+
         GameState currentState = gameService.getGame(gameId);
 
         switch (wsMessage.getType()) {
             case "join":
+                if (!colorAssignments.containsKey(session.getId())) {
+                    boolean whiteTaken = colorAssignments.containsValue("white");
+                    boolean blackTaken = colorAssignments.containsValue("black");
+
+                    if (!whiteTaken) {
+                        colorAssignments.put(session.getId(), "white");
+                    } else if (!blackTaken) {
+                        colorAssignments.put(session.getId(), "black");
+                    } else {
+                        session.sendMessage(new TextMessage("Game is full"));
+                        return;
+                    }
+                }
                 String joinResponse = objectMapper.writeValueAsString(currentState);
                 session.sendMessage(new TextMessage(joinResponse));
                 break;
             case "move":
-                MoveOutput move = gameService.makeMove(gameId, wsMessage.getMove());
+                String assignedColor = colorAssignments.get(session.getId());
+                if (assignedColor == null) {
+                    session.sendMessage(new TextMessage("You have not joined the game or no color assigned"));
+                    return;
+                }
+                MoveOutput move = gameService.makeMove(gameId, wsMessage.getMove(), assignedColor);
                 String moveResponse = objectMapper.writeValueAsString(move);
                 for (WebSocketSession ws : sessionsByGame.getOrDefault(gameId, Set.of())) {
                     if (ws.isOpen()) {
@@ -64,6 +85,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
         sessionsByGame.values().forEach(sessions -> sessions.remove(session));
+        colorAssignmentsByGame.values().forEach(assignment -> assignment.remove(session.getId()));
         System.out.println("Connection closed: " + session.getId());
     }
 }
