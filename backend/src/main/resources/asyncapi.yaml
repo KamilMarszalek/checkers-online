@@ -24,6 +24,7 @@ channels:
           - $ref: "#/components/messages/MoveResultMessage"
           - $ref: "#/components/messages/PossibleMovesMessage"
           - $ref: "#/components/messages/JoinedWaitingQueueMessage"
+          - $ref: "#/components/messages/GameEndMessage"
       description: >
         Messages that the server publishes to the client.
         For example: when a game is created, a move is processed, etc.
@@ -185,5 +186,16 @@ components:
       payload:
         type: string
         default: "Waiting for an opponent..."
+    GameEndMessage:
+      name: GameEndMessage
+      title: "GameEnd"
+      payload:
+        type: object
+        properties:
+          result:
+            type: string
+            enum: ["draw", "white", "black"]
+        required: [result]
+        additionalProperties: false
 
 
