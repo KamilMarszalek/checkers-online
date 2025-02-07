@@ -1,6 +1,7 @@
 package pw.checkers.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.lang.NonNull;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -28,7 +29,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) throws Exception {
         WsMessage wsMessage = objectMapper.readValue(message.getPayload(), WsMessage.class);
         String gameId = wsMessage.getGameId();
         sessionsByGame
@@ -82,7 +83,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+    public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
         sessionsByGame.values().forEach(sessions -> sessions.remove(session));
         colorAssignmentsByGame.values().forEach(assignment -> assignment.remove(session.getId()));
