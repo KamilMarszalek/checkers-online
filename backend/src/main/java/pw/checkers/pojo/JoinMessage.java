@@ -10,7 +10,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JoinMessage {
-    private String type;
     private String gameId;
     private String color;
 }
