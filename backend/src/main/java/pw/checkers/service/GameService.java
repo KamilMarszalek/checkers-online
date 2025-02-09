@@ -53,13 +53,13 @@ public class GameService {
 
     private boolean validateMove(GameState gameState, MoveInput move) {
         Piece[][] board = gameState.getBoard();
-        Piece piece = board[move.getFromRow()][move.getFromColumn()];
+        Piece piece = board[move.getFromRow()][move.getFromCol()];
         if (piece == null) return false;
 
         if (!colorMatchesCurrentPlayer(piece.getColor(), gameState.getCurrentPlayer())) {
             return false;
         }
-        PossibleMoves pm = getPossibleMoves(gameState, move.getFromRow(), move.getFromColumn());
+        PossibleMoves pm = getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
         return pm.getMoves().contains(move);
     }
 
@@ -70,9 +70,9 @@ public class GameService {
 
     private void doTake(GameState gameState, MoveOutput move) {
         Piece[][] board = gameState.getBoard();
-        if (abs(move.getFromColumn() - move.getToColumn()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1) {
+        if (abs(move.getFromCol() - move.getToCol()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1) {
             int opponentRow = (move.getToRow() + move.getFromRow()) / 2;
-            int opponentCol = (move.getToColumn() + move.getFromColumn()) / 2;
+            int opponentCol = (move.getToCol() + move.getFromCol()) / 2;
             Piece capturedPiece = board[opponentRow][opponentCol];
             if (capturedPiece.getColor().equals(PieceColor.BLACK)) {
                 gameState.setBlackPiecesLeft(gameState.getBlackPiecesLeft() - 1);
@@ -95,9 +95,9 @@ public class GameService {
 
     private boolean hasMoreTakes(GameState gameState, MoveInput move) {
         Piece[][] board = gameState.getBoard();
-        boolean isKing = board[move.getToRow()][move.getToColumn()].getType().equals(PieceType.KING);
-        if (abs(move.getFromColumn() - move.getToColumn()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1 ) {
-            return findTakes(new PossibleMoves(), board, move.getToRow(), move.getToColumn(), isKing);
+        boolean isKing = board[move.getToRow()][move.getToCol()].getType().equals(PieceType.KING);
+        if (abs(move.getFromCol() - move.getToCol()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1 ) {
+            return findTakes(new PossibleMoves(), board, move.getToRow(), move.getToCol(), isKing);
         }
         return false;
     }
@@ -116,10 +116,10 @@ public class GameService {
             return null;
         }
         Piece[][] board = gameState.getBoard();
-        Piece pawn = board[move.getFromRow()][move.getFromColumn()];
+        Piece pawn = board[move.getFromRow()][move.getFromCol()];
         promotePiece(pawn, move, gameState);
-        board[move.getToRow()][move.getToColumn()] = pawn;
-        board[move.getFromRow()][move.getFromColumn()] = null;
+        board[move.getToRow()][move.getToCol()] = pawn;
+        board[move.getFromRow()][move.getFromCol()] = null;
         gameState.setNoCapturesCounter(gameState.getNoCapturesCounter() + 1);
         doTake(gameState, response);
         int posCounter = gameState.getNumberOfPositions().get(gameState.boardToString()) == null ? 0 : gameState.getNumberOfPositions().get(gameState.boardToString());
