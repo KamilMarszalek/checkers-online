@@ -107,9 +107,9 @@ public class GameServiceTests {
 
         assertNotNull(result);
         assertFalse(result.isCaptured());
-        assertEquals(result.getFromColumn(), validMove.getFromColumn());
+        assertEquals(result.getFromCol(), validMove.getFromCol());
         assertEquals(result.getFromRow(), validMove.getFromRow());
-        assertEquals(result.getToColumn(), validMove.getToColumn());
+        assertEquals(result.getToCol(), validMove.getToCol());
         assertEquals(result.getToRow(), validMove.getToRow());
         assertNull(result.getCapturedCol());
         assertNull(result.getCapturedRow());
@@ -129,9 +129,9 @@ public class GameServiceTests {
         MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
-        assertEquals(result.getFromColumn(), captureMove.getFromColumn());
+        assertEquals(result.getFromCol(), captureMove.getFromCol());
         assertEquals(result.getFromRow(), captureMove.getFromRow());
-        assertEquals(result.getToColumn(), captureMove.getToColumn());
+        assertEquals(result.getToCol(), captureMove.getToCol());
         assertEquals(result.getToRow(), captureMove.getToRow());
         assertEquals(result.getCapturedRow(), 4);
         assertEquals(result.getCapturedCol(), 3);
@@ -159,9 +159,9 @@ public class GameServiceTests {
         MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
-        assertEquals(result.getFromColumn(), captureMove.getFromColumn());
+        assertEquals(result.getFromCol(), captureMove.getFromCol());
         assertEquals(result.getFromRow(), captureMove.getFromRow());
-        assertEquals(result.getToColumn(), captureMove.getToColumn());
+        assertEquals(result.getToCol(), captureMove.getToCol());
         assertEquals(result.getToRow(), captureMove.getToRow());
         assertEquals(result.getCapturedRow(), 4);
         assertEquals(result.getCapturedCol(), 3);
@@ -237,9 +237,9 @@ public class GameServiceTests {
         assertEquals(1, pm.getMoves().size());
         MoveInput move = pm.getMoves().getFirst();
         assertEquals(5, move.getFromRow());
-        assertEquals(2, move.getFromColumn());
+        assertEquals(2, move.getFromCol());
         assertEquals(3, move.getToRow());
-        assertEquals(4, move.getToColumn());
+        assertEquals(4, move.getToCol());
     }
 
     @Test
@@ -257,13 +257,13 @@ public class GameServiceTests {
         assertEquals(4, pm.getMoves().size(), "King in the middle should have 4 possible moves if no captures exist");
 
         boolean hasUpLeft = pm.getMoves().stream()
-                .anyMatch(m -> m.getToRow() == 3 && m.getToColumn() == 3);
+                .anyMatch(m -> m.getToRow() == 3 && m.getToCol() == 3);
         boolean hasUpRight = pm.getMoves().stream()
-                .anyMatch(m -> m.getToRow() == 3 && m.getToColumn() == 5);
+                .anyMatch(m -> m.getToRow() == 3 && m.getToCol() == 5);
         boolean hasDownLeft = pm.getMoves().stream()
-                .anyMatch(m -> m.getToRow() == 5 && m.getToColumn() == 3);
+                .anyMatch(m -> m.getToRow() == 5 && m.getToCol() == 3);
         boolean hasDownRight = pm.getMoves().stream()
-                .anyMatch(m -> m.getToRow() == 5 && m.getToColumn() == 5);
+                .anyMatch(m -> m.getToRow() == 5 && m.getToCol() == 5);
 
         assertTrue(hasUpLeft);
         assertTrue(hasUpRight);

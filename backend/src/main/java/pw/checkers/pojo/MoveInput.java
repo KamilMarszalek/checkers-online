@@ -9,7 +9,7 @@ import lombok.*;
 @EqualsAndHashCode
 public class MoveInput {
     private int fromRow;
-    private int fromColumn;
+    private int fromCol;
     private int toRow;
-    private int toColumn;
+    private int toCol;
 }

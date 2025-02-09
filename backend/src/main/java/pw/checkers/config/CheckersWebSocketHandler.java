@@ -52,7 +52,8 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 break;
             }
             default: {
-                session.sendMessage(new TextMessage("Unknown message type: " + messageType));
+                Message<String> defaultMessage = new Message<>("error", "Unknown message type: " + messageType);
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(defaultMessage)));
                 break;
             }
         }
@@ -64,7 +65,8 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
         if (waiting == null) {
             waitingQueue.add(session);
-            session.sendMessage(new TextMessage("Waiting for an opponent..."));
+            Message<String> waitingMessage = new Message<>("waiting", "Waiting for an opponent...");
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(waitingMessage)));
         } else {
             GameState newGame = gameService.createGame();
             String newGameId = newGame.getGameId();
@@ -76,8 +78,8 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             colorAssignmentsByGame.get(newGameId).put(waiting.getId(), "white");
             colorAssignmentsByGame.get(newGameId).put(session.getId(), "black");
 
-            JoinMessage waitingPlayerResponse = new JoinMessage("Game created", newGameId, "white");
-            JoinMessage sessionPlayerResponse = new JoinMessage("Game created",newGameId, "black");
+            Message<JoinMessage> waitingPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "white"));
+            Message<JoinMessage> sessionPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "black"));
 
             String waitingPlayerJsonResponse = objectMapper.writeValueAsString(waitingPlayerResponse);
             String sessionPlayerJsonResponse = objectMapper.writeValueAsString(sessionPlayerResponse);
@@ -91,31 +93,35 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private void handleMove(WebSocketSession session, WsMessage wsMessage) throws Exception {
         String gameId = wsMessage.getGameId();
         if (gameId == null) {
-            session.sendMessage(new TextMessage("No gameId specified"));
+            Message<String> moveMessage = new Message<>("error", "No game id specified");
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(moveMessage)));
             return;
         }
         if (!sessionsByGame.containsKey(gameId)) {
-            session.sendMessage(new TextMessage("Game with id " + gameId + " not found"));
+            Message<String> moveMessage = new Message<>("error", "Game with id " + gameId + " not found");
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(moveMessage)));
             return;
         }
         String assignedColor = colorAssignmentsByGame.get(gameId).get(session.getId());
         if (assignedColor == null) {
-            session.sendMessage(new TextMessage("You do not belong to this game or no color assigned"));
+            Message<String> moveMessage = new Message<>("error", "You do not belong to this game or no color assigned");
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(moveMessage)));
             return;
         }
 
         MoveOutput moveOutput = gameService.makeMove(gameId, wsMessage.getMove(), assignedColor);
+        Message<MoveOutput> moveMessage = new Message<>("move", moveOutput);
         GameState updatedState = gameService.getGame(gameId);
-        String response = objectMapper.writeValueAsString(moveOutput);
+        String response = objectMapper.writeValueAsString(moveMessage);
         for (WebSocketSession ws : sessionsByGame.getOrDefault(gameId, Set.of())) {
             if (ws.isOpen()) {
                 ws.sendMessage(new TextMessage(response));
                 if (updatedState.isFinished()) {
                     String gameEndMessage;
                     if (updatedState.getWinner() == null) {
-                        gameEndMessage = objectMapper.writeValueAsString(new GameEnd("draw"));
+                        gameEndMessage = objectMapper.writeValueAsString(new Message<>("gameEnd", new GameEnd("draw")));
                     } else {
-                        gameEndMessage = objectMapper.writeValueAsString(new GameEnd(updatedState.getWinner()));
+                        gameEndMessage = objectMapper.writeValueAsString(new Message<>("gameEnd", new GameEnd(updatedState.getWinner())));
                     }
                     ws.sendMessage(new TextMessage(gameEndMessage));
                 }
@@ -128,16 +134,19 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private void handlePossibilities(WebSocketSession session, WsMessage wsMessage) throws Exception {
         String gameId = wsMessage.getGameId();
         if (gameId == null) {
-            session.sendMessage(new TextMessage("No gameId specified"));
+            Message<String> errorMessage = new Message<>("error", "No game id specified");
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorMessage)));
             return;
         }
         if (!sessionsByGame.containsKey(gameId)) {
-            session.sendMessage(new TextMessage("Game with id " + gameId + " not found"));
+            Message<String> errorMessage = new Message<>("error", "Game with id " + gameId + " not found");
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorMessage)));
             return;
         }
         GameState currentState = gameService.getGame(gameId);
         PossibleMoves moves = gameService.getPossibleMoves(currentState, wsMessage.getRow(), wsMessage.getCol());
-        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(moves)));
+        Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
+        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(responseMessage)));
     }
 
     @Override
