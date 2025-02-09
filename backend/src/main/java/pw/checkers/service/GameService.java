@@ -126,6 +126,7 @@ public class GameService {
         gameState.getNumberOfPositions().put(gameState.boardToString(), posCounter + 1);
         if (hasMoreTakes(gameState, response)) {
             response.setHasMoreTakes(true);
+            response.setTurn(turn);
             return response;
         }
 
@@ -137,8 +138,10 @@ public class GameService {
 
         if (gameState.getCurrentPlayer().equals("white")) {
             gameState.setCurrentPlayer("black");
+            response.setTurn("black");
         } else {
             gameState.setCurrentPlayer("white");
+            response.setTurn("white");
         }
         return response;
     }
