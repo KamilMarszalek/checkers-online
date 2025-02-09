@@ -16,6 +16,6 @@ public class MoveOutput extends MoveInput{
     private boolean hasMoreTakes;
 
     public MoveOutput (MoveInput move) {
-        super(move.getFromRow(), move.getFromColumn(), move.getToRow(), move.getToColumn());
+        super(move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol());
     }
 }
