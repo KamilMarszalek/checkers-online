@@ -2,6 +2,8 @@ import websocket
 import json
 import threading
 import time
+import sys
+import argparse
 
 from bot import Bot
 
@@ -106,14 +108,26 @@ def on_close(ws_app, close_status_code, close_msg):
     print("Connection closed")
 
 
-if __name__ == "__main__":
-    ws_app = websocket.WebSocketApp(
-        URL,
-        on_message=on_message,
-        on_open=on_open,
-        on_error=on_error,
-        on_close=on_close,
-    )
+def main(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--url", type=str, help="Pass address of the server here")
+    args = parser.parse_args()
+    if args.url:
+        ws_app = websocket.WebSocketApp(
+            args.url,
+            on_message=on_message,
+            on_open=on_open,
+            on_error=on_error,
+            on_close=on_close,
+        )
+    else:
+        ws_app = websocket.WebSocketApp(
+            URL,
+            on_message=on_message,
+            on_open=on_open,
+            on_error=on_error,
+            on_close=on_close,
+        )
     ws_thread = threading.Thread(target=ws_app.run_forever)
     ws_thread.start()
 
@@ -123,3 +137,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         ws_app.close()
         ws_thread.join()
+
+
+if __name__ == "__main__":
+    main(sys.argv)
