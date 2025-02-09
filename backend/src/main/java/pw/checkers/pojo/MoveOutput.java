@@ -14,6 +14,7 @@ public class MoveOutput extends MoveInput{
     private Integer capturedRow;
     private Integer capturedCol;
     private boolean hasMoreTakes;
+    private String turn;
 
     public MoveOutput (MoveInput move) {
         super(move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol());
