@@ -122,14 +122,18 @@ components:
           type:
             type: string
             enum: [ "Game created" ]
-          gameId:
-            type: string
-            description: "ID of the newly created game"
-          assignedColor:
-            type: string
-            enum: ["white", "black"]
-            description: "Color assigned to the recipient (e.g. 'white' or 'black')"
-        required: [ type, gameId, assignedColor ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the newly created game"
+              assignedColor:
+                type: string
+                enum: ["white", "black"]
+                description: "Color assigned to the recipient (e.g. 'white' or 'black')"
+            required: [ type, gameId, assignedColor ]
+        required: [type, content]
         additionalProperties: false
 
     MoveResultMessage:
@@ -138,23 +142,33 @@ components:
       payload:
         type: object
         properties:
-          fromRow:
-            type: integer
-          fromColumn:
-            type: integer
-          toRow:
-            type: integer
-          toColumn:
-            type: integer
-          captured:
-            type: boolean
-          capturedRow:
-            type: integer
-          capturedCol:
-            type: integer
-          hasMoreTakes:
-            type: boolean
-        required: [ fromRow, fromColumn, toRow, toColumn, captured, capturedRow, capturedCol, hasMoreTakes ]
+          type:
+            type: string
+            enum: ["move"]
+          content:
+            type: object
+            properties:
+              fromRow:
+                type: integer
+              fromCol:
+                type: integer
+              toRow:
+                type: integer
+              toCol:
+                type: integer
+              captured:
+                type: boolean
+              capturedRow:
+                type: integer
+              capturedCol:
+                type: integer
+              hasMoreTakes:
+                type: boolean
+              turn:
+                type: string
+                enum: ["white", "black"]
+            required: [ fromRow, fromColumn, toRow, toColumn, captured, capturedRow, capturedCol, hasMoreTakes ]
+        required: [type, content]
         additionalProperties: false
 
     PossibleMovesMessage:
@@ -163,39 +177,58 @@ components:
       payload:
         type: object
         properties:
-          moves:
-            type: array
-            items:
-              type: object
-              properties:
-                fromRow:
-                  type: integer
-                fromColumn:
-                  type: integer
-                toRow:
-                  type: integer
-                toColumn:
-                  type: integer
-              required: [ fromRow, fromColumn, toRow, toColumn ]
-            description: "List of possible moves from the requested position. If empty then there are no possible moves"
-        required: [ moves ]
+          type:
+            type: string
+            enum: ["possibilities"]
+          content:
+            type: object
+            properties:
+              moves:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    fromRow:
+                      type: integer
+                    fromCol:
+                      type: integer
+                    toRow:
+                      type: integer
+                    toCol:
+                      type: integer
+                  required: [ fromRow, fromCol, toRow, toCol ]
+                description: "List of possible moves from the requested position. If empty then there are no possible moves"
+            required: [ moves ]
         additionalProperties: false
     JoinedWaitingQueueMessage:
       name: JoinedWaitingQueueMessage
       title: "JoinedWaitingQueue"
       payload:
-        type: string
-        default: "Waiting for an opponent..."
+        type: object
+        properties:
+          type:
+            type: string
+            enum: ["waiting"]
+          content:
+            type: string
+            enum: ["Waiting for an opponent..."]
     GameEndMessage:
       name: GameEndMessage
       title: "GameEnd"
       payload:
         type: object
         properties:
-          result:
+          type:
             type: string
-            enum: ["draw", "white", "black"]
-        required: [result]
+            enum: ["gameEnd"]
+          content:
+            type: object
+            properties:
+              result:
+                type: string
+                enum: ["draw", "white", "black"]
+            required: [result]
+        required: [type, content]
         additionalProperties: false
 
 
