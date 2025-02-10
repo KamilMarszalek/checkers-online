@@ -9,14 +9,11 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MoveOutput extends MoveInput{
+public class MoveOutput {
+    private MoveInput move;
     private boolean captured;
     private Integer capturedRow;
     private Integer capturedCol;
     private boolean hasMoreTakes;
     private String turn;
-
-    public MoveOutput (MoveInput move) {
-        super(move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol());
-    }
 }

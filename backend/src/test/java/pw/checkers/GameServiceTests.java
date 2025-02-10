@@ -107,10 +107,10 @@ public class GameServiceTests {
 
         assertNotNull(result);
         assertFalse(result.isCaptured());
-        assertEquals(result.getFromCol(), validMove.getFromCol());
-        assertEquals(result.getFromRow(), validMove.getFromRow());
-        assertEquals(result.getToCol(), validMove.getToCol());
-        assertEquals(result.getToRow(), validMove.getToRow());
+        assertEquals(result.getMove().getFromCol(), validMove.getFromCol());
+        assertEquals(result.getMove().getFromRow(), validMove.getFromRow());
+        assertEquals(result.getMove().getToCol(), validMove.getToCol());
+        assertEquals(result.getMove().getToRow(), validMove.getToRow());
         assertNull(result.getCapturedCol());
         assertNull(result.getCapturedRow());
         assertEquals("black", gameService.getGame(gameId).getCurrentPlayer());
@@ -129,10 +129,10 @@ public class GameServiceTests {
         MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
-        assertEquals(result.getFromCol(), captureMove.getFromCol());
-        assertEquals(result.getFromRow(), captureMove.getFromRow());
-        assertEquals(result.getToCol(), captureMove.getToCol());
-        assertEquals(result.getToRow(), captureMove.getToRow());
+        assertEquals(result.getMove().getFromCol(), captureMove.getFromCol());
+        assertEquals(result.getMove().getFromRow(), captureMove.getFromRow());
+        assertEquals(result.getMove().getToCol(), captureMove.getToCol());
+        assertEquals(result.getMove().getToRow(), captureMove.getToRow());
         assertEquals(result.getCapturedRow(), 4);
         assertEquals(result.getCapturedCol(), 3);
         assertFalse(result.isHasMoreTakes());
@@ -159,10 +159,10 @@ public class GameServiceTests {
         MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
-        assertEquals(result.getFromCol(), captureMove.getFromCol());
-        assertEquals(result.getFromRow(), captureMove.getFromRow());
-        assertEquals(result.getToCol(), captureMove.getToCol());
-        assertEquals(result.getToRow(), captureMove.getToRow());
+        assertEquals(result.getMove().getFromCol(), captureMove.getFromCol());
+        assertEquals(result.getMove().getFromRow(), captureMove.getFromRow());
+        assertEquals(result.getMove().getToCol(), captureMove.getToCol());
+        assertEquals(result.getMove().getToRow(), captureMove.getToRow());
         assertEquals(result.getCapturedRow(), 4);
         assertEquals(result.getCapturedCol(), 3);
         assertTrue(result.isHasMoreTakes());
