@@ -7,8 +7,7 @@ import argparse
 
 from bot import Bot
 
-IP = "192.168.1.17"
-URL = f"ws://{IP}:8080/ws"
+URL = f"ws://localhost:8080/ws"
 
 bot = None
 my_color = None
