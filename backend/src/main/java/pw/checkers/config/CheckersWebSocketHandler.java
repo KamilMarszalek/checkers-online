@@ -65,7 +65,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
         if (waiting == null) {
             waitingQueue.add(session);
-            Message<String> waitingMessage = new Message<>("waiting", "Waiting for an opponent...");
+            Message<PromptMessage> waitingMessage = new Message<>("waiting", new PromptMessage("Waiting for an opponent..."));
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(waitingMessage)));
         } else {
             GameState newGame = gameService.createGame();
