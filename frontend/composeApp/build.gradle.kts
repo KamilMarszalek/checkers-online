@@ -42,6 +42,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.ktor.client.websockets)
+            implementation(libs.ktor.serialization)
             implementation(libs.kotlinx.serialization)
         }
     }
