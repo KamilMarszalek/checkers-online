@@ -139,6 +139,14 @@ class BotSession:
         best_move = await asyncio.to_thread(self.bot.choose_best_move, depth=6)
         if best_move is None:
             print("No moves available")
+            for row in self.bot.board:
+                row_str = ""
+                for col in row:
+                    if col is None:
+                        row_str += "-"
+                    else:
+                        row_str += col
+                print(row_str)
             return
 
         (fr, fc, tr, tc) = best_move
