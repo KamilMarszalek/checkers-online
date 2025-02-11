@@ -91,7 +91,7 @@ public class GameServiceTests {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
 
-        MoveInput invalidMove = new MoveInput(0, 0, 1, 1);
+        Move invalidMove = new Move(0, 0, 1, 1);
         MoveOutput result = gameService.makeMove(gameId, invalidMove, "white");
 
         assertNull(result);
@@ -102,7 +102,7 @@ public class GameServiceTests {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
 
-        MoveInput validMove = new MoveInput(5, 2, 4, 3);
+        Move validMove = new Move(5, 2, 4, 3);
         MoveOutput result = gameService.makeMove(gameId, validMove, "white");
 
         assertNotNull(result);
@@ -125,7 +125,7 @@ public class GameServiceTests {
         board[4][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
         board[5][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
 
-        MoveInput captureMove = new MoveInput(5, 2, 3, 4);
+        Move captureMove = new Move(5, 2, 3, 4);
         MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
@@ -155,7 +155,7 @@ public class GameServiceTests {
         board[2][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
         board[5][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
 
-        MoveInput captureMove = new MoveInput(5, 2, 3, 4);
+        Move captureMove = new Move(5, 2, 3, 4);
         MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
@@ -179,7 +179,7 @@ public class GameServiceTests {
         board[0][3] = null;
 
         board[1][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
-        MoveInput promotionMove = new MoveInput(1, 2, 0, 3);
+        Move promotionMove = new Move(1, 2, 0, 3);
 
         gameService.makeMove(gameId, promotionMove, "white");
 
@@ -191,7 +191,7 @@ public class GameServiceTests {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
 
-        MoveInput blackMove = new MoveInput(2, 1, 3, 2);
+        Move blackMove = new Move(2, 1, 3, 2);
         MoveOutput result = gameService.makeMove(gameId, blackMove, "white");
 
         assertNull(result);
@@ -202,7 +202,7 @@ public class GameServiceTests {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
 
-        MoveInput emptyFieldMove = new MoveInput(4, 4, 3, 3);
+        Move emptyFieldMove = new Move(4, 4, 3, 3);
         MoveOutput result = gameService.makeMove(gameId, emptyFieldMove, "white");
 
         assertNull(result);
@@ -214,7 +214,7 @@ public class GameServiceTests {
         String gameId = gameState.getGameId();
         gameState.setFinished(true);
 
-        MoveInput anyMove = new MoveInput(5, 2, 4, 3);
+        Move anyMove = new Move(5, 2, 4, 3);
         MoveOutput result = gameService.makeMove(gameId, anyMove, "white");
 
         assertNull(result);
@@ -235,7 +235,7 @@ public class GameServiceTests {
         PossibleMoves pm = gameService.getPossibleMoves(gameState, 5, 2);
 
         assertEquals(1, pm.getMoves().size());
-        MoveInput move = pm.getMoves().getFirst();
+        Move move = pm.getMoves().getFirst();
         assertEquals(5, move.getFromRow());
         assertEquals(2, move.getFromCol());
         assertEquals(3, move.getToRow());
@@ -288,7 +288,7 @@ public class GameServiceTests {
         board[4][1] = new Piece(PieceColor.BLACK, PieceType.PAWN);
         board[2][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
 
-        MoveInput firstCapture = new MoveInput(5, 0, 3, 2);
+        Move firstCapture = new Move(5, 0, 3, 2);
         MoveOutput firstOutput = gameService.makeMove(gameId, firstCapture,"white");
 
         assertNotNull(firstOutput);
@@ -297,7 +297,7 @@ public class GameServiceTests {
         assertEquals(1, firstOutput.getCapturedCol());
         assertTrue(firstOutput.isHasMoreTakes());
 
-        MoveInput secondCapture = new MoveInput(3, 2, 1, 4);
+        Move secondCapture = new Move(3, 2, 1, 4);
         MoveOutput secondOutput = gameService.makeMove(gameId, secondCapture, "white");
 
         assertNotNull(secondOutput);
@@ -326,7 +326,7 @@ public class GameServiceTests {
         board[5][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
         board[5][1] = new Piece(PieceColor.BLACK, PieceType.PAWN);
 
-        MoveInput firstCapture = new MoveInput(4, 4, 6, 2);
+        Move firstCapture = new Move(4, 4, 6, 2);
         MoveOutput firstOutput = gameService.makeMove(gameId, firstCapture, "white");
 
         assertNotNull(firstOutput);
@@ -338,7 +338,7 @@ public class GameServiceTests {
         board[5][3] = null;
         board[4][4] = null;
 
-        MoveInput secondCapture = new MoveInput(6, 2, 4, 0);
+        Move secondCapture = new Move(6, 2, 4, 0);
         MoveOutput secondOutput = gameService.makeMove(gameId, secondCapture, "white");
 
         assertNotNull(secondOutput);
@@ -365,7 +365,7 @@ public class GameServiceTests {
         gameState.setBlackPiecesLeft(1);
         gameState.setWhitePiecesLeft(1);
 
-        MoveInput captureMove = new MoveInput(4, 1, 2, 3);
+        Move captureMove = new Move(4, 1, 2, 3);
         MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
@@ -389,7 +389,7 @@ public class GameServiceTests {
         board[7][5] = new Piece(PieceColor.BLACK, PieceType.PAWN);
         board[7][7] = new Piece(PieceColor.BLACK, PieceType.PAWN);
         board[2][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
-        gameService.makeMove(gameId, new MoveInput(2,2,1,1), "white");
+        gameService.makeMove(gameId, new Move(2,2,1,1), "white");
         boolean isDraw = (gameState.isFinished() && gameState.getWinner() == null);
         assertTrue(isDraw, "Game should be finished as a draw if no moves are possible for both sides.");
     }
@@ -399,7 +399,7 @@ public class GameServiceTests {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
         gameState.setNoCapturesCounter(49);
-        MoveInput move = new MoveInput(5, 2, 4, 3);
+        Move move = new Move(5, 2, 4, 3);
         MoveOutput moveResult = gameService.makeMove(gameId, move, "white");
 
         assertNotNull(moveResult, "Move itself should be valid (assuming it was indeed valid on board).");
@@ -412,8 +412,8 @@ public class GameServiceTests {
     void testThreefoldRepetition_ShouldResultInDraw() {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
-        gameService.makeMove(gameId, new MoveInput(5, 2, 4, 3), "white");
-        gameService.makeMove(gameId, new MoveInput(2, 3, 3, 2), "white");
+        gameService.makeMove(gameId, new Move(5, 2, 4, 3), "white");
+        gameService.makeMove(gameId, new Move(2, 3, 3, 2), "white");
 
         boolean isDraw = (gameState.isFinished() && gameState.getWinner() == null);
         assertTrue(isDraw);
