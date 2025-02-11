@@ -51,7 +51,7 @@ public class GameService {
         return games.get(gameId);
     }
 
-    private boolean validateMove(GameState gameState, MoveInput move) {
+    private boolean validateMove(GameState gameState, Move move) {
         Piece[][] board = gameState.getBoard();
         Piece piece = board[move.getFromRow()][move.getFromCol()];
         if (piece == null) return false;
@@ -87,13 +87,13 @@ public class GameService {
         }
     }
 
-    private void promotePiece(Piece pawn, MoveInput move, GameState gameState) {
+    private void promotePiece(Piece pawn, Move move, GameState gameState) {
         if ((gameState.getCurrentPlayer().equals("white") && move.getToRow() == 0) || (gameState.getCurrentPlayer().equals("black") && move.getToRow() == 7)) {
             pawn.setType(PieceType.KING);
         }
     }
 
-    private boolean hasMoreTakes(GameState gameState, MoveInput move) {
+    private boolean hasMoreTakes(GameState gameState, Move move) {
         Piece[][] board = gameState.getBoard();
         boolean isKing = board[move.getToRow()][move.getToCol()].getType().equals(PieceType.KING);
         if (abs(move.getFromCol() - move.getToCol()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1 ) {
@@ -102,7 +102,7 @@ public class GameService {
         return false;
     }
 
-    public MoveOutput makeMove(String gameId, MoveInput move, String turn) {
+    public MoveOutput makeMove(String gameId, Move move, String turn) {
         MoveOutput response = new MoveOutput();
         response.setMove(move);
         GameState gameState = getGame(gameId);
@@ -284,7 +284,7 @@ public class GameService {
             }
 
             if (board[landingRow][landingCol] == null) {
-                possibleMoves.getMoves().add(new MoveInput(row, col, landingRow, landingCol));
+                possibleMoves.getMoves().add(new Move(row, col, landingRow, landingCol));
             }
         }
     }
@@ -319,7 +319,7 @@ public class GameService {
             if (board[middleRow][middleCol] != null
                     && board[middleRow][middleCol].getColor() == opponentColor
                     && board[landingRow][landingCol] == null) {
-                possibleMoves.getMoves().add(new MoveInput(row, col, landingRow, landingCol));
+                possibleMoves.getMoves().add(new Move(row, col, landingRow, landingCol));
             }
         }
 
