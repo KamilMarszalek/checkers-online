@@ -23,7 +23,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, Set<WebSocketSession>> sessionsByGame = new ConcurrentHashMap<>();
     private final Map<String, Map<String, String>> colorAssignmentsByGame = new ConcurrentHashMap<>();
-    private final Queue<WebSocketSession> waitingQueue = new ConcurrentLinkedQueue<>();
+    private final Queue<Map<WebSocketSession, User>> waitingQueue = new ConcurrentLinkedQueue<>();
     public CheckersWebSocketHandler(GameService gameService) {
         this.gameService = gameService;
     }
@@ -40,7 +40,8 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
         switch (rawMessage.getType()) {
             case "joinQueue": {
-                handleJoinQueue(session);
+                User user = objectMapper.convertValue(rawMessage.getContent(), User.class);
+                handleJoinQueue(session, user);
                 break;
             }
             case "move": {
@@ -61,35 +62,41 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    private void handleJoinQueue(WebSocketSession session) throws Exception {
+    private void handleJoinQueue(WebSocketSession session, User user) throws Exception {
         mutex.acquire();
-        WebSocketSession waiting = waitingQueue.poll();
+        try {
+            Map<WebSocketSession, User> waiting = waitingQueue.poll();
 
-        if (waiting == null) {
-            waitingQueue.add(session);
-            Message<PromptMessage> waitingMessage = new Message<>("waiting", new PromptMessage("Waiting for an opponent..."));
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(waitingMessage)));
-        } else {
-            GameState newGame = gameService.createGame();
-            String newGameId = newGame.getGameId();
-            sessionsByGame.putIfAbsent(newGameId, ConcurrentHashMap.newKeySet());
-            sessionsByGame.get(newGameId).add(waiting);
-            sessionsByGame.get(newGameId).add(session);
+            if (waiting == null) {
+                Map<WebSocketSession, User> newWaiting = new ConcurrentHashMap<>();
+                newWaiting.put(session, user);
+                waitingQueue.add(newWaiting);
+                Message<PromptMessage> waitingMessage = new Message<>("waiting", new PromptMessage("Waiting for an opponent..."));
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(waitingMessage)));
+            } else {
+                WebSocketSession waitingSession = waiting.keySet().iterator().next();
+                GameState newGame = gameService.createGame();
+                String newGameId = newGame.getGameId();
+                sessionsByGame.putIfAbsent(newGameId, ConcurrentHashMap.newKeySet());
+                sessionsByGame.get(newGameId).add(waitingSession);
+                sessionsByGame.get(newGameId).add(session);
 
-            colorAssignmentsByGame.putIfAbsent(newGameId, new ConcurrentHashMap<>());
-            colorAssignmentsByGame.get(newGameId).put(waiting.getId(), "white");
-            colorAssignmentsByGame.get(newGameId).put(session.getId(), "black");
+                colorAssignmentsByGame.putIfAbsent(newGameId, new ConcurrentHashMap<>());
+                colorAssignmentsByGame.get(newGameId).put(waitingSession.getId(), "white");
+                colorAssignmentsByGame.get(newGameId).put(session.getId(), "black");
 
-            Message<JoinMessage> waitingPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "white"));
-            Message<JoinMessage> sessionPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "black"));
+                Message<JoinMessage> waitingPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "white", new User(user.getUsername())));
+                Message<JoinMessage> sessionPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "black", new User(waiting.get(waitingSession).getUsername())));
 
-            String waitingPlayerJsonResponse = objectMapper.writeValueAsString(waitingPlayerResponse);
-            String sessionPlayerJsonResponse = objectMapper.writeValueAsString(sessionPlayerResponse);
+                String waitingPlayerJsonResponse = objectMapper.writeValueAsString(waitingPlayerResponse);
+                String sessionPlayerJsonResponse = objectMapper.writeValueAsString(sessionPlayerResponse);
 
-            waiting.sendMessage(new TextMessage(waitingPlayerJsonResponse));
-            session.sendMessage(new TextMessage(sessionPlayerJsonResponse));
+                waitingSession.sendMessage(new TextMessage(waitingPlayerJsonResponse));
+                session.sendMessage(new TextMessage(sessionPlayerJsonResponse));
+            }
+        } finally {
+            mutex.release();
         }
-        mutex.release();
     }
 
     private void handleMove(WebSocketSession session, MoveInput moveInput) throws Exception {
@@ -154,7 +161,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        waitingQueue.remove(session);
+        waitingQueue.removeIf(waitingMap -> waitingMap.containsKey(session));
         sessionsByGame.values().forEach(sessions -> sessions.remove(session));
         colorAssignmentsByGame.values().forEach(assignment -> assignment.remove(session.getId()));
         System.out.println("Connection closed: " + session.getId());
