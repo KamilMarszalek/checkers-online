@@ -12,4 +12,5 @@ import lombok.Setter;
 public class JoinMessage {
     private String gameId;
     private String color;
+    private User opponent;
 }
