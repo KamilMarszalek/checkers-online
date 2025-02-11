@@ -3,12 +3,17 @@ package pw.checkers.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import pw.checkers.models.*
+import pw.checkers.ui.icons.Pawns
+import pw.checkers.ui.icons.pawns.BlackPawn
+import pw.checkers.ui.icons.pawns.WhitePawn
+import pw.checkers.ui.icons.pawns.WhiteQueen
 
 @Composable
 fun Board(
@@ -37,20 +42,21 @@ private fun Cell(
     Box(
         modifier = Modifier
             .size(60.dp)
-            .background(if ((cell.row + cell.col) % 2 == 0) Color.LightGray else Color.DarkGray)
-            .clickable { onClick(cell.row, cell.col) },
+            .background(if ((cell.row + cell.col) % 2 == 0) Color.LightGray else Color.DarkGray),
+//            .clickable { onClick(cell.row, cell.col) },
         contentAlignment = Alignment.Center
     ) {
         cell.piece?.let { piece ->
-//            val asset = when (piece.color) {
-//                PieceColor.WHITE -> if (piece.type == PieceType.Pawn) Res.drawable.whitePawn else Res.drawable.whiteQueen
-//                PieceColor.BLACK -> if (piece.type == PieceType.Pawn) Res.drawable.blackPawn else Res.drawable.blackQueen
-//            }
-//            Image(
-//                painter = painterResource(asset),
-//                contentDescription = "Checkers piece",
-//                modifier = Modifier.fillMaxSize()
-//            )
+            val icon = when (piece.color) {
+                PieceColor.WHITE -> if (piece.type == PieceType.Pawn) Pawns.WhitePawn else Pawns.WhiteQueen
+                PieceColor.BLACK -> if (piece.type == PieceType.Pawn) Pawns.BlackPawn else Pawns.BlackPawn
+            }
+            Icon(
+                icon,
+                contentDescription = "Checkers piece",
+                modifier = Modifier.fillMaxSize().clickable { onClick(cell.row, cell.col) },
+                tint = Color.Unspecified,
+            )
         }
     }
 }
