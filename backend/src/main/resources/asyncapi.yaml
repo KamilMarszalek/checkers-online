@@ -68,23 +68,27 @@ components:
           type:
             type: string
             enum: [ "move" ]
-          gameId:
-            type: string
-            description: "ID of the existing game"
-          move:
+          content:
             type: object
-            description: "Move details"
             properties:
-              fromRow:
-                type: integer
-              fromColumn:
-                type: integer
-              toRow:
-                type: integer
-              toColumn:
-                type: integer
-            required: [ fromRow, fromColumn, toRow, toColumn ]
-        required: [ type, gameId, move ]
+              gameId:
+                type: string
+                description: "ID of the existing game"
+              move:
+                type: object
+                description: "Move details"
+                properties:
+                  fromRow:
+                    type: integer
+                  fromColumn:
+                    type: integer
+                  toRow:
+                    type: integer
+                  toColumn:
+                    type: integer
+                required: [ fromRow, fromColumn, toRow, toColumn ]
+            required: [ gameId, move ]
+        required: [type, content]
         additionalProperties: false
 
     PossibilitiesMessage:
@@ -96,16 +100,20 @@ components:
           type:
             type: string
             enum: [ "possibilities" ]
-          gameId:
-            type: string
-            description: "ID of the game"
-          row:
-            type: integer
-            description: "Row for which to get possible moves"
-          col:
-            type: integer
-            description: "Column for which to get possible moves"
-        required: [ type, gameId, row, col ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the game"
+              row:
+                type: integer
+                description: "Row for which to get possible moves"
+              col:
+                type: integer
+                description: "Column for which to get possible moves"
+            required: [gameId, row, col]
+        required: [ type, content ]
         additionalProperties: false
 
 
@@ -148,14 +156,18 @@ components:
           content:
             type: object
             properties:
-              fromRow:
-                type: integer
-              fromCol:
-                type: integer
-              toRow:
-                type: integer
-              toCol:
-                type: integer
+              move:
+                type: object
+                properties:
+                  fromRow:
+                    type: integer
+                  fromCol:
+                    type: integer
+                  toRow:
+                    type: integer
+                  toCol:
+                    type: integer
+                required: [fromRow, fromCol, toRow, toCol]
               captured:
                 type: boolean
               capturedRow:
@@ -167,7 +179,7 @@ components:
               turn:
                 type: string
                 enum: ["white", "black"]
-            required: [ fromRow, fromColumn, toRow, toColumn, captured, capturedRow, capturedCol, hasMoreTakes ]
+            required: [ move, captured, capturedRow, capturedCol, hasMoreTakes ]
         required: [type, content]
         additionalProperties: false
 
@@ -210,8 +222,11 @@ components:
             type: string
             enum: ["waiting"]
           content:
-            type: string
-            enum: ["Waiting for an opponent..."]
+            type: object
+            properties:
+              message:
+                type: string
+                enum: ["Waiting for an opponent..."]
     GameEndMessage:
       name: GameEndMessage
       title: "GameEnd"
