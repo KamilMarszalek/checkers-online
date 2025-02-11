@@ -59,6 +59,12 @@ public class GameService {
         if (!colorMatchesCurrentPlayer(piece.getColor(), gameState.getCurrentPlayer())) {
             return false;
         }
+
+        if (gameState.getLastCaptureCol() != null && gameState.getLastCaptureRow() != null) {
+            if (move.getFromRow() != gameState.getLastCaptureRow() || move.getFromCol() != gameState.getLastCaptureCol()) {
+                return false;
+            }
+        }
         PossibleMoves pm = getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
         return pm.getMoves().contains(move);
     }
@@ -128,7 +134,12 @@ public class GameService {
         if (hasMoreTakes(gameState, move)) {
             response.setHasMoreTakes(true);
             response.setTurn(turn);
+            gameState.setLastCaptureCol(move.getToCol());
+            gameState.setLastCaptureRow(move.getToRow());
             return response;
+        } else {
+            gameState.setLastCaptureCol(null);
+            gameState.setLastCaptureRow(null);
         }
 
         if (hasSomebodyWon(gameState)) {
@@ -212,6 +223,11 @@ public class GameService {
     }
 
     public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
+        if (gameState.getLastCaptureCol() != null && gameState.getLastCaptureRow() != null) {
+            if (row != gameState.getLastCaptureRow() || col != gameState.getLastCaptureCol()) {
+                return new PossibleMoves();
+            }
+        }
         Piece[][] board = gameState.getBoard();
         Piece pawn = board[row][col];
         if (pawn == null) {
