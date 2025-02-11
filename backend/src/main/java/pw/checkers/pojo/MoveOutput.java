@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MoveOutput {
-    private MoveInput move;
+    private Move move;
     private boolean captured;
     private Integer capturedRow;
     private Integer capturedCol;
