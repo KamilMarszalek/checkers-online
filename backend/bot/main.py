@@ -41,10 +41,10 @@ def on_message(ws_app, message):
     elif msg_type == "move":
         move_content = dict_message["content"]
 
-        fr = move_content["fromRow"]
-        fc = move_content["fromCol"]
-        tr = move_content["toRow"]
-        tc = move_content["toCol"]
+        fr = move_content["move"]["fromRow"]
+        fc = move_content["move"]["fromCol"]
+        tr = move_content["move"]["toRow"]
+        tc = move_content["move"]["toCol"]
 
         bot.board = bot.make_local_move(bot.board, (fr, fc, tr, tc))
 
@@ -88,8 +88,10 @@ def do_bot_move(ws_app):
 
     request = {
         "type": "move",
-        "gameId": game_id,
-        "move": {"fromRow": fr, "fromCol": fc, "toRow": tr, "toCol": tc},
+        "content": {
+            "gameId": game_id,
+            "move": {"fromRow": fr, "fromCol": fc, "toRow": tr, "toCol": tc}
+        }
     }
     ws_app.send(json.dumps(request))
 
