@@ -8,8 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class MoveInput {
-    private int fromRow;
-    private int fromCol;
-    private int toRow;
-    private int toCol;
+    private String gameId;
+    private Move move;
 }

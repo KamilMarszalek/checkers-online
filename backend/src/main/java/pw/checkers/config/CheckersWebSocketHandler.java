@@ -1,5 +1,6 @@
 package pw.checkers.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.lang.NonNull;
 import org.springframework.web.socket.CloseStatus;
@@ -35,24 +36,25 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) throws Exception {
-        WsMessage wsMessage = objectMapper.readValue(message.getPayload(), WsMessage.class);
-        String messageType = wsMessage.getType();
+        Message<Map<String, Object>> rawMessage = objectMapper.readValue(message.getPayload(), new TypeReference<>() {});
 
-        switch (messageType) {
+        switch (rawMessage.getType()) {
             case "joinQueue": {
                 handleJoinQueue(session);
                 break;
             }
             case "move": {
-                handleMove(session, wsMessage);
+                MoveInput moveInput = objectMapper.convertValue(rawMessage.getContent(), MoveInput.class);
+                handleMove(session, moveInput);
                 break;
             }
             case "possibilities": {
-                handlePossibilities(session, wsMessage);
+                PossibilitiesInput possibilitiesInput = objectMapper.convertValue(rawMessage.getContent(), PossibilitiesInput.class);
+                handlePossibilities(session, possibilitiesInput);
                 break;
             }
             default: {
-                Message<String> defaultMessage = new Message<>("error", "Unknown message type: " + messageType);
+                Message<String> defaultMessage = new Message<>("error", "Unknown message type: " + rawMessage.getType());
                 session.sendMessage(new TextMessage(objectMapper.writeValueAsString(defaultMessage)));
                 break;
             }
@@ -65,7 +67,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
         if (waiting == null) {
             waitingQueue.add(session);
-            Message<String> waitingMessage = new Message<>("waiting", "Waiting for an opponent...");
+            Message<PromptMessage> waitingMessage = new Message<>("waiting", new PromptMessage("Waiting for an opponent..."));
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(waitingMessage)));
         } else {
             GameState newGame = gameService.createGame();
@@ -90,8 +92,8 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         mutex.release();
     }
 
-    private void handleMove(WebSocketSession session, WsMessage wsMessage) throws Exception {
-        String gameId = wsMessage.getGameId();
+    private void handleMove(WebSocketSession session, MoveInput moveInput) throws Exception {
+        String gameId = moveInput.getGameId();
         if (gameId == null) {
             Message<String> moveMessage = new Message<>("error", "No game id specified");
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(moveMessage)));
@@ -109,7 +111,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        MoveOutput moveOutput = gameService.makeMove(gameId, wsMessage.getMove(), assignedColor);
+        MoveOutput moveOutput = gameService.makeMove(gameId, moveInput.getMove(), assignedColor);
         Message<MoveOutput> moveMessage = new Message<>("move", moveOutput);
         GameState updatedState = gameService.getGame(gameId);
         String response = objectMapper.writeValueAsString(moveMessage);
@@ -131,8 +133,8 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     }
 
-    private void handlePossibilities(WebSocketSession session, WsMessage wsMessage) throws Exception {
-        String gameId = wsMessage.getGameId();
+    private void handlePossibilities(WebSocketSession session, PossibilitiesInput possibilitiesInput) throws Exception {
+        String gameId = possibilitiesInput.getGameId();
         if (gameId == null) {
             Message<String> errorMessage = new Message<>("error", "No game id specified");
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorMessage)));
@@ -144,7 +146,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             return;
         }
         GameState currentState = gameService.getGame(gameId);
-        PossibleMoves moves = gameService.getPossibleMoves(currentState, wsMessage.getRow(), wsMessage.getCol());
+        PossibleMoves moves = gameService.getPossibleMoves(currentState, possibilitiesInput.getRow(), possibilitiesInput.getCol());
         Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
         session.sendMessage(new TextMessage(objectMapper.writeValueAsString(responseMessage)));
     }
