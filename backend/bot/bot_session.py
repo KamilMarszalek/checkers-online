@@ -45,7 +45,16 @@ class BotSession:
             async with websockets.connect(self.url) as ws:
                 self.ws = ws
 
-                await self.ws.send(json.dumps({"type": "joinQueue"}))
+                await self.ws.send(
+                    json.dumps(
+                        {
+                            "type": "joinQueue",
+                            "content": {
+                                "username": "Herkules"
+                            }
+                        }
+                    )
+                )
                 print("Sent joinQueue message")
 
                 while True:
