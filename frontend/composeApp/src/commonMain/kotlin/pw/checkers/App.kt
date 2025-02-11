@@ -20,7 +20,7 @@ fun App() {
     val cellSize = remember(windowSize) { calcCellSize(windowSize.first, windowSize.second) }
     AppTheme {
         Scaffold {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column {
                     UserPanelPlaceHolder(cellSize * 8, height = cellSize)
                     Board(initialBoard, emptySet(), cellSize) { x, y -> println("$x $y") }
