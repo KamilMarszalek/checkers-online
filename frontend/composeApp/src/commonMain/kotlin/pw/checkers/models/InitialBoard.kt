@@ -13,8 +13,8 @@ fun createInitialBoard(reverse: Boolean = false): Board {
             CellState(
                 row, col, when {
                     (row + col) % 2 == 0 -> null
-                    row < 3 -> Piece(topColor, PieceType.Pawn)
-                    row > 4 -> Piece(bottomColor, PieceType.Pawn)
+                    row < 3 -> Piece(topColor, PieceType.PAWN)
+                    row > 4 -> Piece(bottomColor, PieceType.PAWN)
                     else -> null
                 }
             )

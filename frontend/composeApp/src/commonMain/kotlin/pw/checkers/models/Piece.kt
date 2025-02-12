@@ -1,11 +1,11 @@
 package pw.checkers.models
 
-enum class PieceColor(name: String) {
-    WHITE("white"), BLACK("black")
+enum class PieceColor() {
+    WHITE, BLACK
 }
 
-enum class PieceType(name: String) {
-    Pawn("Pawn"), Queen("Queen")
+enum class PieceType() {
+    PAWN, QUEEN
 }
 
 data class Piece(val color: PieceColor, val type: PieceType)

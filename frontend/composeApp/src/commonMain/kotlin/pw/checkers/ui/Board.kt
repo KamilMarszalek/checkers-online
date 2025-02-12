@@ -49,8 +49,8 @@ private fun Cell(
     ) {
         cell.piece?.let { piece ->
             val icon = when (piece.color) {
-                PieceColor.WHITE -> if (piece.type == PieceType.Pawn) Pawns.WhitePawn else Pawns.WhiteQueen
-                PieceColor.BLACK -> if (piece.type == PieceType.Pawn) Pawns.BlackPawn else Pawns.BlackPawn
+                PieceColor.WHITE -> if (piece.type == PieceType.PAWN) Pawns.WhitePawn else Pawns.WhiteQueen
+                PieceColor.BLACK -> if (piece.type == PieceType.PAWN) Pawns.BlackPawn else Pawns.BlackPawn
             }
             Icon(
                 icon,
