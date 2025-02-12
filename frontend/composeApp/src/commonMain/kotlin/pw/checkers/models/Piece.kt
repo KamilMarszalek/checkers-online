@@ -10,10 +10,6 @@ enum class PieceType(name: String) {
 
 data class Piece(val color: PieceColor, val type: PieceType)
 
-fun Piece.assetName(): String {
-    return "${color.name}${type.name}"
-}
-
 data class CellState(
     val row: Int,
     val col: Int,
