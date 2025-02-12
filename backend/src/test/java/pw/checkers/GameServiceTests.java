@@ -284,12 +284,18 @@ public class GameServiceTests {
         }
 
         board[5][0] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[3][4] = new Piece(PieceColor.WHITE, PieceType.PAWN);
 
         board[4][1] = new Piece(PieceColor.BLACK, PieceType.PAWN);
         board[2][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
 
         Move firstCapture = new Move(5, 0, 3, 2);
         MoveOutput firstOutput = gameService.makeMove(gameId, firstCapture,"white");
+
+        Move invalidCapture = new Move(3, 4, 1, 2);
+        MoveOutput invalidOutput = gameService.makeMove(gameId, invalidCapture,"white");
+
+        assertNull(invalidOutput);
 
         assertNotNull(firstOutput);
         assertTrue(firstOutput.isCaptured());
