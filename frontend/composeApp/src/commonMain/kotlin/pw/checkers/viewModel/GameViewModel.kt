@@ -58,4 +58,32 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
         selected = -1 to -1
         println("Moved to ($row, $col)")
     }
+    private fun movePiece(move: Move, captured: Pair<Int, Int>? = null) {
+        val newBoard = _board.value.toMutableList()
+        val newPieceRow = newBoard[move.toRow].toMutableList()
+        val currentPieceRow = newBoard[move.fromRow].toMutableList()
+
+        var currentPieceCell = currentPieceRow[move.fromCol]
+        var newPieceCell = newPieceRow[move.toCol].copy(piece = currentPieceCell.piece)
+
+        if (checkIfUpgrade(newPieceCell)) {
+            newPieceCell = newPieceCell.copy(piece = newPieceCell.piece!!.copy(type = PieceType.QUEEN))
+        }
+
+        currentPieceCell = currentPieceRow[move.fromCol].copy(piece = null)
+
+        currentPieceRow[move.fromCol] = currentPieceCell
+        newPieceRow[move.toCol] = newPieceCell
+
+        newBoard[move.toRow] = newPieceRow.toList()
+        newBoard[move.fromRow] = currentPieceRow.toList()
+
+        captured?.let {
+            val capturedRow = newBoard[captured.first].toMutableList()
+            capturedRow[captured.second] = capturedRow[captured.second].copy(piece = null)
+            newBoard[captured.first] = capturedRow
+        }
+
+        _board.value = newBoard.toList()
+    }
 }
