@@ -108,14 +108,14 @@ public class GameService {
         return false;
     }
 
-    public MoveOutput makeMove(String gameId, Move move, String turn) {
+    public MoveOutput makeMove(String gameId, Move move, String currentTurn) {
         MoveOutput response = new MoveOutput();
         response.setMove(move);
         GameState gameState = getGame(gameId);
         if (gameState == null || gameState.isFinished()){
             return null;
         }
-        if (!gameState.getCurrentPlayer().equals(turn)) {
+        if (!gameState.getCurrentPlayer().equals(currentTurn)) {
             return null;
         }
         boolean b = validateMove(gameState, move);
@@ -133,7 +133,8 @@ public class GameService {
         gameState.getNumberOfPositions().put(gameState.boardToString(), posCounter + 1);
         if (hasMoreTakes(gameState, move)) {
             response.setHasMoreTakes(true);
-            response.setTurn(turn);
+            response.setCurrentTurn(gameState.getCurrentPlayer());
+            response.setPreviousTurn(gameState.getCurrentPlayer());
             gameState.setLastCaptureCol(move.getToCol());
             gameState.setLastCaptureRow(move.getToRow());
             return response;
@@ -150,10 +151,12 @@ public class GameService {
 
         if (gameState.getCurrentPlayer().equals("white")) {
             gameState.setCurrentPlayer("black");
-            response.setTurn("black");
+            response.setCurrentTurn("black");
+            response.setPreviousTurn("white");
         } else {
             gameState.setCurrentPlayer("white");
-            response.setTurn("white");
+            response.setCurrentTurn("white");
+            response.setPreviousTurn("black");
         }
         return response;
     }
