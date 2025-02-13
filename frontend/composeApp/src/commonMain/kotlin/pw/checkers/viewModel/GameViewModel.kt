@@ -91,4 +91,13 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
     private fun checkSkipClick(row: Int, col: Int): Boolean {
         return (row to col == selected || _board.value[row][col].piece!!.color != color || _currentPlayer.value != color)
     }
+
+    private fun checkIfUpgrade(pieceCell: CellState): Boolean {
+        val piece = pieceCell.piece ?: return false
+        return when (piece.color to piece.type) {
+            PlayerColor.BLACK to PieceType.PAWN -> pieceCell.row == 7
+            PlayerColor.WHITE to PieceType.PAWN -> pieceCell.row == 0
+            else -> false
+        }
+    }
 }
