@@ -25,6 +25,9 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
     private val _highlightedCells = MutableStateFlow<List<Pair<Int, Int>>>(emptyList())
     val highlightedCells = _highlightedCells.asStateFlow()
 
+    private val _currentPlayer = MutableStateFlow(PlayerColor.BLACK)
+    val currentPlayer = _currentPlayer.asStateFlow()
+
     private var selected =  Pair(-1, -1)
 
     @Suppress("UNUSED_PARAMETER")
