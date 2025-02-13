@@ -27,6 +27,12 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
 
     private var selected =  Pair(-1, -1)
 
+    @Suppress("UNUSED_PARAMETER")
+    fun unselectPiece(row: Int, col: Int) {
+        selected = -1 to -1
+        _highlightedCells.value = emptyList()
+    }
+
     fun getPossibleMoves(row: Int, col: Int) {
         // TODO: actual implementation instead of placeholder
         if (selected == row to col) {
