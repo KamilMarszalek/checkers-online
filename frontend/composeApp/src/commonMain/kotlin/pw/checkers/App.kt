@@ -19,18 +19,14 @@ fun App() {
     val windowSize = rememberWindowSize()
     val cellSize = remember(windowSize) { calcCellSize(windowSize.width, windowSize.height) }
     val viewModel = GameViewModel(color = PlayerColor.BLACK)
-    val board by viewModel.board.collectAsState()
     AppTheme {
         Scaffold {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column {
                     UserPanelPlaceHolder(cellSize * 8, height = cellSize)
                     Board(
-                        board,
-                        emptySet(),
-                        cellSize,
-                        onPieceClick = viewModel::getPossibleMoves,
-                        onHighlightedClick = viewModel::makeMove)
+                        viewModel, cellSize
+                    )
                     UserPanelPlaceHolder(cellSize * 8, height = cellSize)
                 }
             }
@@ -41,9 +37,6 @@ fun App() {
 @Composable
 fun UserPanelPlaceHolder(width: Dp, height: Dp) {
     Box(
-        modifier = Modifier
-            .width(width)
-            .height(height)
-            .background(Color.Blue)
+        modifier = Modifier.width(width).height(height).background(Color.Blue)
     )
 }

@@ -22,7 +22,31 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
             initialValue = if (color == PlayerColor.BLACK) _board.value.asReversed() else _board.value
         )
 
-//    private val
+    private val _highlightedCells = MutableStateFlow<List<Pair<Int, Int>>>(emptyList())
+    val highlightedCells = _highlightedCells.asStateFlow()
 
-    fun getPossibleMoves(row: Int, col: Int) {}
+    private var selected =  Pair(-1, -1)
+
+    fun getPossibleMoves(row: Int, col: Int) {
+        // TODO: actual implementation instead of placeholder
+        if (selected == row to col) {
+            return
+        }
+
+        val newPair = (3..4).random() to (0..7).random()
+        val newSet: List<Pair<Int, Int>> = listOf(newPair)
+
+        selected = row to col
+
+        _highlightedCells.value = newSet
+        println("clicked ($row, $col) - possible move (${newPair.first}, ${newPair.second})")
+        println(newSet)
+    }
+
+    fun makeMove(row: Int, col: Int) {
+        // TODO: actual implementation instead of placeholder
+        _highlightedCells.value = emptyList()
+        selected = -1 to -1
+        println("Moved to ($row, $col)")
+    }
 }
