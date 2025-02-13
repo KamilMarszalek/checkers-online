@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Move(
     val fromRow: Int,
-    val fromColumn: Int,
+    val fromCol: Int,
     val toRow: Int,
-    val toColumn: Int,
+    val toCol: Int,
 )
