@@ -12,5 +12,4 @@ data class CellState(
     val row: Int,
     val col: Int,
     val piece: Piece? = null,
-    val selected: Boolean = false
 )
