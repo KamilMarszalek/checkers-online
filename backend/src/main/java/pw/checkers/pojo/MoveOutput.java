@@ -15,5 +15,6 @@ public class MoveOutput {
     private Integer capturedRow;
     private Integer capturedCol;
     private boolean hasMoreTakes;
-    private String turn;
+    private String currentTurn;
+    private String previousTurn;
 }
