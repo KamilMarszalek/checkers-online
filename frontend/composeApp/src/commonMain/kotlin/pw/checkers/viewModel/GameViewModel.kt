@@ -40,7 +40,7 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
 
     fun getPossibleMoves(row: Int, col: Int) {
         // TODO: actual implementation instead of placeholder
-        if (selected == row to col) {
+        if (checkSkipClick(row, col)) {
             return
         }
 
