@@ -3,24 +3,26 @@ package pw.checkers.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
+import pw.checkers.data.Move
+import pw.checkers.models.CellState
+import pw.checkers.models.PieceType
 import pw.checkers.models.createInitialBoard
 import pw.checkers.util.PlayerColor
+import kotlin.math.abs
 
 class GameViewModel(val color: PlayerColor) : ViewModel() {
     private val _board = MutableStateFlow(createInitialBoard())
-    val board = _board
-        .map { board ->
-            if (color == PlayerColor.BLACK) {
-                board.asReversed().map { innerList -> innerList.asReversed() }
-            } else {
-                board
-            }
+    val board = _board.map { board ->
+        if (color == PlayerColor.BLACK) {
+            board.asReversed().map { innerList -> innerList.asReversed() }
+        } else {
+            board
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = if (color == PlayerColor.BLACK) _board.value.asReversed() else _board.value
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = if (color == PlayerColor.BLACK) _board.value.asReversed() else _board.value
+    )
 
     private val _highlightedCells = MutableStateFlow<List<Pair<Int, Int>>>(emptyList())
     val highlightedCells = _highlightedCells.asStateFlow()
@@ -28,7 +30,7 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
     private val _currentPlayer = MutableStateFlow(PlayerColor.BLACK)
     val currentPlayer = _currentPlayer.asStateFlow()
 
-    private var selected =  Pair(-1, -1)
+    private var selected = Pair(-1, -1)
 
     @Suppress("UNUSED_PARAMETER")
     fun unselectPiece(row: Int, col: Int) {
@@ -55,6 +57,13 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
     fun makeMove(row: Int, col: Int) {
         // TODO: actual implementation instead of placeholder
         _highlightedCells.value = emptyList()
+
+        var captured: Pair<Int, Int>? = null
+        if (abs(selected.first - row) > 1) {
+            captured = Pair((selected.first + row) / 2, (selected.second + col) / 2)
+        }
+        movePiece(Move(selected.first, selected.second, row, col), captured)
+
         selected = -1 to -1
         println("Moved to ($row, $col)")
     }
