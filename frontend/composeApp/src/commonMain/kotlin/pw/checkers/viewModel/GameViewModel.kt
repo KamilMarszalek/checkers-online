@@ -58,6 +58,7 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
         selected = -1 to -1
         println("Moved to ($row, $col)")
     }
+
     private fun movePiece(move: Move, captured: Pair<Int, Int>? = null) {
         val newBoard = _board.value.toMutableList()
         val newPieceRow = newBoard[move.toRow].toMutableList()
@@ -85,5 +86,9 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
         }
 
         _board.value = newBoard.toList()
+    }
+
+    private fun checkSkipClick(row: Int, col: Int): Boolean {
+        return (row to col == selected || _board.value[row][col].piece!!.color != color || _currentPlayer.value != color)
     }
 }
