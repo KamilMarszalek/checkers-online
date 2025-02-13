@@ -113,7 +113,8 @@ public class GameServiceTests {
         assertEquals(result.getMove().getToRow(), validMove.getToRow());
         assertNull(result.getCapturedCol());
         assertNull(result.getCapturedRow());
-        assertEquals("black", gameService.getGame(gameId).getCurrentPlayer());
+        assertEquals(result.getCurrentTurn(), "black");
+        assertEquals(result.getPreviousTurn(), "white");
     }
 
     @Test
@@ -138,6 +139,8 @@ public class GameServiceTests {
         assertFalse(result.isHasMoreTakes());
         assertTrue(result.isCaptured());
         assertNull(board[4][3]);
+        assertEquals(result.getPreviousTurn(), "white");
+        assertEquals(result.getCurrentTurn(), "black");
     }
 
     @Test
@@ -168,7 +171,8 @@ public class GameServiceTests {
         assertTrue(result.isHasMoreTakes());
         assertTrue(result.isCaptured());
         assertNull(board[4][3]);
-        assertEquals(gameService.getGame(gameId).getCurrentPlayer(), "white");
+        assertEquals(result.getPreviousTurn(), "white");
+        assertEquals(result.getCurrentTurn(), "white");
     }
 
     @Test
@@ -302,6 +306,8 @@ public class GameServiceTests {
         assertEquals(4, firstOutput.getCapturedRow());
         assertEquals(1, firstOutput.getCapturedCol());
         assertTrue(firstOutput.isHasMoreTakes());
+        assertEquals(firstOutput.getCurrentTurn(), "white");
+        assertEquals(firstOutput.getPreviousTurn(), "white");
 
         Move secondCapture = new Move(3, 2, 1, 4);
         MoveOutput secondOutput = gameService.makeMove(gameId, secondCapture, "white");
@@ -311,7 +317,8 @@ public class GameServiceTests {
         assertEquals(2, secondOutput.getCapturedRow());
         assertEquals(3, secondOutput.getCapturedCol());
         assertFalse(secondOutput.isHasMoreTakes());
-        assertEquals("black", gameService.getGame(gameId).getCurrentPlayer());
+        assertEquals("black", secondOutput.getCurrentTurn());
+        assertEquals("white", secondOutput.getPreviousTurn());
     }
 
     @Test
