@@ -1,14 +1,12 @@
 package pw.checkers.models
 
-enum class PieceColor() {
-    WHITE, BLACK
-}
+import pw.checkers.util.PlayerColor
 
 enum class PieceType() {
     PAWN, QUEEN
 }
 
-data class Piece(val color: PieceColor, val type: PieceType)
+data class Piece(val color: PlayerColor, val type: PieceType)
 
 data class CellState(
     val row: Int,

@@ -1,3 +1,5 @@
 package pw.checkers.util
 
-enum class PlayerColor { WHITE, BLACK }
+enum class PlayerColor() {
+    WHITE, BLACK
+}

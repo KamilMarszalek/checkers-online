@@ -11,8 +11,7 @@ import androidx.compose.ui.unit.Dp
 import pw.checkers.ui.Board
 import pw.checkers.ui.theme.AppTheme
 import pw.checkers.ui.windowSize.rememberWindowSize
-import pw.checkers.util.PlayerColor
-import pw.checkers.util.calcCellSize
+import pw.checkers.util.*
 import pw.checkers.viewModel.GameViewModel
 
 @Composable
@@ -30,8 +29,8 @@ fun App() {
                         board,
                         emptySet(),
                         cellSize,
-                        onPieceClick = { x, y -> println("$x $y") },
-                        onHighlightedClick = { x, y -> println("highlighted $x $y") })
+                        onPieceClick = viewModel::getPossibleMoves,
+                        onHighlightedClick = viewModel::makeMove)
                     UserPanelPlaceHolder(cellSize * 8, height = cellSize)
                 }
             }
