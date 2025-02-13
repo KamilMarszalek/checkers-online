@@ -116,7 +116,7 @@ class BotSession:
             tc = move_data["toCol"]
             self.bot.board = self.bot.make_local_move(self.bot.board, (fr, fc, tr, tc))
 
-            self.bot.current_player = content["turn"]
+            self.bot.current_player = content["currentTurn"]
 
             if (self.my_color == "white" and self.bot.current_player == "white") or (
                     self.my_color == "black" and self.bot.current_player == "black"
