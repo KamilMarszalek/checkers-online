@@ -56,7 +56,13 @@ components:
           type:
             type: string
             enum: [ "joinQueue" ]  # This message always has type = "joinQueue"
-        required: [ type ]
+          content:
+            type: object
+            properties:
+              username:
+                type: string
+                description: "Name of the player"
+        required: [ type, content ]
         additionalProperties: false
 
     MoveMessage:
@@ -80,13 +86,13 @@ components:
                 properties:
                   fromRow:
                     type: integer
-                  fromColumn:
+                  fromCol:
                     type: integer
                   toRow:
                     type: integer
-                  toColumn:
+                  toCol:
                     type: integer
-                required: [ fromRow, fromColumn, toRow, toColumn ]
+                required: [ fromRow, fromCol, toRow, toCol ]
             required: [ gameId, move ]
         required: [type, content]
         additionalProperties: false
@@ -140,7 +146,13 @@ components:
                 type: string
                 enum: ["white", "black"]
                 description: "Color assigned to the recipient (e.g. 'white' or 'black')"
-            required: [ type, gameId, assignedColor ]
+              opponent:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: "Name of the opponent"
+            required: [ type, gameId, assignedColor, opponent ]
         required: [type, content]
         additionalProperties: false
 
@@ -176,10 +188,13 @@ components:
                 type: integer
               hasMoreTakes:
                 type: boolean
-              turn:
+              currentTurn:
                 type: string
                 enum: ["white", "black"]
-            required: [ move, captured, capturedRow, capturedCol, hasMoreTakes ]
+              previousTurn:
+                type: string
+                enum: ["white", "black"]
+            required: [ move, captured, capturedRow, capturedCol, hasMoreTakes, currentTurn, previousTurn ]
         required: [type, content]
         additionalProperties: false
 
