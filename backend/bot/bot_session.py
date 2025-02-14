@@ -50,7 +50,9 @@ class BotSession:
                         {
                             "type": "joinQueue",
                             "content": {
-                                "username": "Herkules"
+                                "user": {
+                                    "username": "Herkules"
+                                }
                             }
                         }
                     )
