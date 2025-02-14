@@ -12,8 +12,7 @@ import lombok.Setter;
 public class MoveOutput {
     private Move move;
     private boolean captured;
-    private Integer capturedRow;
-    private Integer capturedCol;
+    private MoveHelper capturedPiece;
     private boolean hasMoreTakes;
     private String currentTurn;
     private String previousTurn;
