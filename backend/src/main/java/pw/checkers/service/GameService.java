@@ -66,7 +66,7 @@ public class GameService {
             }
         }
         PossibleMoves pm = getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
-        return pm.getMoves().contains(move);
+        return pm.getMoves().contains(new MoveHelper(move.getToRow(), move.getToCol()));
     }
 
     private boolean colorMatchesCurrentPlayer(PieceColor color, String currentPlayer) {
@@ -302,7 +302,7 @@ public class GameService {
             }
 
             if (board[landingRow][landingCol] == null) {
-                possibleMoves.getMoves().add(new Move(row, col, landingRow, landingCol));
+                possibleMoves.getMoves().add(new MoveHelper(landingRow, landingCol));
             }
         }
     }
@@ -337,7 +337,7 @@ public class GameService {
             if (board[middleRow][middleCol] != null
                     && board[middleRow][middleCol].getColor() == opponentColor
                     && board[landingRow][landingCol] == null) {
-                possibleMoves.getMoves().add(new Move(row, col, landingRow, landingCol));
+                possibleMoves.getMoves().add(new MoveHelper(landingRow, landingCol));
             }
         }
 
