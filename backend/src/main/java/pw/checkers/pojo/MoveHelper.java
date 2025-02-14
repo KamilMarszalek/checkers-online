@@ -1,15 +1,13 @@
 package pw.checkers.pojo;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class MoveHelper {
     private int row;
     private int col;
