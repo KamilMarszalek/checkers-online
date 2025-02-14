@@ -59,9 +59,14 @@ components:
           content:
             type: object
             properties:
-              username:
-                type: string
-                description: "Name of the player"
+              user:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: "Name of the player"
+                required: [username]
+            required: [user]
         required: [ type, content ]
         additionalProperties: false
 
@@ -182,10 +187,13 @@ components:
                 required: [fromRow, fromCol, toRow, toCol]
               captured:
                 type: boolean
-              capturedRow:
-                type: integer
-              capturedCol:
-                type: integer
+              capturedPiece:
+                type: object
+                properties:
+                  row:
+                    type: integer
+                  col:
+                    type: integer
               hasMoreTakes:
                 type: boolean
               currentTurn:
@@ -194,7 +202,7 @@ components:
               previousTurn:
                 type: string
                 enum: ["white", "black"]
-            required: [ move, captured, capturedRow, capturedCol, hasMoreTakes, currentTurn, previousTurn ]
+            required: [ move, captured, capturedPiece, hasMoreTakes, currentTurn, previousTurn ]
         required: [type, content]
         additionalProperties: false
 
@@ -215,15 +223,11 @@ components:
                 items:
                   type: object
                   properties:
-                    fromRow:
+                    row:
                       type: integer
-                    fromCol:
+                    col:
                       type: integer
-                    toRow:
-                      type: integer
-                    toCol:
-                      type: integer
-                  required: [ fromRow, fromCol, toRow, toCol ]
+                  required: [ row, col ]
                 description: "List of possible moves from the requested position. If empty then there are no possible moves"
             required: [ moves ]
         additionalProperties: false
