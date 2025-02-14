@@ -15,13 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.times
-import pw.checkers.models.*
+import pw.checkers.data.Cell
+import pw.checkers.data.PieceType
 import pw.checkers.ui.icons.Pawns
 import pw.checkers.ui.icons.pawns.BlackPawn
 import pw.checkers.ui.icons.pawns.BlackQueen
 import pw.checkers.ui.icons.pawns.WhitePawn
 import pw.checkers.ui.icons.pawns.WhiteQueen
-import pw.checkers.util.PlayerColor
+import pw.checkers.data.PlayerColor
 import pw.checkers.viewModel.GameViewModel
 
 @Composable
@@ -53,7 +54,7 @@ fun Board(
 
 @Composable
 private fun Cell(
-    cell: CellState,
+    cell: Cell,
     cellSize: Dp,
     isHighlighted: Boolean,
     onPieceClick: (row: Int, col: Int) -> Unit,

@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import pw.checkers.data.Move
-import pw.checkers.models.CellState
-import pw.checkers.models.PieceType
+import pw.checkers.data.Cell
+import pw.checkers.data.PieceType
 import pw.checkers.models.createInitialBoard
-import pw.checkers.util.PlayerColor
+import pw.checkers.data.PlayerColor
 import kotlin.math.abs
 
 class GameViewModel(val color: PlayerColor) : ViewModel() {
@@ -101,7 +101,7 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
         return (row to col == selected || _board.value[row][col].piece!!.color != color || _currentPlayer.value != color)
     }
 
-    private fun checkIfUpgrade(pieceCell: CellState): Boolean {
+    private fun checkIfUpgrade(pieceCell: Cell): Boolean {
         val piece = pieceCell.piece ?: return false
         return when (piece.color to piece.type) {
             PlayerColor.BLACK to PieceType.PAWN -> pieceCell.row == 7
