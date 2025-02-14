@@ -40,7 +40,9 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
         switch (rawMessage.getType()) {
             case "joinQueue": {
-                User user = objectMapper.convertValue(rawMessage.getContent(), User.class);
+                Map<String, Object> content = rawMessage.getContent();
+                Object userObj = content.get("user");
+                User user = objectMapper.convertValue(userObj, User.class);
                 handleJoinQueue(session, user);
                 break;
             }
