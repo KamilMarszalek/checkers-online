@@ -86,8 +86,7 @@ public class GameService {
                 gameState.setWhitePiecesLeft(gameState.getWhitePiecesLeft() - 1);
             }
             board[opponentRow][opponentCol] = null;
-            move.setCapturedRow(opponentRow);
-            move.setCapturedCol(opponentCol);
+            move.setCapturedPiece(new MoveHelper(opponentRow, opponentCol));
             move.setCaptured(true);
             gameState.setNoCapturesCounter(0);
         }
