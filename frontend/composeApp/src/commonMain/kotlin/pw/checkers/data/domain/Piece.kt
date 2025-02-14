@@ -1,4 +1,4 @@
-package pw.checkers.data
+package pw.checkers.data.domain
 
 import kotlinx.serialization.Serializable
 

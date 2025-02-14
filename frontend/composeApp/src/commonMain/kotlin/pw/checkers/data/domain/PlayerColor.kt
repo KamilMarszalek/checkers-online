@@ -1,16 +1,13 @@
-package pw.checkers.data
+package pw.checkers.data.domain
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class Result {
-    @SerialName("draw")
-    DRAW,
-
+enum class PlayerColor() {
     @SerialName("white")
     WHITE,
 
     @SerialName("black")
-    BLACK,
+    BLACK
 }

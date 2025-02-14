@@ -1,8 +1,8 @@
 package pw.checkers.data.response
 
 import kotlinx.serialization.Serializable
-import pw.checkers.data.PlayerColor
-import pw.checkers.data.User
+import pw.checkers.data.domain.PlayerColor
+import pw.checkers.data.domain.User
 
 @Serializable
 data class GameCreated(

@@ -1,9 +1,9 @@
 package pw.checkers.data.response
 
 import kotlinx.serialization.Serializable
-import pw.checkers.data.Cell
-import pw.checkers.data.Move
-import pw.checkers.data.PlayerColor
+import pw.checkers.data.domain.Cell
+import pw.checkers.data.domain.Move
+import pw.checkers.data.domain.PlayerColor
 
 @Serializable
 data class MoveInfo(

@@ -1,7 +1,7 @@
 package pw.checkers.data.request
 
 import kotlinx.serialization.Serializable
-import pw.checkers.data.Move
+import pw.checkers.data.domain.Move
 
 @Serializable
 data class MakeMove(

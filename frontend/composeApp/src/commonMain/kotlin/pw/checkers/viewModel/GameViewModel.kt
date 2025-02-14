@@ -3,11 +3,11 @@ package pw.checkers.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
-import pw.checkers.data.Move
-import pw.checkers.data.Cell
-import pw.checkers.data.PieceType
+import pw.checkers.data.domain.Move
+import pw.checkers.data.domain.Cell
+import pw.checkers.data.domain.PieceType
 import pw.checkers.models.createInitialBoard
-import pw.checkers.data.PlayerColor
+import pw.checkers.data.domain.PlayerColor
 import kotlin.math.abs
 
 class GameViewModel(val color: PlayerColor) : ViewModel() {

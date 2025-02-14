@@ -1,7 +1,7 @@
 package pw.checkers.data.response
 
 import kotlinx.serialization.Serializable
-import pw.checkers.data.Cell
+import pw.checkers.data.domain.Cell
 
 @Serializable
 data class Possibilities(

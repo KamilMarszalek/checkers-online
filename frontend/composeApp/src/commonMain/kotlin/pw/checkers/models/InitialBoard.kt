@@ -1,9 +1,9 @@
 package pw.checkers.models
 
-import pw.checkers.data.Cell
-import pw.checkers.data.Piece
-import pw.checkers.data.PieceType
-import pw.checkers.data.PlayerColor
+import pw.checkers.data.domain.Cell
+import pw.checkers.data.domain.Piece
+import pw.checkers.data.domain.PieceType
+import pw.checkers.data.domain.PlayerColor
 
 typealias Board = List<List<Cell>>
 

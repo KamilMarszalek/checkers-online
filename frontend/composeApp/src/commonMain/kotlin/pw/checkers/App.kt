@@ -8,7 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import pw.checkers.data.PlayerColor
+import pw.checkers.data.domain.PlayerColor
 import pw.checkers.ui.Board
 import pw.checkers.ui.theme.AppTheme
 import pw.checkers.ui.windowSize.rememberWindowSize

@@ -15,14 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.times
-import pw.checkers.data.Cell
-import pw.checkers.data.PieceType
+import pw.checkers.data.domain.Cell
+import pw.checkers.data.domain.PieceType
 import pw.checkers.ui.icons.Pawns
 import pw.checkers.ui.icons.pawns.BlackPawn
 import pw.checkers.ui.icons.pawns.BlackQueen
 import pw.checkers.ui.icons.pawns.WhitePawn
 import pw.checkers.ui.icons.pawns.WhiteQueen
-import pw.checkers.data.PlayerColor
+import pw.checkers.data.domain.PlayerColor
 import pw.checkers.viewModel.GameViewModel
 
 @Composable

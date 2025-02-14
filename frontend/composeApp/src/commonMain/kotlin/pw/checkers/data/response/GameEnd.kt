@@ -1,7 +1,7 @@
 package pw.checkers.data.response
 
 import kotlinx.serialization.Serializable
-import pw.checkers.data.Result
+import pw.checkers.data.domain.Result
 
 @Serializable
 data class GameEnd(
