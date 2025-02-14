@@ -238,11 +238,9 @@ public class GameServiceTests {
         PossibleMoves pm = gameService.getPossibleMoves(gameState, 5, 2);
 
         assertEquals(1, pm.getMoves().size());
-        Move move = pm.getMoves().getFirst();
-        assertEquals(5, move.getFromRow());
-        assertEquals(2, move.getFromCol());
-        assertEquals(3, move.getToRow());
-        assertEquals(4, move.getToCol());
+        MoveHelper move = pm.getMoves().getFirst();
+        assertEquals(3, move.getRow());
+        assertEquals(4, move.getCol());
     }
 
     @Test
@@ -260,13 +258,13 @@ public class GameServiceTests {
         assertEquals(4, pm.getMoves().size(), "King in the middle should have 4 possible moves if no captures exist");
 
         boolean hasUpLeft = pm.getMoves().stream()
-                .anyMatch(m -> m.getToRow() == 3 && m.getToCol() == 3);
+                .anyMatch(m -> m.getRow() == 3 && m.getCol() == 3);
         boolean hasUpRight = pm.getMoves().stream()
-                .anyMatch(m -> m.getToRow() == 3 && m.getToCol() == 5);
+                .anyMatch(m -> m.getRow() == 3 && m.getCol() == 5);
         boolean hasDownLeft = pm.getMoves().stream()
-                .anyMatch(m -> m.getToRow() == 5 && m.getToCol() == 3);
+                .anyMatch(m -> m.getRow() == 5 && m.getCol() == 3);
         boolean hasDownRight = pm.getMoves().stream()
-                .anyMatch(m -> m.getToRow() == 5 && m.getToCol() == 5);
+                .anyMatch(m -> m.getRow() == 5 && m.getCol() == 5);
 
         assertTrue(hasUpLeft);
         assertTrue(hasUpRight);
