@@ -111,8 +111,7 @@ public class GameServiceTests {
         assertEquals(result.getMove().getFromRow(), validMove.getFromRow());
         assertEquals(result.getMove().getToCol(), validMove.getToCol());
         assertEquals(result.getMove().getToRow(), validMove.getToRow());
-        assertNull(result.getCapturedCol());
-        assertNull(result.getCapturedRow());
+        assertNull(result.getCapturedPiece());
         assertEquals(result.getCurrentTurn(), "black");
         assertEquals(result.getPreviousTurn(), "white");
     }
@@ -134,8 +133,8 @@ public class GameServiceTests {
         assertEquals(result.getMove().getFromRow(), captureMove.getFromRow());
         assertEquals(result.getMove().getToCol(), captureMove.getToCol());
         assertEquals(result.getMove().getToRow(), captureMove.getToRow());
-        assertEquals(result.getCapturedRow(), 4);
-        assertEquals(result.getCapturedCol(), 3);
+        assertEquals(result.getCapturedPiece().getRow(), 4);
+        assertEquals(result.getCapturedPiece().getCol(), 3);
         assertFalse(result.isHasMoreTakes());
         assertTrue(result.isCaptured());
         assertNull(board[4][3]);
@@ -166,8 +165,8 @@ public class GameServiceTests {
         assertEquals(result.getMove().getFromRow(), captureMove.getFromRow());
         assertEquals(result.getMove().getToCol(), captureMove.getToCol());
         assertEquals(result.getMove().getToRow(), captureMove.getToRow());
-        assertEquals(result.getCapturedRow(), 4);
-        assertEquals(result.getCapturedCol(), 3);
+        assertEquals(result.getCapturedPiece().getRow(), 4);
+        assertEquals(result.getCapturedPiece().getCol(), 3);
         assertTrue(result.isHasMoreTakes());
         assertTrue(result.isCaptured());
         assertNull(board[4][3]);
@@ -303,8 +302,8 @@ public class GameServiceTests {
 
         assertNotNull(firstOutput);
         assertTrue(firstOutput.isCaptured());
-        assertEquals(4, firstOutput.getCapturedRow());
-        assertEquals(1, firstOutput.getCapturedCol());
+        assertEquals(4, firstOutput.getCapturedPiece().getRow());
+        assertEquals(1, firstOutput.getCapturedPiece().getCol());
         assertTrue(firstOutput.isHasMoreTakes());
         assertEquals(firstOutput.getCurrentTurn(), "white");
         assertEquals(firstOutput.getPreviousTurn(), "white");
@@ -314,8 +313,8 @@ public class GameServiceTests {
 
         assertNotNull(secondOutput);
         assertTrue(secondOutput.isCaptured());
-        assertEquals(2, secondOutput.getCapturedRow());
-        assertEquals(3, secondOutput.getCapturedCol());
+        assertEquals(2, secondOutput.getCapturedPiece().getRow());
+        assertEquals(3, secondOutput.getCapturedPiece().getCol());
         assertFalse(secondOutput.isHasMoreTakes());
         assertEquals("black", secondOutput.getCurrentTurn());
         assertEquals("white", secondOutput.getPreviousTurn());
@@ -344,8 +343,8 @@ public class GameServiceTests {
 
         assertNotNull(firstOutput);
         assertTrue(firstOutput.isCaptured());
-        assertEquals(5, firstOutput.getCapturedRow());
-        assertEquals(3, firstOutput.getCapturedCol());
+        assertEquals(5, firstOutput.getCapturedPiece().getRow());
+        assertEquals(3, firstOutput.getCapturedPiece().getCol());
         assertTrue(firstOutput.isHasMoreTakes());
 
         board[5][3] = null;
