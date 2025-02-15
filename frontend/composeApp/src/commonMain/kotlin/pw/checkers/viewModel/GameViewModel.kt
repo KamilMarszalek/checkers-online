@@ -14,8 +14,8 @@ import kotlin.math.abs
 
 class GameViewModel(gameCreated: GameCreated, messageClient: RealtimeMessageClient) : ViewModel() {
 
-    private val color = gameCreated.assignedColor
-    private val gameId = gameCreated.gameID
+    private val color = gameCreated.color
+    private val gameId = gameCreated.gameId
     private val opponent = gameCreated.opponent
 
     private val _board = MutableStateFlow(createInitialBoard())
