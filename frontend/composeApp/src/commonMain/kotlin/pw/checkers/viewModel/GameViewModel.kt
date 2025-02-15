@@ -3,14 +3,21 @@ package pw.checkers.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
+import pw.checkers.client.RealtimeMessageClient
 import pw.checkers.data.domain.Move
 import pw.checkers.data.domain.Cell
 import pw.checkers.data.domain.PieceType
 import pw.checkers.models.createInitialBoard
 import pw.checkers.data.domain.PlayerColor
+import pw.checkers.data.response.GameCreated
 import kotlin.math.abs
 
-class GameViewModel(private val color: PlayerColor, private val gameId: String = "") : ViewModel() {
+class GameViewModel(gameCreated: GameCreated, messageClient: RealtimeMessageClient) : ViewModel() {
+
+    private val color = gameCreated.assignedColor
+    private val gameId = gameCreated.gameID
+    private val opponent = gameCreated.opponent
+
     private val _board = MutableStateFlow(createInitialBoard())
     val board = _board.map { board ->
         if (color == PlayerColor.BLACK) {
