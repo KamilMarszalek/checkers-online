@@ -13,12 +13,14 @@ class KtorRealtimeMessageClient(private val httpClient: HttpClient) : RealtimeMe
 
     private var session: WebSocketSession? = null
 
+    override suspend fun connect(serverAddress: String) {
+        session = httpClient.webSocketSession {
+            url(Constants.SERVER_ADDRESS)
+        }
+    }
+
     override suspend fun getMessageStream(): Flow<Message> {
         return flow {
-            session = httpClient.webSocketSession {
-                url(Constants.SERVER_ADDRESS)
-            }
-
             val messages = session!!
                 .incoming
                 .consumeAsFlow()
