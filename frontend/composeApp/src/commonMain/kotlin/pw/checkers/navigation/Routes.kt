@@ -7,4 +7,4 @@ import pw.checkers.data.response.GameCreated
 data object LoginScreen
 
 @Serializable
-data class CheckersScreen(val gameCreated: GameCreated)
+data class GameScreen(val gameCreated: GameCreated)
