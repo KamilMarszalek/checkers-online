@@ -10,7 +10,7 @@ import pw.checkers.models.createInitialBoard
 import pw.checkers.data.domain.PlayerColor
 import kotlin.math.abs
 
-class GameViewModel(val color: PlayerColor) : ViewModel() {
+class GameViewModel(private val color: PlayerColor, private val gameId: String = "") : ViewModel() {
     private val _board = MutableStateFlow(createInitialBoard())
     val board = _board.map { board ->
         if (color == PlayerColor.BLACK) {
@@ -24,17 +24,17 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
         initialValue = if (color == PlayerColor.BLACK) _board.value.asReversed() else _board.value
     )
 
-    private val _highlightedCells = MutableStateFlow<List<Pair<Int, Int>>>(emptyList())
+    private val _highlightedCells = MutableStateFlow<List<Cell>>(emptyList())
     val highlightedCells = _highlightedCells.asStateFlow()
 
-    private val _currentPlayer = MutableStateFlow(PlayerColor.BLACK)
+    private val _currentPlayer = MutableStateFlow(PlayerColor.WHITE)
     val currentPlayer = _currentPlayer.asStateFlow()
 
-    private var selected = Pair(-1, -1)
+    private var selected = Cell(-1, -1)
 
     @Suppress("UNUSED_PARAMETER")
     fun unselectPiece(row: Int, col: Int) {
-        selected = -1 to -1
+        selected = Cell(-1, -1)
         _highlightedCells.value = emptyList()
     }
 
@@ -44,31 +44,33 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
             return
         }
 
-        val newPair = (3..4).random() to (0..7).random()
-        val newSet: List<Pair<Int, Int>> = listOf(newPair)
+        val newCell = Cell((3..4).random(), (0..7).random())
+        val newHighlighted = listOf(newCell)
 
-        selected = row to col
+        selected = Cell(row, col)
 
-        _highlightedCells.value = newSet
-        println("clicked ($row, $col) - possible move (${newPair.first}, ${newPair.second})")
-        println(newSet)
+        _highlightedCells.value = newHighlighted
+        println("clicked ($row, $col) - possible move (${newCell.row}, ${newCell.col})")
+        println(newHighlighted)
     }
+
+    private fun setHighlighted(cells: List<Cell>) {}
 
     fun makeMove(row: Int, col: Int) {
         // TODO: actual implementation instead of placeholder
         _highlightedCells.value = emptyList()
 
-        var captured: Pair<Int, Int>? = null
-        if (abs(selected.first - row) > 1) {
-            captured = Pair((selected.first + row) / 2, (selected.second + col) / 2)
+        var captured: Cell? = null
+        if (abs(selected.row - row) > 1) {
+            captured = Cell((selected.row + row) / 2, (selected.col + col) / 2)
         }
-        movePiece(Move(selected.first, selected.second, row, col), captured)
+        movePiece(Move(selected.row, selected.col, row, col), captured)
 
-        selected = -1 to -1
+        selected = Cell(-1, -1)
         println("Moved to ($row, $col)")
     }
 
-    private fun movePiece(move: Move, captured: Pair<Int, Int>? = null) {
+    private fun movePiece(move: Move, captured: Cell? = null) {
         val newBoard = _board.value.toMutableList()
         val newPieceRow = newBoard[move.toRow].toMutableList()
         val currentPieceRow = newBoard[move.fromRow].toMutableList()
@@ -88,17 +90,21 @@ class GameViewModel(val color: PlayerColor) : ViewModel() {
         newBoard[move.toRow] = newPieceRow.toList()
         newBoard[move.fromRow] = currentPieceRow.toList()
 
+        println(newBoard[move.toRow])
+        println(newBoard[move.fromRow])
+
         captured?.let {
-            val capturedRow = newBoard[captured.first].toMutableList()
-            capturedRow[captured.second] = capturedRow[captured.second].copy(piece = null)
-            newBoard[captured.first] = capturedRow
+            val capturedRow = newBoard[captured.row].toMutableList()
+            capturedRow[captured.col] = captured
+            newBoard[captured.row] = capturedRow.toList()
         }
 
         _board.value = newBoard.toList()
+        println(_board.value)
     }
 
     private fun checkSkipClick(row: Int, col: Int): Boolean {
-        return (row to col == selected || _board.value[row][col].piece!!.color != color || _currentPlayer.value != color)
+        return ((row == selected.row && col == selected.col) || _board.value[row][col].piece!!.color != color || _currentPlayer.value != color)
     }
 
     private fun checkIfUpgrade(pieceCell: Cell): Boolean {

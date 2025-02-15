@@ -37,7 +37,7 @@ fun Board(
         board.forEach { row ->
             Row {
                 row.forEach { cell ->
-                    val isHighlighted = highlightedCells.contains(cell.row to cell.col)
+                    val isHighlighted = highlightedCells.contains(cell)
                     Cell(
                         cell,
                         cellSize,
