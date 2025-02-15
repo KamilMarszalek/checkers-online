@@ -17,5 +17,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new CheckersWebSocketHandler(gameService), "/ws")
                 .setAllowedOrigins("*");
+        registry.addHandler(new TimeUpdatesWebSocketHandler(gameService), "/time-updates")
+                .setAllowedOrigins("*");
     }
 }
