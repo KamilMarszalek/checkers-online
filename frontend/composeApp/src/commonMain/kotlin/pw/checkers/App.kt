@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import pw.checkers.data.domain.PlayerColor
 import pw.checkers.ui.Board
+import pw.checkers.ui.screens.GameScreen
 import pw.checkers.ui.theme.AppTheme
 import pw.checkers.ui.windowSize.rememberWindowSize
 import pw.checkers.util.*
@@ -17,27 +18,13 @@ import pw.checkers.viewModel.GameViewModel
 
 @Composable
 fun App() {
-    val windowSize = rememberWindowSize()
-    val cellSize = remember(windowSize) { calcCellSize(windowSize.width, windowSize.height) }
     val viewModel = GameViewModel(color = PlayerColor.BLACK)
     AppTheme {
         Scaffold {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column {
-                    UserPanelPlaceHolder(cellSize * 8, height = cellSize)
-                    Board(
-                        viewModel, cellSize
-                    )
-                    UserPanelPlaceHolder(cellSize * 8, height = cellSize)
-                }
+                GameScreen(viewModel)
             }
         }
     }
 }
 
-@Composable
-fun UserPanelPlaceHolder(width: Dp, height: Dp) {
-    Box(
-        modifier = Modifier.width(width).height(height).background(Color.Blue)
-    )
-}
