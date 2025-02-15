@@ -9,7 +9,7 @@ import pw.checkers.data.domain.PlayerColor
 data class MoveInfo(
     val move: Move,
     val captured: Boolean,
-    val capturedPiece: Cell,
+    val capturedPiece: Cell? = null,
     val hasMoreTakes: Boolean,
     val currentTurn: PlayerColor,
     val previousTurn: PlayerColor
