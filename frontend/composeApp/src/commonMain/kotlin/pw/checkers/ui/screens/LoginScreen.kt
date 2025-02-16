@@ -23,21 +23,20 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginClick: (GameCreated) -> Unit) 
     ) {
         when (uiState) {
             is LoginScreenState.Idle -> {
-                LoginInputScreen(viewModel, onLoginClick)
+                LoginInputScreen(viewModel)
             }
             is LoginScreenState.Queued -> {
                 LoadingScreen((uiState as LoginScreenState.Queued).message)
             }
             is LoginScreenState.GameStarted -> {
-                Text("Game Started")
-                println((uiState as LoginScreenState.GameStarted).gameCreated)
+                onLoginClick((uiState as LoginScreenState.GameStarted).gameCreated)
             }
         }
     }
 }
 
 @Composable
-private fun LoginInputScreen(viewModel: LoginViewModel, onLoginClick: (GameCreated) -> Unit) {
+private fun LoginInputScreen(viewModel: LoginViewModel) {
     val windowSize = rememberWindowSize()
 
     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
