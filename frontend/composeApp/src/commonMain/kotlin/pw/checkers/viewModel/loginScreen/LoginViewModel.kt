@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -16,6 +17,7 @@ import pw.checkers.data.messageType.MessageType
 import pw.checkers.data.request.JoinQueue
 import pw.checkers.data.response.GameCreated
 import pw.checkers.data.response.WaitingMessage
+import pw.checkers.util.handleMessageContent
 
 class LoginViewModel(private val messageClient: RealtimeMessageClient) : ViewModel() {
 
@@ -68,15 +70,17 @@ class LoginViewModel(private val messageClient: RealtimeMessageClient) : ViewMod
 
     private fun handleServerMessage(msg: Message) {
         when (msg.type) {
-            MessageType.WAITING -> {
-                val content = Json.decodeFromJsonElement<WaitingMessage>(msg.content)
-                _uiState.value = LoginScreenState.Queued(content.message.replace(".", ""))
-            }
-            MessageType.GAME_CREATED -> {
-                val content = Json.decodeFromJsonElement<GameCreated>(msg.content)
-                _uiState.value = LoginScreenState.GameStarted(content)
-            }
+            MessageType.WAITING -> handleMessageContent<WaitingMessage>(msg, ::processWaitingMessage)
+            MessageType.GAME_CREATED -> handleMessageContent<GameCreated>(msg, ::processGameCreated)
             else -> {}
         }
+    }
+
+    private fun processWaitingMessage(waitingMessage: WaitingMessage) {
+        _uiState.value = LoginScreenState.Queued(waitingMessage.message.replace(".", ""))
+    }
+
+    private fun processGameCreated(gameCreated: GameCreated) {
+        _uiState.value = LoginScreenState.GameStarted(gameCreated)
     }
 }
