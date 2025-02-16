@@ -15,9 +15,9 @@ import pw.checkers.viewModel.loginScreen.LoginViewModel
 val appModule = module {
     single { HttpClient { install(WebSockets) } }
 
-    singleOf(::KtorRealtimeMessageClient) bind RealtimeMessageClient::class
+    single { KtorRealtimeMessageClient(get()) }.bind<RealtimeMessageClient>()
 
-    viewModelOf(::LoginViewModel)
+    viewModel { LoginViewModel(get()) }
 
     viewModel { parameters -> GameViewModel(gameCreated = parameters.get(), get()) }
 }
