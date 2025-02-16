@@ -22,6 +22,8 @@ public class GameState {
     private int blackPiecesLeft;
     private int noCapturesCounter;
     private Map<String, Integer> numberOfPositions;
+    private Integer lastCaptureCol;
+    private Integer lastCaptureRow;
 
     public String boardToString() {
         StringBuilder response = new StringBuilder();

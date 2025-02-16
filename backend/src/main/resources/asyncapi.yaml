@@ -1,0 +1,268 @@
+asyncapi: '2.6.0'
+info:
+  title: Checkers WebSocket API
+  version: '1.0.0'
+  description: >
+    Demonstration of multiple specialized messages for each `type` value
+    in a WebSocket-based Checkers game.
+
+servers:
+  local:
+    url: ws://localhost:8080/ws
+    protocol: ws
+    description: Local WebSocket server for testing
+
+channels:
+  /ws:
+    description: "Main WebSocket channel for the Checkers game."
+    publish:
+      # These are messages the server sends out (the client receives).
+      operationId: "serverToClient"
+      message:
+        oneOf:
+          - $ref: "#/components/messages/GameCreatedMessage"
+          - $ref: "#/components/messages/MoveResultMessage"
+          - $ref: "#/components/messages/PossibleMovesMessage"
+          - $ref: "#/components/messages/JoinedWaitingQueueMessage"
+          - $ref: "#/components/messages/GameEndMessage"
+      description: >
+        Messages that the server publishes to the client.
+        For example: when a game is created, a move is processed, etc.
+
+    subscribe:
+      # These are messages the server listens for (the client sends).
+      operationId: "clientToServer"
+      message:
+        oneOf:
+          - $ref: "#/components/messages/JoinQueueMessage"
+          - $ref: "#/components/messages/MoveMessage"
+          - $ref: "#/components/messages/PossibilitiesMessage"
+      description: >
+        Messages that the client publishes to the server.
+        For example: "joinQueue", "move", or "possibilities" requests.
+
+components:
+  messages:
+    ############################################
+    # MESSAGES CLIENT -> SERVER (subscribe)
+    ############################################
+
+    JoinQueueMessage:
+      name: JoinQueueMessage
+      title: "joinQueue"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "joinQueue" ]  # This message always has type = "joinQueue"
+          content:
+            type: object
+            properties:
+              user:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: "Name of the player"
+                required: [username]
+            required: [user]
+        required: [ type, content ]
+        additionalProperties: false
+
+    MoveMessage:
+      name: MoveMessage
+      title: "move"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "move" ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the existing game"
+              move:
+                type: object
+                description: "Move details"
+                properties:
+                  fromRow:
+                    type: integer
+                  fromCol:
+                    type: integer
+                  toRow:
+                    type: integer
+                  toCol:
+                    type: integer
+                required: [ fromRow, fromCol, toRow, toCol ]
+            required: [ gameId, move ]
+        required: [type, content]
+        additionalProperties: false
+
+    PossibilitiesMessage:
+      name: PossibilitiesMessage
+      title: "possibilities"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "possibilities" ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the game"
+              row:
+                type: integer
+                description: "Row for which to get possible moves"
+              col:
+                type: integer
+                description: "Column for which to get possible moves"
+            required: [gameId, row, col]
+        required: [ type, content ]
+        additionalProperties: false
+
+
+    ############################################
+    # MESSAGES SERVER -> CLIENT (publish)
+    ############################################
+
+    GameCreatedMessage:
+      name: GameCreatedMessage
+      title: "GameCreated"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "Game created" ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the newly created game"
+              assignedColor:
+                type: string
+                enum: ["white", "black"]
+                description: "Color assigned to the recipient (e.g. 'white' or 'black')"
+              opponent:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: "Name of the opponent"
+            required: [ type, gameId, assignedColor, opponent ]
+        required: [type, content]
+        additionalProperties: false
+
+    MoveResultMessage:
+      name: MoveResultMessage
+      title: "MoveResult"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: ["move"]
+          content:
+            type: object
+            properties:
+              move:
+                type: object
+                properties:
+                  fromRow:
+                    type: integer
+                  fromCol:
+                    type: integer
+                  toRow:
+                    type: integer
+                  toCol:
+                    type: integer
+                required: [fromRow, fromCol, toRow, toCol]
+              captured:
+                type: boolean
+              capturedPiece:
+                type: object
+                properties:
+                  row:
+                    type: integer
+                  col:
+                    type: integer
+              hasMoreTakes:
+                type: boolean
+              currentTurn:
+                type: string
+                enum: ["white", "black"]
+              previousTurn:
+                type: string
+                enum: ["white", "black"]
+            required: [ move, captured, capturedPiece, hasMoreTakes, currentTurn, previousTurn ]
+        required: [type, content]
+        additionalProperties: false
+
+    PossibleMovesMessage:
+      name: PossibleMovesMessage
+      title: "PossibleMoves"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: ["possibilities"]
+          content:
+            type: object
+            properties:
+              moves:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    row:
+                      type: integer
+                    col:
+                      type: integer
+                  required: [ row, col ]
+                description: "List of possible moves from the requested position. If empty then there are no possible moves"
+            required: [ moves ]
+        additionalProperties: false
+    JoinedWaitingQueueMessage:
+      name: JoinedWaitingQueueMessage
+      title: "JoinedWaitingQueue"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: ["waiting"]
+          content:
+            type: object
+            properties:
+              message:
+                type: string
+                enum: ["Waiting for an opponent..."]
+    GameEndMessage:
+      name: GameEndMessage
+      title: "GameEnd"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: ["gameEnd"]
+          content:
+            type: object
+            properties:
+              result:
+                type: string
+                enum: ["draw", "white", "black"]
+            required: [result]
+        required: [type, content]
+        additionalProperties: false
+
+

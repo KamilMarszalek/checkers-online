@@ -1,5 +1,6 @@
 package pw.checkers.pojo;
 
+
 import lombok.*;
 
 @Getter
@@ -7,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class MoveInput {
-    private String gameId;
-    private Move move;
+public class MoveHelper {
+    private int row;
+    private int col;
 }

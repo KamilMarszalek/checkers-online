@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class PossibleMoves {
-    private List<MoveInput> moves;
+    private List<MoveHelper> moves;
 
     public PossibleMoves() {
         this.moves = new ArrayList<>();
