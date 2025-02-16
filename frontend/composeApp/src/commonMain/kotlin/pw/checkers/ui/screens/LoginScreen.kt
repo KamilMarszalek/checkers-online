@@ -2,35 +2,33 @@ package pw.checkers.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import pw.checkers.data.response.GameCreated
 import pw.checkers.ui.windowSize.rememberWindowSize
 import pw.checkers.viewModel.loginScreen.LoginScreenState
 import pw.checkers.viewModel.loginScreen.LoginViewModel
+import kotlin.math.min
 
 @Composable
 fun LoginScreen(viewModel: LoginViewModel, onLoginClick: (GameCreated) -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when (uiState) {
-            is LoginScreenState.Idle -> {
-                LoginInputScreen(viewModel)
-            }
-            is LoginScreenState.Queued -> {
-                LoadingScreen((uiState as LoginScreenState.Queued).message)
-            }
-            is LoginScreenState.GameStarted -> {
-                onLoginClick((uiState as LoginScreenState.GameStarted).gameCreated)
-            }
+    when (uiState) {
+        is LoginScreenState.Idle -> {
+            LoginInputScreen(viewModel)
+        }
+
+        is LoginScreenState.Queued -> {
+
+            LoadingScreen((uiState as LoginScreenState.Queued).message)
+        }
+
+        is LoginScreenState.GameStarted -> {
+            onLoginClick((uiState as LoginScreenState.GameStarted).gameCreated)
         }
     }
 }
@@ -56,8 +54,7 @@ private fun LoginInputScreen(viewModel: LoginViewModel) {
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-            }
-        )
+            })
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = viewModel::play, enabled = viewModel.checkIfValid()) {
             Text(text = "Play")
@@ -67,11 +64,22 @@ private fun LoginInputScreen(viewModel: LoginViewModel) {
 
 @Composable
 private fun LoadingScreen(message: String) {
-    Column {
-        CircularProgressIndicator(
-            modifier = Modifier.fillMaxSize(),
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = message)
+    val windowSize = rememberWindowSize()
+    val boxSize = remember(windowSize) { (0.2 * min(windowSize.width, windowSize.height)).toInt() }
+    Box(modifier = Modifier.size(boxSize.dp), contentAlignment = Alignment.Center) {
+        AnimatedWaitingText(message, 3)
     }
+}
+
+@Composable
+private fun AnimatedWaitingText(message: String, maxDotCount: Int) {
+    var dotCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000)
+            dotCount = (dotCount + 1) % (maxDotCount + 1)
+        }
+    }
+    Text(text = message + ".".repeat(dotCount))
 }

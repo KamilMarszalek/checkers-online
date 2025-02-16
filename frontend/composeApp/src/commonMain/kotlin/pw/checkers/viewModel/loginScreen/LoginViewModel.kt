@@ -70,7 +70,7 @@ class LoginViewModel(private val messageClient: RealtimeMessageClient) : ViewMod
         when (msg.type) {
             MessageType.WAITING -> {
                 val content = Json.decodeFromJsonElement<WaitingMessage>(msg.content)
-                _uiState.value = LoginScreenState.Queued(content.message)
+                _uiState.value = LoginScreenState.Queued(content.message.replace(".", ""))
             }
             MessageType.GAME_CREATED -> {
                 val content = Json.decodeFromJsonElement<GameCreated>(msg.content)
