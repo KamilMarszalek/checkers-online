@@ -15,11 +15,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Semaphore;
 
 public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private final GameService gameService;
-    private final Semaphore mutex = new Semaphore(1);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, Set<WebSocketSession>> sessionsByGame = new ConcurrentHashMap<>();
     private final Map<String, Map<String, String>> colorAssignmentsByGame = new ConcurrentHashMap<>();
@@ -36,6 +34,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) throws Exception {
+        System.out.println("Message received: " + message.getPayload());
         Message<Map<String, Object>> rawMessage = objectMapper.readValue(message.getPayload(), new TypeReference<>() {});
 
         switch (rawMessage.getType()) {
@@ -65,39 +64,39 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleJoinQueue(WebSocketSession session, User user) throws Exception {
-        mutex.acquire();
-        try {
-            Map<WebSocketSession, User> waiting = waitingQueue.poll();
 
-            if (waiting == null) {
-                Map<WebSocketSession, User> newWaiting = new ConcurrentHashMap<>();
-                newWaiting.put(session, user);
-                waitingQueue.add(newWaiting);
-                Message<PromptMessage> waitingMessage = new Message<>("waiting", new PromptMessage("Waiting for an opponent..."));
-                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(waitingMessage)));
-            } else {
-                WebSocketSession waitingSession = waiting.keySet().iterator().next();
-                GameState newGame = gameService.createGame();
-                String newGameId = newGame.getGameId();
-                sessionsByGame.putIfAbsent(newGameId, ConcurrentHashMap.newKeySet());
-                sessionsByGame.get(newGameId).add(waitingSession);
-                sessionsByGame.get(newGameId).add(session);
+        Map<WebSocketSession, User> waiting = waitingQueue.poll();
 
-                colorAssignmentsByGame.putIfAbsent(newGameId, new ConcurrentHashMap<>());
-                colorAssignmentsByGame.get(newGameId).put(waitingSession.getId(), "white");
-                colorAssignmentsByGame.get(newGameId).put(session.getId(), "black");
+        if (waiting == null) {
+            Map<WebSocketSession, User> newWaiting = new ConcurrentHashMap<>();
+            newWaiting.put(session, user);
+            waitingQueue.add(newWaiting);
+            Message<PromptMessage> waitingMessage = new Message<>("waiting", new PromptMessage("Waiting for an opponent..."));
+            TextMessage response = new TextMessage(objectMapper.writeValueAsString(waitingMessage));
+            System.out.println("Message sent to " + user.getUsername() + ": " + response);
+            session.sendMessage(response);
+        } else {
+            WebSocketSession waitingSession = waiting.keySet().iterator().next();
+            GameState newGame = gameService.createGame();
+            String newGameId = newGame.getGameId();
+            sessionsByGame.putIfAbsent(newGameId, ConcurrentHashMap.newKeySet());
+            sessionsByGame.get(newGameId).add(waitingSession);
+            sessionsByGame.get(newGameId).add(session);
 
-                Message<JoinMessage> waitingPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "white", new User(user.getUsername())));
-                Message<JoinMessage> sessionPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "black", new User(waiting.get(waitingSession).getUsername())));
+            colorAssignmentsByGame.putIfAbsent(newGameId, new ConcurrentHashMap<>());
+            colorAssignmentsByGame.get(newGameId).put(waitingSession.getId(), "white");
+            colorAssignmentsByGame.get(newGameId).put(session.getId(), "black");
 
-                String waitingPlayerJsonResponse = objectMapper.writeValueAsString(waitingPlayerResponse);
-                String sessionPlayerJsonResponse = objectMapper.writeValueAsString(sessionPlayerResponse);
+            Message<JoinMessage> waitingPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "white", new User(user.getUsername())));
+            Message<JoinMessage> sessionPlayerResponse = new Message<>("Game created", new JoinMessage(newGameId, "black", new User(waiting.get(waitingSession).getUsername())));
 
-                waitingSession.sendMessage(new TextMessage(waitingPlayerJsonResponse));
-                session.sendMessage(new TextMessage(sessionPlayerJsonResponse));
-            }
-        } finally {
-            mutex.release();
+            String waitingPlayerJsonResponse = objectMapper.writeValueAsString(waitingPlayerResponse);
+            String sessionPlayerJsonResponse = objectMapper.writeValueAsString(sessionPlayerResponse);
+
+            System.out.println("Message sent to " + waiting.get(waitingSession).getUsername() + ": " + waitingPlayerJsonResponse);
+            waitingSession.sendMessage(new TextMessage(waitingPlayerJsonResponse));
+            System.out.println("Message sent to " + user.getUsername() + ": " + sessionPlayerJsonResponse);
+            session.sendMessage(new TextMessage(sessionPlayerJsonResponse));
         }
     }
 
@@ -126,6 +125,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         String response = objectMapper.writeValueAsString(moveMessage);
         for (WebSocketSession ws : sessionsByGame.getOrDefault(gameId, Set.of())) {
             if (ws.isOpen()) {
+                System.out.println("Message sent to " + colorAssignmentsByGame.get(gameId).get(ws.getId()) + ": " + response);
                 ws.sendMessage(new TextMessage(response));
                 if (updatedState.isFinished()) {
                     String gameEndMessage;
@@ -134,6 +134,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                     } else {
                         gameEndMessage = objectMapper.writeValueAsString(new Message<>("gameEnd", new GameEnd(updatedState.getWinner())));
                     }
+                    System.out.println("Message sent to " + colorAssignmentsByGame.get(gameId).get(ws.getId()) + ": " + gameEndMessage);
                     ws.sendMessage(new TextMessage(gameEndMessage));
                 }
             }
@@ -157,7 +158,9 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         GameState currentState = gameService.getGame(gameId);
         PossibleMoves moves = gameService.getPossibleMoves(currentState, possibilitiesInput.getRow(), possibilitiesInput.getCol());
         Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
-        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(responseMessage)));
+        String response = objectMapper.writeValueAsString(responseMessage);
+        System.out.println("Message sent to " + colorAssignmentsByGame.get(gameId).get(session.getId()) + ": " + response);
+        session.sendMessage(new TextMessage(response));
     }
 
     @Override
