@@ -30,3 +30,5 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B -f backend/pom.xml package
+      - name: Update dependency graph
+        run: mvn -f backend/pom.xml depgraph:graph
