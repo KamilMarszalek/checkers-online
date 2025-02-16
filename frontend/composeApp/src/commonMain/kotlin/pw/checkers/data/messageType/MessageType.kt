@@ -10,7 +10,7 @@ enum class MessageType {
     GAME_CREATED,
 
     @SerialName("move")
-    MOVED,
+    MOVE,
 
     @SerialName("possibilities")
     POSSIBILITIES,

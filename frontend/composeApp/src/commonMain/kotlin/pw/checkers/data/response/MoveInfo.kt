@@ -1,6 +1,7 @@
 package pw.checkers.data.response
 
 import kotlinx.serialization.Serializable
+import pw.checkers.data.Content
 import pw.checkers.data.domain.Cell
 import pw.checkers.data.domain.Move
 import pw.checkers.data.domain.PlayerColor
@@ -13,4 +14,4 @@ data class MoveInfo(
     val hasMoreTakes: Boolean,
     val currentTurn: PlayerColor,
     val previousTurn: PlayerColor
-)
+) : Content
