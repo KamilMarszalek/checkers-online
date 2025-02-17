@@ -57,9 +57,13 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     val currentPlayer = _currentPlayer.asStateFlow()
 
     private var selected = Cell(-1, -1)
+    private var multiMove: Boolean = false
 
     @Suppress("UNUSED_PARAMETER")
     fun unselectPiece(row: Int, col: Int) {
+        if (multiMove) {
+            return
+        }
         selected = Cell(-1, -1)
         _highlightedCells.value = emptyList()
     }
@@ -76,10 +80,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     fun makeMove(row: Int, col: Int) {
         _highlightedCells.value = emptyList()
         val move = Move(selected.row, selected.col, row, col)
-
         sendMessage(MessageType.MOVE, MakeMove(gameId, move))
-
-        selected = Cell(-1, -1)
     }
 
     private fun setHighlighted(cells: List<Cell>) {
@@ -117,7 +118,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     }
 
     private fun checkSkipClick(row: Int, col: Int): Boolean {
-        return ((row == selected.row && col == selected.col) || _board.value[row][col].piece!!.color != color || _currentPlayer.value != color)
+        return ((row == selected.row && col == selected.col) || _board.value[row][col].piece!!.color != color || _currentPlayer.value != color || multiMove)
     }
 
     private fun checkIfUpgrade(pieceCell: Cell): Boolean {
@@ -140,8 +141,16 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     }
 
     private fun processMoveInfoMessage(moveInfo: MoveInfo) {
+        if (moveInfo.hasMoreTakes || color == moveInfo.currentTurn) {
+            selected = Cell(moveInfo.move.toRow, moveInfo.move.toCol)
+            multiMove = true
+        } else {
+            selected = Cell(-1, -1)
+            multiMove = false
+        }
         movePiece(moveInfo.move, moveInfo.capturedPiece)
         _currentPlayer.value = moveInfo.currentTurn
+        multiMove = moveInfo.hasMoreTakes
     }
 
     private fun processPossibilities(possibilities: Possibilities) {
@@ -149,6 +158,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     }
 
     private fun processGameEnd(gameEnd: GameEnd) {
+        // TODO: properly handle finished game
         println(gameEnd)
     }
 
