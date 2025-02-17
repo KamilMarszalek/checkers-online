@@ -422,11 +422,30 @@ public class GameServiceTest {
     void testThreefoldRepetition_ShouldResultInDraw() {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
-        gameService.makeMove(gameId, new Move(5, 2, 4, 3), "white");
-        gameService.makeMove(gameId, new Move(2, 3, 3, 2), "white");
+        Piece[][] board = gameState.getBoard();
+
+        for (Piece[] pieces : board) {
+            Arrays.fill(pieces, null);
+        }
+
+        board[0][2] = new Piece(PieceColor.WHITE, PieceType.KING);
+        board[7][5] = new Piece(PieceColor.BLACK, PieceType.KING);
+
+        gameService.makeMove(gameId, new Move(0, 2, 1, 3), "white");
+        gameService.makeMove(gameId, new Move(7, 5, 6, 4), "black");
+        gameService.makeMove(gameId, new Move(1, 3, 0, 2), "white");
+        gameService.makeMove(gameId, new Move(6, 4, 7, 5), "black");
+        gameService.makeMove(gameId, new Move(0, 2, 1, 3), "white");
+        gameService.makeMove(gameId, new Move(7, 5, 6, 4), "black");
+        gameService.makeMove(gameId, new Move(1, 3, 0, 2), "white");
+        gameService.makeMove(gameId, new Move(6, 4, 7, 5), "black");
+        gameService.makeMove(gameId, new Move(0, 2, 1, 3), "white");
+        gameService.makeMove(gameId, new Move(7, 5, 6, 4), "black");
+        gameService.makeMove(gameId, new Move(1, 3, 0, 2), "white");
+        gameService.makeMove(gameId, new Move(6, 4, 7, 5), "black");
+
 
         boolean isDraw = (gameState.isFinished() && gameState.getWinner() == null);
-        //TODO finish test
-//        assertTrue(isDraw);
+        assertTrue(isDraw);
     }
 }
