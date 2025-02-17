@@ -8,10 +8,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import pw.checkers.client.RealtimeMessageClient
 import pw.checkers.data.Content
-import pw.checkers.data.domain.Move
 import pw.checkers.data.domain.Cell
+import pw.checkers.data.domain.Move
 import pw.checkers.data.domain.PieceType
-import pw.checkers.models.createInitialBoard
 import pw.checkers.data.domain.PlayerColor
 import pw.checkers.data.message.Message
 import pw.checkers.data.messageType.MessageType
@@ -21,8 +20,8 @@ import pw.checkers.data.response.GameCreated
 import pw.checkers.data.response.GameEnd
 import pw.checkers.data.response.MoveInfo
 import pw.checkers.data.response.Possibilities
+import pw.checkers.models.createInitialBoard
 import pw.checkers.util.handleMessageContent
-import kotlin.math.abs
 
 class GameViewModel(gameCreated: GameCreated, private val messageClient: RealtimeMessageClient) : ViewModel() {
 
@@ -72,8 +71,6 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
 
         selected = Cell(row, col)
         sendMessage(MessageType.POSSIBILITIES, GetPossibilities(gameId, row, col))
-
-        println("clicked ($row, $col)")
     }
 
     fun makeMove(row: Int, col: Int) {
@@ -82,14 +79,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
 
         sendMessage(MessageType.MOVE, MakeMove(gameId, move))
 
-        var captured: Cell? = null
-        if (abs(selected.row - row) > 1) {
-            captured = Cell((selected.row + row) / 2, (selected.col + col) / 2)
-        }
-        movePiece(move, captured)
-
         selected = Cell(-1, -1)
-        println("Moved to ($row, $col)")
     }
 
     private fun setHighlighted(cells: List<Cell>) {
@@ -123,6 +113,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
         }
 
         _board.value = newBoard.toList()
+        println(move)
     }
 
     private fun checkSkipClick(row: Int, col: Int): Boolean {
@@ -139,7 +130,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     }
 
     private fun handleMessage(msg: Message) {
-        println(msg)
+        println("Received: $msg")
         when (msg.type) {
             MessageType.MOVE -> handleMessageContent<MoveInfo>(msg, ::processMoveInfoMessage)
             MessageType.POSSIBILITIES -> handleMessageContent<Possibilities>(msg, ::processPossibilities)
@@ -149,11 +140,8 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     }
 
     private fun processMoveInfoMessage(moveInfo: MoveInfo) {
-        if (moveInfo.previousTurn != _currentPlayer.value) {
-            movePiece(moveInfo.move, moveInfo.capturedPiece)
-            _currentPlayer.value = moveInfo.currentTurn
-        }
-
+        movePiece(moveInfo.move, moveInfo.capturedPiece)
+        _currentPlayer.value = moveInfo.currentTurn
     }
 
     private fun processPossibilities(possibilities: Possibilities) {
@@ -164,14 +152,14 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
         println(gameEnd)
     }
 
-    private inline fun <reified T: Content> sendMessage(type: MessageType, content: T) {
+    private inline fun <reified T : Content> sendMessage(type: MessageType, content: T) {
         val message = Message(
             type = type,
             content = Json.encodeToJsonElement<T>(content)
         )
 
         viewModelScope.launch {
-            println(message)
+            println("Sending: $message")
             messageClient.sendMessage(message)
         }
     }
