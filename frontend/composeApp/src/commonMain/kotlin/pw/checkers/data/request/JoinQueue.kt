@@ -1,6 +1,10 @@
 package pw.checkers.data.request
 
 import kotlinx.serialization.Serializable
+import pw.checkers.data.Content
+import pw.checkers.data.domain.User
 
 @Serializable
-data object JoinQueue
+data class JoinQueue(
+    val user: User
+) : Content

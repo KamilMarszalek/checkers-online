@@ -8,16 +8,20 @@ import org.w3c.dom.events.Event
  * @return pair containing pixel values of width and height of viewport
  */
 @Composable
-actual fun rememberWindowSize(): Pair<Int, Int> {
+actual fun rememberWindowSize(): WindowSize {
     var size by remember {
         mutableStateOf(
-            window.innerWidth to window.innerHeight
+            WindowSize(window.innerWidth, window.innerHeight)
         )
     }
 
     DisposableEffect(Unit) {
         val listener: (Event) -> Unit = {
-            size = window.innerWidth to window.innerHeight
+            val newWidth = window.innerWidth
+            val newHeight = window.innerHeight
+            if (newWidth != size.width || newHeight != size.height) {
+                size = WindowSize(newWidth, newHeight)
+            }
         }
         window.addEventListener("resize", listener)
 

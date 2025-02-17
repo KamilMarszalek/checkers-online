@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.ImageVector.Builder
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.Unit
 import pw.checkers.ui.icons.Pawns
 
@@ -96,11 +95,3 @@ public val Pawns.BlackPawn: ImageVector
     }
 
 private var _blackpawn: ImageVector? = null
-
-@Preview
-@Composable
-private fun Preview(): Unit {
-    Box(modifier = Modifier.padding(12.dp)) {
-        Image(imageVector = Pawns.BlackPawn, contentDescription = "")
-    }
-}
