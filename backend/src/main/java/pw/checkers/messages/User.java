@@ -1,4 +1,4 @@
-package pw.checkers.pojo;
+package pw.checkers.messages;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PromptMessage {
-    private String message;
+public class User {
+    private String username;
 }

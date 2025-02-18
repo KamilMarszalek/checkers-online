@@ -1,7 +1,11 @@
 package pw.checkers.service;
 
 import org.springframework.stereotype.Service;
-import pw.checkers.pojo.*;
+import pw.checkers.data.GameState;
+import pw.checkers.data.Piece;
+import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.PieceType;
+import pw.checkers.messages.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

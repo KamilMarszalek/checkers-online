@@ -5,7 +5,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import pw.checkers.pojo.*;
+import pw.checkers.data.GameState;
+import pw.checkers.data.Piece;
+import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.PieceType;
+import pw.checkers.messages.*;
 import pw.checkers.service.GameServiceImpl;
 
 import java.util.Arrays;
