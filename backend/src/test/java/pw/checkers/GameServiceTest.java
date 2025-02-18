@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import pw.checkers.pojo.*;
 import pw.checkers.service.GameService;
+import pw.checkers.service.GameServiceImpl;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -15,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class GameServiceTest {
     @InjectMocks
-    private GameService gameService;
+    private GameServiceImpl gameService;
 
     private AutoCloseable closeable;
 
