@@ -9,15 +9,15 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pw.checkers.pojo.*;
 import pw.checkers.service.GameService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
@@ -67,27 +67,23 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             }
             default: {
                 Message<String> defaultMessage = new Message<>("error", "Unknown message type: " + rawMessage.getType());
-                String defaultMessageJson = objectMapper.writeValueAsString(defaultMessage);
-                logger.debug("Error (unknown type) message sent to session {}: {}", session.getId(), defaultMessageJson);
-                session.sendMessage(new TextMessage(defaultMessageJson));
+                sendMessage(session, defaultMessage);
                 break;
             }
         }
     }
 
-    private void handleJoinQueue(WebSocketSession session, User user) throws Exception {
+    private void handleJoinQueue(WebSocketSession session, User user) throws IOException {
         Map<WebSocketSession, User> waiting = waitingQueue.poll();
 
         if (waiting == null) {
             Map<WebSocketSession, User> newWaiting = new ConcurrentHashMap<>();
             newWaiting.put(session, user);
             waitingQueue.add(newWaiting);
+
             Message<PromptMessage> waitingMessage =
                     new Message<>("waiting", new PromptMessage("Waiting for an opponent..."));
-            TextMessage response = new TextMessage(objectMapper.writeValueAsString(waitingMessage));
-            logger.debug("Message sent to {}: {}", user.getUsername(), response.getPayload());
-            session.sendMessage(response);
-
+            sendMessage(session, waitingMessage);
         } else {
             WebSocketSession waitingSession = waiting.keySet().iterator().next();
             GameState newGame = gameService.createGame();
@@ -110,102 +106,56 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                     new JoinMessage(newGameId, "black", new User(waiting.get(waitingSession).getUsername()))
             );
 
-            String waitingPlayerJsonResponse = objectMapper.writeValueAsString(waitingPlayerResponse);
-            String sessionPlayerJsonResponse = objectMapper.writeValueAsString(sessionPlayerResponse);
-
-            logger.debug("Message sent to {}: {}", waiting.get(waitingSession).getUsername(), waitingPlayerJsonResponse);
-            waitingSession.sendMessage(new TextMessage(waitingPlayerJsonResponse));
-
-            logger.debug("Message sent to {}: {}", user.getUsername(), sessionPlayerJsonResponse);
-            session.sendMessage(new TextMessage(sessionPlayerJsonResponse));
+            sendMessage(waitingSession, "white", waitingPlayerResponse);
+            sendMessage(session, "black", sessionPlayerResponse);
         }
     }
 
-    private void handleMove(WebSocketSession session, MoveInput moveInput) throws Exception {
+    private void handleMove(WebSocketSession session, MoveInput moveInput) throws IOException {
         String gameId = moveInput.getGameId();
-
         if (gameId == null) {
-            Message<String> moveMessage = new Message<>("error", "No game id specified");
-            String moveMessageJson = objectMapper.writeValueAsString(moveMessage);
-
-            logger.debug("Error message (no game ID) sent to session {}: {}", session.getId(), moveMessageJson);
-            session.sendMessage(new TextMessage(moveMessageJson));
+            sendError(session, "No game id specified");
             return;
         }
-
         if (!sessionsByGame.containsKey(gameId)) {
-            Message<String> moveMessage = new Message<>("error", "Game with id " + gameId + " not found");
-            String moveMessageJson = objectMapper.writeValueAsString(moveMessage);
-
-            logger.debug("Error message (game not found) sent to session {}: {}", session.getId(), moveMessageJson);
-            session.sendMessage(new TextMessage(moveMessageJson));
+            sendError(session, "Game with id " + gameId + " not found");
             return;
         }
-
         String assignedColor = colorAssignmentsByGame.get(gameId).get(session.getId());
         if (assignedColor == null) {
-            Message<String> moveMessage = new Message<>("error", "You do not belong to this game or no color assigned");
-            String moveMessageJson = objectMapper.writeValueAsString(moveMessage);
-            logger.debug("Error message (no color assigned) sent to session {}: {}", session.getId(), moveMessageJson);
-            session.sendMessage(new TextMessage(moveMessageJson));
+            sendError(session, "You do not belong to this game or no color assigned");
             return;
         }
 
         MoveOutput moveOutput = gameService.makeMove(gameId, moveInput.getMove(), assignedColor);
         Message<MoveOutput> moveMessage = new Message<>("move", moveOutput);
         GameState updatedState = gameService.getGame(gameId);
-        String response = objectMapper.writeValueAsString(moveMessage);
-        for (WebSocketSession ws : sessionsByGame.getOrDefault(gameId, Set.of())) {
-            if (ws.isOpen()) {
-                String wsColor = colorAssignmentsByGame.get(gameId).get(ws.getId());
-                logger.debug("Message sent to color {} (session {}): {}", wsColor, ws.getId(), response);
-                ws.sendMessage(new TextMessage(response));
-                if (updatedState.isFinished()) {
-                    String gameEndMessage;
-                    if (updatedState.getWinner() == null) {
-                        gameEndMessage = objectMapper.writeValueAsString(new Message<>("gameEnd", new GameEnd("draw")));
-                    } else {
-                        gameEndMessage = objectMapper.writeValueAsString(
-                                new Message<>("gameEnd", new GameEnd(updatedState.getWinner()))
-                        );
-                    }
-                    logger.debug("Message sent to color {} (session {}): {}", wsColor, ws.getId(), gameEndMessage);
-                    ws.sendMessage(new TextMessage(gameEndMessage));
-                }
-            }
-        }
-        if (moveMessage.getContent() != null) {
-            if (moveMessage.getContent().isHasMoreTakes()) {
-                PossibleMoves moves = gameService.getPossibleMoves(
-                        updatedState,
-                        moveMessage.getContent().getMove().getToRow(),
-                        moveMessage.getContent().getMove().getToCol()
-                );
-                Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
-                String possibilitiesJson = objectMapper.writeValueAsString(responseMessage);
 
-                logger.debug("Message (possibilities) sent to color {} (session {}): {}", assignedColor, session.getId(), possibilitiesJson);
-                session.sendMessage(new TextMessage(possibilitiesJson));
-            }
+        broadcastToGame(gameId, moveMessage);
+
+        if (updatedState.isFinished()) {
+            broadcastGameEnd(gameId, updatedState);
+        }
+
+        if (moveOutput != null && moveOutput.isHasMoreTakes()) {
+            PossibleMoves moves = gameService.getPossibleMoves(
+                    updatedState,
+                    moveOutput.getMove().getToRow(),
+                    moveOutput.getMove().getToCol()
+            );
+            Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
+            sendMessage(session, assignedColor, responseMessage);
         }
     }
 
-    private void handlePossibilities(WebSocketSession session, PossibilitiesInput possibilitiesInput) throws Exception {
+    private void handlePossibilities(WebSocketSession session, PossibilitiesInput possibilitiesInput) throws IOException {
         String gameId = possibilitiesInput.getGameId();
         if (gameId == null) {
-            Message<String> errorMessage = new Message<>("error", "No game id specified");
-            String errorMessageJson = objectMapper.writeValueAsString(errorMessage);
-            logger.debug("Error message (no game ID) sent to session {}: {}", session.getId(), errorMessageJson);
-            session.sendMessage(new TextMessage(errorMessageJson));
+            sendError(session, "No game id specified");
             return;
         }
-
         if (!sessionsByGame.containsKey(gameId)) {
-            Message<String> errorMessage = new Message<>("error", "Game with id " + gameId + " not found");
-            String errorMessageJson = objectMapper.writeValueAsString(errorMessage);
-
-            logger.debug("Error message (game not found) sent to session {}: {}", session.getId(), errorMessageJson);
-            session.sendMessage(new TextMessage(errorMessageJson));
+            sendError(session, "Game with id " + gameId + " not found");
             return;
         }
         GameState currentState = gameService.getGame(gameId);
@@ -214,13 +164,9 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 possibilitiesInput.getRow(),
                 possibilitiesInput.getCol()
         );
-
         Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
-        String response = objectMapper.writeValueAsString(responseMessage);
-
         String wsColor = colorAssignmentsByGame.get(gameId).get(session.getId());
-        logger.debug("Message (possibilities) sent to color {} (session {}): {}", wsColor, session.getId(), response);
-        session.sendMessage(new TextMessage(response));
+        sendMessage(session, wsColor, responseMessage);
     }
 
     @Override
@@ -230,5 +176,48 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         sessionsByGame.values().forEach(sessions -> sessions.remove(session));
         colorAssignmentsByGame.values().forEach(assignment -> assignment.remove(session.getId()));
         logger.debug("Connection closed: {}", session.getId());
+    }
+
+    private void sendError(WebSocketSession session, String error) throws IOException {
+        Message<String> errorMessage = new Message<>("error", error);
+        sendMessage(session, errorMessage);
+    }
+
+    private void sendMessage(WebSocketSession session, Message<?> message) throws IOException {
+        String messageJson = objectMapper.writeValueAsString(message);
+        logger.debug("Message sent to session {}: {}", session.getId(), messageJson);
+        session.sendMessage(new TextMessage(messageJson));
+    }
+
+    private void sendMessage(WebSocketSession session, String color, Message<?> message) throws IOException {
+        String messageJson = objectMapper.writeValueAsString(message);
+        logger.debug("Message sent to color {} (session {}): {}", color, session.getId(), messageJson);
+        session.sendMessage(new TextMessage(messageJson));
+    }
+
+    private void broadcastToGame(String gameId, Message<?> message) throws IOException {
+        Set<WebSocketSession> sessions = sessionsByGame.getOrDefault(gameId, Set.of());
+        for (WebSocketSession ws : sessions) {
+            if (ws.isOpen()) {
+                String wsColor = colorAssignmentsByGame.get(gameId).get(ws.getId());
+                sendMessage(ws, wsColor, message);
+            }
+        }
+    }
+
+    private void broadcastGameEnd(String gameId, GameState updatedState) throws IOException {
+        Set<WebSocketSession> sessions = sessionsByGame.getOrDefault(gameId, Set.of());
+        for (WebSocketSession ws : sessions) {
+            if (ws.isOpen()) {
+                String wsColor = colorAssignmentsByGame.get(gameId).get(ws.getId());
+                Message<GameEnd> gameEndMsg;
+                if (updatedState.getWinner() == null) {
+                    gameEndMsg = new Message<>("gameEnd", new GameEnd("draw"));
+                } else {
+                    gameEndMsg = new Message<>("gameEnd", new GameEnd(updatedState.getWinner()));
+                }
+                sendMessage(ws, wsColor, gameEndMsg);
+            }
+        }
     }
 }
