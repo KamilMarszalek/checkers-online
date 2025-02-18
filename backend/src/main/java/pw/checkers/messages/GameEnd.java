@@ -1,4 +1,4 @@
-package pw.checkers.pojo;
+package pw.checkers.messages;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PossibilitiesInput {
-    private String gameId;
-    private int row;
-    private int col;
+public class GameEnd {
+    private String result;
 }
