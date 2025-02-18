@@ -1,10 +1,13 @@
 package pw.checkers.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import pw.checkers.data.response.GameCreated
@@ -54,7 +57,10 @@ private fun LoginInputScreen(viewModel: LoginViewModel) {
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-            })
+            },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { viewModel.play() })
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = viewModel::play, enabled = viewModel.checkIfValid()) {
             Text(text = "Play")
