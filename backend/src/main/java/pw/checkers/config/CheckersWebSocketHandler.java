@@ -174,17 +174,19 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 }
             }
         }
-        if (moveMessage.getContent().isHasMoreTakes()) {
-            PossibleMoves moves = gameService.getPossibleMoves(
-                    updatedState,
-                    moveMessage.getContent().getMove().getToRow(),
-                    moveMessage.getContent().getMove().getToCol()
-            );
-            Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
-            String possibilitiesJson = objectMapper.writeValueAsString(responseMessage);
+        if (moveMessage.getContent() != null) {
+            if (moveMessage.getContent().isHasMoreTakes()) {
+                PossibleMoves moves = gameService.getPossibleMoves(
+                        updatedState,
+                        moveMessage.getContent().getMove().getToRow(),
+                        moveMessage.getContent().getMove().getToCol()
+                );
+                Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
+                String possibilitiesJson = objectMapper.writeValueAsString(responseMessage);
 
-            logger.debug("Message (possibilities) sent to color {} (session {}): {}", assignedColor, session.getId(), possibilitiesJson);
-            session.sendMessage(new TextMessage(possibilitiesJson));
+                logger.debug("Message (possibilities) sent to color {} (session {}): {}", assignedColor, session.getId(), possibilitiesJson);
+                session.sendMessage(new TextMessage(possibilitiesJson));
+            }
         }
     }
 
