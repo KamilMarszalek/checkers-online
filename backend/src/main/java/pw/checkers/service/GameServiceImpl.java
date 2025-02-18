@@ -178,7 +178,7 @@ public class GameServiceImpl implements GameService{
 
     private boolean playerHasMoves(GameState gameState, String player) {
         for (int row = 0; row < gameState.getBoard().length; row++) {
-            for (int column = 0; column < gameState.getBoard()[row].length; column++) {
+            for (int column = (row + 1) % 2; column < gameState.getBoard()[row].length; column+=2) {
                 if (gameState.getBoard()[row][column] != null) {
                     if (colorMatchesCurrentPlayer(gameState.getBoard()[row][column].getColor(), player)) {
                         if (!getPossibleMoves(gameState, row, column).getMoves().isEmpty()) {
