@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import pw.checkers.pojo.*;
-import pw.checkers.service.GameService;
 import pw.checkers.service.GameServiceImpl;
 
 import java.util.Arrays;
