@@ -36,17 +36,13 @@ public class GameServiceImpl implements GameService{
     private void initializeBoard(GameState gameState) {
         Piece[][] board = new Piece[8][8];
         for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 8; col++) {
-                if ((row + col) % 2 == 1) {
-                    board[row][col] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-                }
+            for (int col = (row + 1) % 2; col < 8; col+=2) {
+                board[row][col] = new Piece(PieceColor.BLACK, PieceType.PAWN);
             }
         }
         for (int row = 5; row < 8; row++) {
-            for (int col = 0; col < 8; col++) {
-                if ((row + col) % 2 == 1) {
-                    board[row][col] = new Piece(PieceColor.WHITE, PieceType.PAWN);
-                }
+            for (int col = (row + 1) % 2; col < 8; col+=2) {
+                board[row][col] = new Piece(PieceColor.WHITE, PieceType.PAWN);
             }
         }
         gameState.setBoard(board);
