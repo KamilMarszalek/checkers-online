@@ -1,4 +1,4 @@
-package pw.checkers.config;
+package pw.checkers.sockets;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
