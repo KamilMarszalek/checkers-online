@@ -1,4 +1,4 @@
-package pw.checkers.pojo;
+package pw.checkers.messages;
 
 
 import lombok.*;

@@ -1,10 +1,12 @@
-package pw.checkers.pojo;
+package pw.checkers.data;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.PieceType;
 
 @Getter
 @Setter
