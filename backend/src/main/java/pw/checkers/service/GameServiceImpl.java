@@ -34,8 +34,8 @@ public class GameServiceImpl implements GameService{
     }
 
     @Override
-    public GameState removeGame(String id) {
-        return games.remove(id);
+    public void removeGame(String id) {
+        games.remove(id);
     }
 
     private void initializeBoard(GameState gameState) {
