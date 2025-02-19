@@ -33,6 +33,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private final Map<String, Map<WebSocketSession, String>> colorAssignmentsByGame = new ConcurrentHashMap<>();
     private final Map<WebSocketSession, User> usersBySessions = new ConcurrentHashMap<>();
     private final Queue<WaitingPlayer> waitingQueue = new ConcurrentLinkedQueue<>();
+    private final Map<String, Set<WebSocketSession>> rematchRequests = new ConcurrentHashMap<>();
 
     public CheckersWebSocketHandler(GameService gameService) {
         this.gameService = gameService;
@@ -109,16 +110,32 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             sendMessage(session, message);
             return;
         }
+
+        rematchRequests.putIfAbsent(gameId, ConcurrentHashMap.newKeySet());
+        Set<WebSocketSession> rematchSet = rematchRequests.get(gameId);
+
+        synchronized (rematchSet) {
+            rematchSet.add(session);
+            if (rematchSet.size() == sessions.size()) {
+                startRematch(session, rematchRequest);
+                rematchRequests.remove(gameId);
+                return;
+            }
+        }
+
         Optional<WebSocketSession> opponent = sessions.stream()
                 .filter(s -> !s.equals(session))
                 .findFirst();
         if (opponent.isPresent()) {
-            Message<RematchRequest> message = new Message<>("rematch proposition", new RematchRequest(gameId));
+            Message<RematchRequest> message =
+                    new Message<>("rematch proposition", new RematchRequest(gameId));
             sendMessage(opponent.get(), message);
         } else {
-            Message<String> message = new Message<>("error", "Opponent has already left the game");
+            Message<String> message =
+                    new Message<>("error", "Opponent has already left the game");
             sendMessage(session, message);
         }
+
     }
 
     private void startRematch(WebSocketSession session, RematchRequest rematchRequest) throws IOException {
