@@ -76,6 +76,28 @@ public class GameServiceTest {
     }
 
     @Test
+    void deleteGame_ShouldDeleteExistingGame(){
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+
+        gameService.removeGame(gameId);
+        GameState fetchedGame = gameService.getGame(gameId);
+
+        assertNull(fetchedGame);
+    }
+
+    @Test
+    void deleteGame_ShouldHandleNonExistingGame() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+
+        gameService.removeGame("random");
+        GameState fetchedGame = gameService.getGame(gameId);
+        assertNull(gameService.getGame("random"));
+        assertNotNull(fetchedGame);
+    }
+
+    @Test
     void getGame_ShouldReturnGameById() {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
