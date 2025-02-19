@@ -7,7 +7,7 @@ import pw.checkers.message.PossibleMoves;
 
 public interface GameService {
     GameState createGame();
-    void removeGame(String id);
+    void deleteGame(String id);
     GameState getGame(String gameId);
     MoveOutput makeMove(String gameId, Move move, String currentTurn);
     PossibleMoves getPossibleMoves(GameState gameState, int row, int col);

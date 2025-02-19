@@ -80,7 +80,7 @@ public class GameServiceTest {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
 
-        gameService.removeGame(gameId);
+        gameService.deleteGame(gameId);
         GameState fetchedGame = gameService.getGame(gameId);
 
         assertNull(fetchedGame);
@@ -91,7 +91,7 @@ public class GameServiceTest {
         GameState gameState = gameService.createGame();
         String gameId = gameState.getGameId();
 
-        gameService.removeGame("random");
+        gameService.deleteGame("random");
         GameState fetchedGame = gameService.getGame(gameId);
         assertNull(gameService.getGame("random"));
         assertNotNull(fetchedGame);

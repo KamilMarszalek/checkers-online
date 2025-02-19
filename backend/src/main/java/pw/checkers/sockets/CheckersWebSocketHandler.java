@@ -99,7 +99,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         colorAssignmentsByGame.remove(gameId);
         usersBySessions.remove(session);
         sessionsByGame.remove(gameId);
-        gameService.removeGame(gameId);
+        gameService.deleteGame(gameId);
     }
 
     private void proposeRematch(WebSocketSession session, RematchRequest rematchRequest) throws IOException {

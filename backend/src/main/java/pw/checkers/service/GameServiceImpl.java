@@ -34,7 +34,7 @@ public class GameServiceImpl implements GameService{
     }
 
     @Override
-    public void removeGame(String id) {
+    public void deleteGame(String id) {
         games.remove(id);
     }
 
