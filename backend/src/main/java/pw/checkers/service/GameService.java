@@ -1,9 +1,9 @@
 package pw.checkers.service;
 
 import pw.checkers.data.GameState;
-import pw.checkers.messages.Move;
-import pw.checkers.messages.MoveOutput;
-import pw.checkers.messages.PossibleMoves;
+import pw.checkers.message.Move;
+import pw.checkers.message.MoveOutput;
+import pw.checkers.message.PossibleMoves;
 
 public interface GameService {
     GameState createGame();
