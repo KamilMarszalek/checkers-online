@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Math.abs;
+import static pw.checkers.utils.Constants.*;
 
 @Service
 public class GameServiceImpl implements GameService{
@@ -20,8 +21,8 @@ public class GameServiceImpl implements GameService{
     public GameState createGame() {
         String newGameId = UUID.randomUUID().toString();
         GameState gameState = new GameState();
-        gameState.setWhitePiecesLeft(12);
-        gameState.setBlackPiecesLeft(12);
+        gameState.setWhitePiecesLeft(AMOUNT_OF_PIECES);
+        gameState.setBlackPiecesLeft(AMOUNT_OF_PIECES);
         gameState.setNoCapturesCounter(0);
         gameState.setGameId(newGameId);
         gameState.setNumberOfPositions(new HashMap<>());
@@ -39,14 +40,14 @@ public class GameServiceImpl implements GameService{
     }
 
     private void initializeBoard(GameState gameState) {
-        Piece[][] board = new Piece[8][8];
+        Piece[][] board = new Piece[BOARD_SIZE][BOARD_SIZE];
         for (int row = 0; row < 3; row++) {
-            for (int col = (row + 1) % 2; col < 8; col+=2) {
+            for (int col = (row + 1) % 2; col < BOARD_SIZE; col+=2) {
                 board[row][col] = new Piece(PieceColor.BLACK, PieceType.PAWN);
             }
         }
-        for (int row = 5; row < 8; row++) {
-            for (int col = (row + 1) % 2; col < 8; col+=2) {
+        for (int row = 5; row < BOARD_SIZE; row++) {
+            for (int col = (row + 1) % 2; col < BOARD_SIZE; col+=2) {
                 board[row][col] = new Piece(PieceColor.WHITE, PieceType.PAWN);
             }
         }
@@ -182,8 +183,8 @@ public class GameServiceImpl implements GameService{
     }
 
     private boolean playerHasMoves(GameState gameState, String player) {
-        for (int row = 0; row < gameState.getBoard().length; row++) {
-            for (int column = (row + 1) % 2; column < gameState.getBoard()[row].length; column+=2) {
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int column = (row + 1) % 2; column < BOARD_SIZE; column+=2) {
                 if (gameState.getBoard()[row][column] != null) {
                     if (colorMatchesCurrentPlayer(gameState.getBoard()[row][column].getColor(), player)) {
                         if (!getPossibleMoves(gameState, row, column).getMoves().isEmpty()) {
@@ -253,8 +254,8 @@ public class GameServiceImpl implements GameService{
     private boolean hasAnyCapture(GameState gameState, PieceColor color) {
         Piece[][] board = gameState.getBoard();
 
-        for (int row = 0; row < board.length; row++) {
-            for (int col = 0; col < board[row].length; col++) {
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int col = 0; col < BOARD_SIZE; col++) {
                 Piece p = board[row][col];
                 if (p != null && p.getColor() == color) {
                     boolean isKing = (p.getType() == PieceType.KING);
@@ -293,10 +294,10 @@ public class GameServiceImpl implements GameService{
         Piece pawn = board[row][col];
         PieceColor color = pawn.getColor();
         List<int[]> directions = (color == PieceColor.BLACK)
-                ? Arrays.asList(new int[]{1,1}, new int[]{1,-1})
-                : Arrays.asList(new int[]{-1,1}, new int[]{-1,-1});
+                ? DIRECTIONS_PAWN_BLACK
+                : DIRECTIONS_PAWN_WHITE;
         if (isKing) {
-            directions = Arrays.asList(new int[]{1, 1}, new int[]{1, -1}, new int[]{-1, 1}, new int[]{-1, -1});
+            directions = DIRECTIONS_KING;
         }
         for (int[] direction : directions) {
             int deltaRow = direction[0];
@@ -305,8 +306,8 @@ public class GameServiceImpl implements GameService{
             int landingRow = row + deltaRow;
             int landingCol = col + deltaCol;
 
-            if (landingRow < 0 || landingRow >= board.length
-                    || landingCol < 0 || landingCol >= board[0].length) {
+            if (landingRow < 0 || landingRow >= BOARD_SIZE
+                    || landingCol < 0 || landingCol >= BOARD_SIZE) {
                 continue;
             }
 
@@ -322,10 +323,10 @@ public class GameServiceImpl implements GameService{
 
         PieceColor opponentColor = (color == PieceColor.BLACK) ? PieceColor.WHITE : PieceColor.BLACK;
         List<int[]> directions = (color == PieceColor.BLACK)
-                ? Arrays.asList(new int[]{1,1}, new int[]{1,-1})
-                : Arrays.asList(new int[]{-1,1}, new int[]{-1,-1});
+                ? DIRECTIONS_PAWN_BLACK
+                : DIRECTIONS_PAWN_WHITE;
         if (isKing) {
-            directions = Arrays.asList(new int[]{1,1}, new int[]{-1,1}, new int[]{-1,-1}, new int[]{1,-1});
+            directions = DIRECTIONS_KING;
         }
 
         for (int[] direction : directions) {
@@ -338,8 +339,8 @@ public class GameServiceImpl implements GameService{
             int landingRow = row + 2 * deltaRow;
             int landingCol = col + 2 * deltaCol;
 
-            if (landingRow < 0 || landingRow >= board.length
-                    || landingCol < 0 || landingCol >= board[0].length) {
+            if (landingRow < 0 || landingRow >= BOARD_SIZE
+                    || landingCol < 0 || landingCol >= BOARD_SIZE) {
                 continue;
             }
 
