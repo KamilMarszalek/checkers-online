@@ -33,6 +33,11 @@ public class GameServiceImpl implements GameService{
         return gameState;
     }
 
+    @Override
+    public GameState removeGame(String id) {
+        return games.remove(id);
+    }
+
     private void initializeBoard(GameState gameState) {
         Piece[][] board = new Piece[8][8];
         for (int row = 0; row < 3; row++) {
