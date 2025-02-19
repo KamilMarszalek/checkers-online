@@ -16,7 +16,6 @@ channels:
   /ws:
     description: "Main WebSocket channel for the Checkers game."
     publish:
-      # These are messages the server sends out (the client receives).
       operationId: "serverToClient"
       message:
         oneOf:
@@ -25,21 +24,22 @@ channels:
           - $ref: "#/components/messages/PossibleMovesMessage"
           - $ref: "#/components/messages/JoinedWaitingQueueMessage"
           - $ref: "#/components/messages/GameEndMessage"
+          - $ref: "#/components/messages/RematchPropositionMessage"
       description: >
-        Messages that the server publishes to the client.
-        For example: when a game is created, a move is processed, etc.
-
+        Messages sent from server to client
     subscribe:
-      # These are messages the server listens for (the client sends).
       operationId: "clientToServer"
       message:
         oneOf:
           - $ref: "#/components/messages/JoinQueueMessage"
           - $ref: "#/components/messages/MoveMessage"
           - $ref: "#/components/messages/PossibilitiesMessage"
+          - $ref: "#/components/messages/RematchRequestMessage"
+          - $ref: "#/components/messages/AcceptRematchMessage"
+          - $ref: "#/components/messages/DeclineRematchMessage"
+          - $ref: "#/components/messages/LeaveMessage"
       description: >
-        Messages that the client publishes to the server.
-        For example: "joinQueue", "move", or "possibilities" requests.
+        Messages sent from client to server
 
 components:
   messages:
@@ -55,7 +55,7 @@ components:
         properties:
           type:
             type: string
-            enum: [ "joinQueue" ]  # This message always has type = "joinQueue"
+            enum: [ "joinQueue" ]
           content:
             type: object
             properties:
@@ -127,6 +127,81 @@ components:
         required: [ type, content ]
         additionalProperties: false
 
+    RematchRequestMessage:
+      name: RematchRequestMessage
+      title: "rematch request"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "rematch request" ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the game for which a rematch is requested"
+            required: [gameId]
+        required: [type, content]
+        additionalProperties: false
+
+    AcceptRematchMessage:
+      name: AcceptRematchMessage
+      title: "accept rematch"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "accept rematch" ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the game for which rematch is accepted"
+            required: [gameId]
+        required: [type, content]
+        additionalProperties: false
+
+    DeclineRematchMessage:
+      name: DeclineRematchMessage
+      title: "decline rematch"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "decline rematch" ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the game for which rematch is declined"
+            required: [gameId]
+        required: [type, content]
+        additionalProperties: false
+
+    LeaveMessage:
+      name: LeaveMessage
+      title: "leave"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "leave" ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the game being left"
+            required: [gameId]
+        required: [type, content]
+        additionalProperties: false
 
     ############################################
     # MESSAGES SERVER -> CLIENT (publish)
@@ -150,7 +225,7 @@ components:
               assignedColor:
                 type: string
                 enum: ["white", "black"]
-                description: "Color assigned to the recipient (e.g. 'white' or 'black')"
+                description: "Color assigned to the recipient"
               opponent:
                 type: object
                 properties:
@@ -228,9 +303,10 @@ components:
                     col:
                       type: integer
                   required: [ row, col ]
-                description: "List of possible moves from the requested position. If empty then there are no possible moves"
+                description: "List of possible moves from the requested position."
             required: [ moves ]
         additionalProperties: false
+
     JoinedWaitingQueueMessage:
       name: JoinedWaitingQueueMessage
       title: "JoinedWaitingQueue"
@@ -246,6 +322,8 @@ components:
               message:
                 type: string
                 enum: ["Waiting for an opponent..."]
+        additionalProperties: false
+
     GameEndMessage:
       name: GameEndMessage
       title: "GameEnd"
@@ -265,4 +343,21 @@ components:
         required: [type, content]
         additionalProperties: false
 
-
+    RematchPropositionMessage:
+      name: RematchPropositionMessage
+      title: "rematch proposition"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "rematch proposition" ]
+          content:
+            type: object
+            properties:
+              gameId:
+                type: string
+                description: "ID of the game for which a rematch is proposed"
+            required: [gameId]
+        required: [type, content]
+        additionalProperties: false
