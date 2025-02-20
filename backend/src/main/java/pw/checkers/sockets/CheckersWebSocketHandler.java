@@ -81,17 +81,45 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 startRematch(session, rematchRequest);
                 break;
             }
-            case "decline rematch", "leave": {
+            case "decline rematch": {
                 RematchRequest rematchRequest = objectMapper.convertValue(rawMessage.getContent(), RematchRequest.class);
+                sendRejection(session, rematchRequest);
                 cleanGameHistory(session, rematchRequest);
                 break;
             }
+            case "leave":
+                RematchRequest rematchRequest = objectMapper.convertValue(rawMessage.getContent(), RematchRequest.class);
+                cleanGameHistory(session, rematchRequest);
+                break;
             default: {
                 Message<String> defaultMessage = new Message<>("error", "Unknown message type: " + rawMessage.getType());
                 sendMessage(session, defaultMessage);
                 break;
             }
         }
+    }
+
+    private void sendRejection(WebSocketSession session, RematchRequest rematchRequest) throws IOException {
+        String gameId = rematchRequest.getGameId();
+        Set<WebSocketSession> sessions = sessionsByGame.get(gameId);
+        if (sessions == null || sessions.isEmpty()) {
+            Message<String> message = new Message<>("error", "Opponent has already left the game");
+            sendMessage(session, message);
+            return;
+        }
+        Optional<WebSocketSession> opponent = sessions.stream()
+                .filter(s -> !s.equals(session))
+                .findFirst();
+        if (opponent.isPresent()) {
+            Message<PromptMessage> message =
+                    new Message<>("rejection", new PromptMessage("Your opponent reject your rematch request"));
+            sendMessage(opponent.get(), message);
+        } else {
+            Message<String> message =
+                    new Message<>("error", "Opponent has already left the game");
+            sendMessage(session, message);
+        }
+
     }
 
     private void cleanGameHistory(WebSocketSession session, RematchRequest rematchRequest) {
