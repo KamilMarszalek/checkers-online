@@ -11,3 +11,8 @@ enum class PlayerColor() {
     @SerialName("black")
     BLACK
 }
+
+fun PlayerColor.toResult(): Result = when(this) {
+    PlayerColor.WHITE -> Result.WHITE
+    PlayerColor.BLACK -> Result.BLACK
+}
