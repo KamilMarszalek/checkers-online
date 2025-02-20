@@ -9,7 +9,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import pw.checkers.client.KtorRealtimeMessageClient
 import pw.checkers.client.RealtimeMessageClient
-import pw.checkers.viewModel.GameViewModel
+import pw.checkers.viewModel.gameScreen.GameViewModel
 import pw.checkers.viewModel.loginScreen.LoginViewModel
 
 val appModule = module {

@@ -1,41 +1,32 @@
-package pw.checkers.viewModel
+package pw.checkers.viewModel.gameScreen
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import pw.checkers.client.RealtimeMessageClient
-import pw.checkers.data.Content
-import pw.checkers.data.domain.Cell
-import pw.checkers.data.domain.Move
-import pw.checkers.data.domain.PieceType
-import pw.checkers.data.domain.PlayerColor
+import pw.checkers.data.domain.*
 import pw.checkers.data.message.Message
 import pw.checkers.data.messageType.MessageType
 import pw.checkers.data.request.GetPossibilities
 import pw.checkers.data.request.MakeMove
-import pw.checkers.data.response.GameCreated
+import pw.checkers.data.response.GameInfo
 import pw.checkers.data.response.GameEnd
 import pw.checkers.data.response.MoveInfo
 import pw.checkers.data.response.Possibilities
 import pw.checkers.models.createInitialBoard
-import pw.checkers.util.handleMessageContent
+import pw.checkers.viewModel.BaseViewModel
 
-class GameViewModel(gameCreated: GameCreated, private val messageClient: RealtimeMessageClient) : ViewModel() {
+class GameViewModel(
+    gameInfo: GameInfo,
+    messageClient: RealtimeMessageClient
+) : BaseViewModel(messageClient) {
 
-    private val color = gameCreated.color
-    private val gameId = gameCreated.gameId
-    private val opponent = gameCreated.opponent
+    private val color = gameInfo.color
+    private val gameId = gameInfo.gameId
+    private val opponent = gameInfo.opponent
 
-    init {
-        viewModelScope.launch {
-            messageClient.getMessageStream().collect { message ->
-                handleMessage(message)
-            }
-        }
-    }
+    private val _uiState = MutableStateFlow<GameScreenState>(GameScreenState.Game)
+    val uiState = _uiState.asStateFlow()
+
 
     private val _board = MutableStateFlow(createInitialBoard())
     val board = _board.map { board ->
@@ -130,7 +121,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
         }
     }
 
-    private fun handleMessage(msg: Message) {
+    override fun handleServerMessage(msg: Message) {
         println("Received: $msg")
         when (msg.type) {
             MessageType.MOVE -> handleMessageContent<MoveInfo>(msg, ::processMoveInfoMessage)
@@ -158,19 +149,15 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     }
 
     private fun processGameEnd(gameEnd: GameEnd) {
-        // TODO: properly handle finished game
-        println(gameEnd)
+        _uiState.value = GameScreenState.GameEnded(gameEnd.result)
     }
 
-    private inline fun <reified T : Content> sendMessage(type: MessageType, content: T) {
-        val message = Message(
-            type = type,
-            content = Json.encodeToJsonElement<T>(content)
-        )
-
-        viewModelScope.launch {
-            println("Sending: $message")
-            messageClient.sendMessage(message)
+    fun getEndGameText(): String {
+        val result = (_uiState.value as GameScreenState.GameEnded).result
+        return when {
+            result == color.toResult() -> "You won"
+            result != Result.DRAW -> "${opponent.username} won"
+            else -> "Draw"
         }
     }
 }

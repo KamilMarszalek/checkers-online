@@ -23,7 +23,7 @@ import pw.checkers.ui.icons.pawns.BlackQueen
 import pw.checkers.ui.icons.pawns.WhitePawn
 import pw.checkers.ui.icons.pawns.WhiteQueen
 import pw.checkers.data.domain.PlayerColor
-import pw.checkers.viewModel.GameViewModel
+import pw.checkers.viewModel.gameScreen.GameViewModel
 
 @Composable
 fun Board(
