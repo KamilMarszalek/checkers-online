@@ -1,4 +1,4 @@
-package pw.checkers.pojo;
+package pw.checkers.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

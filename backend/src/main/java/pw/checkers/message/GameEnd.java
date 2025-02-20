@@ -1,4 +1,4 @@
-package pw.checkers.pojo;
+package pw.checkers.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class JoinMessage {
-    private String gameId;
-    private String color;
-    private User opponent;
+public class GameEnd {
+    private String result;
 }
