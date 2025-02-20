@@ -61,6 +61,13 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 handleJoinQueue(session, user);
                 break;
             }
+            case "leaveQueue": {
+                Map<String, Object> content = rawMessage.getContent();
+                Object userObj = content.get("user");
+                User user = objectMapper.convertValue(userObj, User.class);
+                handleLeaveQueue(session, user);
+                break;
+            }
             case "move": {
                 MoveInput moveInput = objectMapper.convertValue(rawMessage.getContent(), MoveInput.class);
                 handleMove(session, moveInput);
@@ -97,6 +104,10 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 break;
             }
         }
+    }
+
+    private void handleLeaveQueue(WebSocketSession session, User user) {
+        waitingQueue.removeIf(waitingPlayer -> waitingPlayer.session().equals(session) && waitingPlayer.user().equals(user));
     }
 
     private void sendRejection(WebSocketSession session, RematchRequest rematchRequest) throws IOException {
