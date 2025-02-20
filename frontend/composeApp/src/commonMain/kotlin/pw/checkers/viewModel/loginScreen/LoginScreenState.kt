@@ -1,9 +1,9 @@
 package pw.checkers.viewModel.loginScreen
 
-import pw.checkers.data.response.GameCreated
+import pw.checkers.data.message.Message
 
-sealed class LoginScreenState {
-    data object Idle : LoginScreenState()
-    data class Queued(val message: String) : LoginScreenState()
-    data class GameStarted(val gameCreated: GameCreated) : LoginScreenState()
+
+sealed interface LoginScreenState {
+    data object Idle : LoginScreenState
+    data class Queued(val message: Message) : LoginScreenState
 }

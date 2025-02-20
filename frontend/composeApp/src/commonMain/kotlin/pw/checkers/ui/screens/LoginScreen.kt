@@ -9,36 +9,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-import pw.checkers.data.response.GameCreated
+import pw.checkers.data.message.Message
+import pw.checkers.ui.util.messageCollectionDisposableEffect
+import pw.checkers.ui.windowSize.WindowSize
 import pw.checkers.ui.windowSize.rememberWindowSize
 import pw.checkers.viewModel.loginScreen.LoginScreenState
 import pw.checkers.viewModel.loginScreen.LoginViewModel
-import kotlin.math.min
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel, onLoginClick: (GameCreated) -> Unit) {
-    val uiState by viewModel.uiState.collectAsState()
+fun LoginScreen(loginViewModel: LoginViewModel, onPlayClick: (Message) -> Unit) {
+    val uiState by loginViewModel.uiState.collectAsState()
+    val windowSize = rememberWindowSize()
+
+    messageCollectionDisposableEffect(loginViewModel)
 
     when (uiState) {
         is LoginScreenState.Idle -> {
-            LoginInputScreen(viewModel)
+            LoginInputScreen(loginViewModel, windowSize)
         }
 
         is LoginScreenState.Queued -> {
-
-            LoadingScreen((uiState as LoginScreenState.Queued).message)
-        }
-
-        is LoginScreenState.GameStarted -> {
-            onLoginClick((uiState as LoginScreenState.GameStarted).gameCreated)
+            onPlayClick((uiState as LoginScreenState.Queued).message)
         }
     }
 }
 
 @Composable
-private fun LoginInputScreen(viewModel: LoginViewModel) {
-    val windowSize = rememberWindowSize()
+private fun LoginInputScreen(viewModel: LoginViewModel, windowSize: WindowSize) {
 
     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         OutlinedTextField(
@@ -66,26 +63,4 @@ private fun LoginInputScreen(viewModel: LoginViewModel) {
             Text(text = "Play")
         }
     }
-}
-
-@Composable
-private fun LoadingScreen(message: String) {
-    val windowSize = rememberWindowSize()
-    val boxSize = remember(windowSize) { (0.2 * min(windowSize.width, windowSize.height)).toInt() }
-    Box(modifier = Modifier.size(boxSize.dp), contentAlignment = Alignment.Center) {
-        AnimatedWaitingText(message, 3)
-    }
-}
-
-@Composable
-private fun AnimatedWaitingText(message: String, maxDotCount: Int) {
-    var dotCount by remember { mutableStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(1000)
-            dotCount = (dotCount + 1) % (maxDotCount + 1)
-        }
-    }
-    Text(text = message + ".".repeat(dotCount))
 }
