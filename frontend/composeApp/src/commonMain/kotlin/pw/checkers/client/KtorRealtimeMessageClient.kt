@@ -23,6 +23,8 @@ class KtorRealtimeMessageClient(private val httpClient: HttpClient) : RealtimeMe
 
     private var collectorJob: Job? = null
 
+    override fun connected(): Boolean = session != null
+
     override suspend fun connect(serverAddress: String) {
         session = httpClient.webSocketSession {
             url(Constants.SERVER_ADDRESS)
