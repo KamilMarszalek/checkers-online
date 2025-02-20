@@ -33,7 +33,7 @@ public class GameState {
                 if (piece == null) {
                     response.append(".");
                 } else {
-                    response.append(piece.toString());
+                    response.append(piece);
                 }
             }
         }
