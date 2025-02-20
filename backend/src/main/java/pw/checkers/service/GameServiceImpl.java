@@ -27,7 +27,7 @@ public class GameServiceImpl implements GameService{
         gameState.setGameId(newGameId);
         gameState.setNumberOfPositions(new HashMap<>());
         initializeBoard(gameState);
-        gameState.setCurrentPlayer("white");
+        gameState.setCurrentPlayer(PieceColor.WHITE);
         gameState.setWinner(null);
         gameState.setFinished(false);
         games.put(newGameId, gameState);
@@ -64,7 +64,7 @@ public class GameServiceImpl implements GameService{
         Piece piece = board[move.getFromRow()][move.getFromCol()];
         if (piece == null) return false;
 
-        if (!colorMatchesCurrentPlayer(piece.getColor(), gameState.getCurrentPlayer())) {
+        if (!piece.getColor().equals(gameState.getCurrentPlayer())) {
             return false;
         }
 
@@ -75,11 +75,6 @@ public class GameServiceImpl implements GameService{
         }
         PossibleMoves pm = getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
         return pm.getMoves().contains(new MoveHelper(move.getToRow(), move.getToCol()));
-    }
-
-    private boolean colorMatchesCurrentPlayer(PieceColor color, String currentPlayer) {
-        if (color == PieceColor.WHITE && "white".equals(currentPlayer)) return true;
-        return color == PieceColor.BLACK && "black".equals(currentPlayer);
     }
 
     private void doTake(GameState gameState, MoveOutput move) {
@@ -101,7 +96,7 @@ public class GameServiceImpl implements GameService{
     }
 
     private void promotePiece(Piece pawn, Move move, GameState gameState) {
-        if ((gameState.getCurrentPlayer().equals("white") && move.getToRow() == 0) || (gameState.getCurrentPlayer().equals("black") && move.getToRow() == 7)) {
+        if ((gameState.getCurrentPlayer().equals(PieceColor.WHITE) && move.getToRow() == 0) || (gameState.getCurrentPlayer().equals(PieceColor.BLACK) && move.getToRow() == 7)) {
             pawn.setType(PieceType.KING);
         }
     }
@@ -115,15 +110,24 @@ public class GameServiceImpl implements GameService{
         return false;
     }
 
+    private PieceColor mapStringToColor(String color) {
+        return switch (color) {
+            case "black" -> PieceColor.BLACK;
+            case "white" -> PieceColor.WHITE;
+            default -> null;
+        };
+    }
+
     @Override
     public MoveOutput makeMove(String gameId, Move move, String currentTurn) {
+        PieceColor playerColor = mapStringToColor(currentTurn);
         MoveOutput response = new MoveOutput();
         response.setMove(move);
         GameState gameState = getGame(gameId);
         if (gameState == null || gameState.isFinished()){
             return null;
         }
-        if (!gameState.getCurrentPlayer().equals(currentTurn)) {
+        if (!gameState.getCurrentPlayer().equals(playerColor)) {
             return null;
         }
         boolean b = validateMove(gameState, move);
@@ -141,8 +145,8 @@ public class GameServiceImpl implements GameService{
         gameState.getNumberOfPositions().put(gameState.boardToString(), posCounter + 1);
         if (hasMoreTakes(gameState, move)) {
             response.setHasMoreTakes(true);
-            response.setCurrentTurn(gameState.getCurrentPlayer());
-            response.setPreviousTurn(gameState.getCurrentPlayer());
+            response.setCurrentTurn(gameState.getCurrentPlayer().toString().toLowerCase());
+            response.setPreviousTurn(gameState.getCurrentPlayer().toString().toLowerCase());
             gameState.setLastCaptureCol(move.getToCol());
             gameState.setLastCaptureRow(move.getToRow());
             return response;
@@ -157,12 +161,12 @@ public class GameServiceImpl implements GameService{
             setDraw(gameState);
         }
 
-        if (gameState.getCurrentPlayer().equals("white")) {
-            gameState.setCurrentPlayer("black");
+        if (gameState.getCurrentPlayer().equals(PieceColor.WHITE)) {
+            gameState.setCurrentPlayer(PieceColor.BLACK);
             response.setCurrentTurn("black");
             response.setPreviousTurn("white");
         } else {
-            gameState.setCurrentPlayer("white");
+            gameState.setCurrentPlayer(PieceColor.WHITE);
             response.setCurrentTurn("white");
             response.setPreviousTurn("black");
         }
@@ -174,19 +178,19 @@ public class GameServiceImpl implements GameService{
     }
 
     private boolean isDraw(GameState gameState) {
-        String currentPlayer = gameState.getCurrentPlayer();
-        String otherPlayer = currentPlayer.equals("white") ? "black" : "white";
+        PieceColor currentPlayer = gameState.getCurrentPlayer();
+        PieceColor otherPlayer = currentPlayer.equals(PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE;
 
         return (!playerHasMoves(gameState, currentPlayer) && !playerHasMoves(gameState, otherPlayer))
                 || isFiftyMoveViolation(gameState)
                 || isPositionRepeatedThreeTimes(gameState);
     }
 
-    private boolean playerHasMoves(GameState gameState, String player) {
+    private boolean playerHasMoves(GameState gameState, PieceColor player) {
         for (int row = 0; row < BOARD_SIZE; row++) {
             for (int column = (row + 1) % 2; column < BOARD_SIZE; column+=2) {
                 if (gameState.getBoard()[row][column] != null) {
-                    if (colorMatchesCurrentPlayer(gameState.getBoard()[row][column].getColor(), player)) {
+                    if (gameState.getBoard()[row][column].getColor().equals(player)) {
                         if (!getPossibleMoves(gameState, row, column).getMoves().isEmpty()) {
                             return true;
                         }
@@ -206,8 +210,8 @@ public class GameServiceImpl implements GameService{
     }
 
     private boolean hasSomebodyWon(GameState gameState) {
-        String currentPlayer = gameState.getCurrentPlayer();
-        String otherPlayer = "white".equals(currentPlayer) ? "black" : "white";
+        PieceColor currentPlayer = gameState.getCurrentPlayer();
+        PieceColor otherPlayer = PieceColor.WHITE.equals(currentPlayer) ? PieceColor.BLACK : PieceColor.WHITE;
 
         return gameState.getBlackPiecesLeft() == 0
                 || gameState.getWhitePiecesLeft() == 0
@@ -215,15 +219,15 @@ public class GameServiceImpl implements GameService{
     }
 
     private void setWinner(GameState gameState) {
-        String currentPlayer = gameState.getCurrentPlayer();
-        String otherPlayer = "white".equals(currentPlayer) ? "black" : "white";
+        PieceColor currentPlayer = gameState.getCurrentPlayer();
+        PieceColor otherPlayer = PieceColor.WHITE.equals(currentPlayer) ? PieceColor.BLACK : PieceColor.WHITE;
 
         if (gameState.getWhitePiecesLeft() == 0) {
-            gameState.setWinner("black");
+            gameState.setWinner(PieceColor.BLACK);
             gameState.setFinished(true);
             return;
         } else if (gameState.getBlackPiecesLeft() == 0) {
-            gameState.setWinner("white");
+            gameState.setWinner(PieceColor.WHITE);
             gameState.setFinished(true);
             return;
         }

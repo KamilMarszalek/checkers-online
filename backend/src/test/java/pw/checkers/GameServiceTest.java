@@ -38,7 +38,7 @@ public class GameServiceTest {
         GameState gameState = gameService.createGame();
         assertNotNull(gameState);
         assertNotNull(gameState.getGameId());
-        assertEquals("white", gameState.getCurrentPlayer());
+        assertEquals(PieceColor.WHITE, gameState.getCurrentPlayer());
         assertFalse(gameState.isFinished());
         assertNull(gameState.getWinner());
         assertNotNull(gameState.getBoard());
@@ -381,7 +381,7 @@ public class GameServiceTest {
         assertTrue(secondOutput.isCaptured());
 
         if (!secondOutput.isHasMoreTakes()) {
-            assertEquals("black", gameService.getGame(gameId).getCurrentPlayer());
+            assertEquals(PieceColor.BLACK, gameService.getGame(gameId).getCurrentPlayer());
         }
     }
 
@@ -408,7 +408,7 @@ public class GameServiceTest {
         assertTrue(result.isCaptured());
         assertFalse(result.isHasMoreTakes());
         assertTrue(gameState.isFinished());
-        assertEquals("white", gameState.getWinner());
+        assertEquals(PieceColor.WHITE, gameState.getWinner());
     }
 
     @Test

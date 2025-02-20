@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pw.checkers.data.enums.PieceColor;
 
 import java.util.Map;
 
@@ -15,9 +16,9 @@ import java.util.Map;
 public class GameState {
     private String gameId;
     private Piece[][] board;
-    private String currentPlayer;
+    private PieceColor currentPlayer;
     private boolean isFinished;
-    private String winner;
+    private PieceColor winner;
     private int whitePiecesLeft;
     private int blackPiecesLeft;
     private int noCapturesCounter;

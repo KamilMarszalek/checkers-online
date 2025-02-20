@@ -315,7 +315,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 if (updatedState.getWinner() == null) {
                     gameEndMsg = new Message<>("gameEnd", new GameEnd("draw"));
                 } else {
-                    gameEndMsg = new Message<>("gameEnd", new GameEnd(updatedState.getWinner()));
+                    gameEndMsg = new Message<>("gameEnd", new GameEnd(updatedState.getWinner().toString().toLowerCase()));
                 }
                 sendMessage(ws, wsColor, gameEndMsg);
             }
