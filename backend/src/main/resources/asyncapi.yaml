@@ -25,6 +25,8 @@ channels:
           - $ref: "#/components/messages/JoinedWaitingQueueMessage"
           - $ref: "#/components/messages/GameEndMessage"
           - $ref: "#/components/messages/RematchPropositionMessage"
+          - $ref: "#/components/messages/ErrorMessage"
+          - $ref: "#/components/messages/RejectionMessage"
       description: >
         Messages sent from server to client
     subscribe:
@@ -360,4 +362,38 @@ components:
                 description: "ID of the game for which a rematch is proposed"
             required: [gameId]
         required: [type, content]
+        additionalProperties: false
+
+    ErrorMessage:
+      name: ErrorMessage
+      title: "Error"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "error" ]
+          content:
+            type: string
+            description: "A description of the error encountered"
+        required: [ type, content ]
+        additionalProperties: false
+
+    RejectionMessage:
+      name: RejectionMessage
+      title: "Rejection"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "rejection" ]
+          content:
+            type: object
+            properties:
+              message:
+                type: string
+                description: "Message indicating that the opponent rejected the rematch request"
+            required: [ message ]
+        required: [ type, content ]
         additionalProperties: false
