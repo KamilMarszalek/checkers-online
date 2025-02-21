@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import pw.checkers.data.domain.User
 import pw.checkers.data.response.GameInfo
 import pw.checkers.ui.util.messageCollectionDisposableEffect
 import pw.checkers.ui.windowSize.rememberWindowSize
@@ -18,7 +19,7 @@ import kotlin.math.min
 @Composable
 fun WaitingScreen(
     waitingViewModel: WaitingViewModel,
-    onGameCreated: (GameInfo) -> Unit,
+    onGameCreated: (GameInfo, User) -> Unit,
 ) {
     val windowSize = rememberWindowSize()
     val boxSize = remember(windowSize) { (0.2 * min(windowSize.width, windowSize.height)).toInt() }
@@ -33,8 +34,8 @@ fun WaitingScreen(
                 AnimatedWaitingText(message, 3)
             }
             is WaitingScreenState.GameCreated -> {
-                val gameInfo = (uiState as WaitingScreenState.GameCreated).gameInfo
-                onGameCreated(gameInfo)
+                val state = (uiState as WaitingScreenState.GameCreated)
+                onGameCreated(state.gameInfo, state.user)
             }
             else -> {}
         }

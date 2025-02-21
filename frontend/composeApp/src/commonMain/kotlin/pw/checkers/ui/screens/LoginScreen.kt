@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import pw.checkers.data.domain.User
 import pw.checkers.data.message.Message
 import pw.checkers.ui.util.messageCollectionDisposableEffect
 import pw.checkers.ui.windowSize.WindowSize
@@ -17,7 +18,7 @@ import pw.checkers.viewModel.loginScreen.LoginScreenState
 import pw.checkers.viewModel.loginScreen.LoginViewModel
 
 @Composable
-fun LoginScreen(loginViewModel: LoginViewModel, onPlayClick: (Message) -> Unit) {
+fun LoginScreen(loginViewModel: LoginViewModel, onPlayClick: (Message, User) -> Unit) {
     val uiState by loginViewModel.uiState.collectAsState()
     val windowSize = rememberWindowSize()
 
@@ -29,7 +30,8 @@ fun LoginScreen(loginViewModel: LoginViewModel, onPlayClick: (Message) -> Unit) 
         }
 
         is LoginScreenState.Queued -> {
-            onPlayClick((uiState as LoginScreenState.Queued).message)
+            val state = uiState as LoginScreenState.Queued
+            onPlayClick(state.message, state.userInfo)
         }
     }
 }
