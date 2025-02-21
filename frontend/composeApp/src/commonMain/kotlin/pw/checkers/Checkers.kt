@@ -61,7 +61,10 @@ sealed interface Routes {
     data class WaitingScreen(val message: Message, val user: User) : Routes
 
     @Serializable
-    data class GameScreen(val gameInfo: GameInfo) : Routes
     data class GameScreen(val gameInfo: GameInfo, val user: User) : Routes
 }
+
+fun NavHostController.popAndNavigate(destRoute: Routes) {
+    navigateUp()
+    navigate(route = destRoute)
 }
