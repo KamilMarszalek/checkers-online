@@ -18,7 +18,7 @@ val appModule = module {
 
     viewModel { LoginViewModel(get()) }
 
-    viewModel { parameters -> WaitingViewModel(message = parameters.get(), get())}
+    viewModel { parameters -> WaitingViewModel(message = parameters.get(), parameters.get(), get())}
 
-    viewModel { parameters -> GameViewModel(gameInfo = parameters.get(), get()) }
+    viewModel { parameters -> GameViewModel(gameInfo = parameters.get(), parameters.get(), get()) }
 }
