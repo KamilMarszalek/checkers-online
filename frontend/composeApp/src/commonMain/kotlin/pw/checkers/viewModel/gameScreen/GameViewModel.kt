@@ -7,6 +7,7 @@ import pw.checkers.data.domain.*
 import pw.checkers.data.message.Message
 import pw.checkers.data.messageType.MessageType
 import pw.checkers.data.request.GetPossibilities
+import pw.checkers.data.request.JoinQueue
 import pw.checkers.data.request.MakeMove
 import pw.checkers.data.response.GameInfo
 import pw.checkers.data.response.GameEnd
@@ -17,6 +18,7 @@ import pw.checkers.viewModel.BaseViewModel
 
 class GameViewModel(
     gameInfo: GameInfo,
+    val user: User,
     messageClient: RealtimeMessageClient
 ) : BaseViewModel(messageClient) {
 
@@ -127,6 +129,7 @@ class GameViewModel(
             MessageType.MOVE -> handleMessageContent<MoveInfo>(msg, ::processMoveInfoMessage)
             MessageType.POSSIBILITIES -> handleMessageContent<Possibilities>(msg, ::processPossibilities)
             MessageType.GAME_ENDING -> handleMessageContent<GameEnd>(msg, ::processGameEnd)
+            MessageType.WAITING, MessageType.GAME_CREATED -> handleNextGameMessage(msg)
             else -> return
         }
     }
@@ -159,5 +162,14 @@ class GameViewModel(
             result != Result.DRAW -> "${opponent.username} won"
             else -> "Draw"
         }
+    }
+
+    fun playNextGame() {
+        sendMessage(MessageType.JOIN_QUEUE, JoinQueue(user))
+    }
+
+    private fun handleNextGameMessage(message: Message) {
+        if (_uiState.value !is GameScreenState.GameEnded) return
+        _uiState.value = GameScreenState.PlayNext(message)
     }
 }
