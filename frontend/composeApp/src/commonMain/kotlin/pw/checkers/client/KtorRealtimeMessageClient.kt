@@ -42,18 +42,6 @@ class KtorRealtimeMessageClient(private val httpClient: HttpClient) : RealtimeMe
         }
     }
 
-//    override suspend fun getMessageStream(): Flow<Message> {
-//        return flow {
-//            val messages = session!!
-//                .incoming
-//                .consumeAsFlow()
-//                .filterIsInstance<Frame.Text>()
-//                .mapNotNull { Json.decodeFromString<Message>(it.readText()) }
-//
-//            emitAll(messages)
-//        }
-//    }
-
     override suspend fun sendMessage(message: Message) {
         session?.outgoing?.send(Frame.Text(Json.encodeToString(message)))
     }
