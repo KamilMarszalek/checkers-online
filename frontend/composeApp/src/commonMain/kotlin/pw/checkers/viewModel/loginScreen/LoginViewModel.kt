@@ -48,7 +48,6 @@ class LoginViewModel(
     }
 
     override fun handleServerMessage(msg: Message) {
-//        println("Login: ${msg.content}")
         when (msg.type) {
             MessageType.WAITING, MessageType.GAME_CREATED -> processWaitingMessage(msg)
             else -> {}
@@ -56,6 +55,6 @@ class LoginViewModel(
     }
 
     private fun processWaitingMessage(message: Message) {
-        _uiState.value = LoginScreenState.Queued(message)
+        _uiState.value = LoginScreenState.Queued(message, User(_username))
     }
 }

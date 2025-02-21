@@ -20,7 +20,6 @@ abstract class BaseViewModel(
 
     fun startCollecting() {
         if (collectJob?.isActive == true) return
-        println("collecting")
 
         collectJob = viewModelScope.launch {
             if (!messageClient.connected()) {
@@ -34,7 +33,6 @@ abstract class BaseViewModel(
     }
 
     fun stopCollecting() {
-        println("stop collecting")
         collectJob?.cancel()
         collectJob = null
     }
