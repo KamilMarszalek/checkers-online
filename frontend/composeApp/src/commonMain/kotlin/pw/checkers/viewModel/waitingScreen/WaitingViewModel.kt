@@ -9,6 +9,7 @@ import pw.checkers.data.messageType.MessageType
 import pw.checkers.data.response.GameInfo
 import pw.checkers.data.response.WaitingMessage
 import pw.checkers.viewModel.BaseViewModel
+import pw.checkers.viewModel.ScreenState
 
 class WaitingViewModel(
     message: Message,
@@ -20,7 +21,7 @@ class WaitingViewModel(
         println(message)
     }
 
-    private val _uiState = MutableStateFlow<WaitingScreenState?>(null)
+    override val _uiState = MutableStateFlow<ScreenState?>(null)
     val uiState = _uiState.asStateFlow()
 
     override fun handleServerMessage(msg: Message) {
@@ -32,10 +33,10 @@ class WaitingViewModel(
     }
 
     private fun processWaitingMessage(waitingMessage: WaitingMessage) {
-        _uiState.value = WaitingScreenState.Waiting(waitingMessage.message.replace(".", ""))
+        updateState(WaitingScreenState.Waiting(waitingMessage.message.replace(".", "")))
     }
 
     private fun processGameCreated(gameInfo: GameInfo) {
-        _uiState.value = WaitingScreenState.GameCreated(gameInfo, user)
+        updateState(WaitingScreenState.GameCreated(gameInfo, user))
     }
 }

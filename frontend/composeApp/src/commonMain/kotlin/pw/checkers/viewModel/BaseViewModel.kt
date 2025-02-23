@@ -3,6 +3,8 @@ package pw.checkers.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -17,6 +19,8 @@ abstract class BaseViewModel(
 ) : ViewModel() {
 
     private var collectJob: Job? = null
+
+    protected open val _uiState = MutableStateFlow<ScreenState?>(null)
 
     fun startCollecting() {
         if (collectJob?.isActive == true) return
@@ -55,4 +59,8 @@ abstract class BaseViewModel(
     }
 
     protected abstract fun handleServerMessage(msg: Message)
+
+    protected fun updateState(newState: ScreenState) {
+        _uiState.update { newState }
+    }
 }
