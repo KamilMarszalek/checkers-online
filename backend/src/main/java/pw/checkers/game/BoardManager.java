@@ -37,11 +37,12 @@ public class BoardManager {
         gameState.setBoard(board);
     }
 
-    private void doTake(GameState gameState, MoveOutput move) {
+    private void doTake(GameState gameState, MoveOutput moveOutput) {
+        Move move = moveOutput.getMove();
         Piece[][] board = gameState.getBoard();
-        if (abs(move.getMove().getFromCol() - move.getMove().getToCol()) > 1 && abs(move.getMove().getFromRow() - move.getMove().getToRow()) > 1) {
-            int opponentRow = (move.getMove().getToRow() + move.getMove().getFromRow()) / 2;
-            int opponentCol = (move.getMove().getToCol() + move.getMove().getFromCol()) / 2;
+        if (isCaptureMove(move)) {
+            int opponentRow = (move.getToRow() +move.getFromRow()) / 2;
+            int opponentCol = (move.getToCol() + move.getFromCol()) / 2;
             Piece capturedPiece = board[opponentRow][opponentCol];
             if (capturedPiece.getColor().equals(PieceColor.BLACK)) {
                 gameState.setBlackPiecesLeft(gameState.getBlackPiecesLeft() - 1);
@@ -49,10 +50,14 @@ public class BoardManager {
                 gameState.setWhitePiecesLeft(gameState.getWhitePiecesLeft() - 1);
             }
             board[opponentRow][opponentCol] = null;
-            move.setCapturedPiece(new MoveHelper(opponentRow, opponentCol));
-            move.setCaptured(true);
+            moveOutput.setCapturedPiece(new MoveHelper(opponentRow, opponentCol));
+            moveOutput.setCaptured(true);
             gameState.setNoCapturesCounter(0);
         }
+    }
+
+    private boolean isCaptureMove(Move move) {
+        return abs(move.getFromCol() - move.getToCol()) > 1 && abs(move.getFromRow() - move.getToRow()) > 1;
     }
 
     private void promotePiece(Piece pawn, Move move, GameState gameState) {
