@@ -24,7 +24,7 @@ channels:
           - $ref: "#/components/messages/PossibleMovesMessage"
           - $ref: "#/components/messages/JoinedWaitingQueueMessage"
           - $ref: "#/components/messages/GameEndMessage"
-          - $ref: "#/components/messages/RematchPropositionMessage"
+          - $ref: "#/components/messages/RematchRequestSendMessage"
           - $ref: "#/components/messages/ErrorMessage"
           - $ref: "#/components/messages/RejectionMessage"
       description: >
@@ -37,7 +37,7 @@ channels:
           - $ref: "#/components/messages/LeaveQueueMessage"
           - $ref: "#/components/messages/MoveMessage"
           - $ref: "#/components/messages/PossibilitiesMessage"
-          - $ref: "#/components/messages/RematchRequestMessage"
+          - $ref: "#/components/messages/RematchRequestReceiveMessage"
           - $ref: "#/components/messages/AcceptRematchMessage"
           - $ref: "#/components/messages/DeclineRematchMessage"
           - $ref: "#/components/messages/LeaveMessage"
@@ -152,7 +152,7 @@ components:
         required: [ type, content ]
         additionalProperties: false
 
-    RematchRequestMessage:
+    RematchRequestSendMessage:
       name: RematchRequestMessage
       title: "rematch request"
       payload:
@@ -368,15 +368,15 @@ components:
         required: [type, content]
         additionalProperties: false
 
-    RematchPropositionMessage:
+    RematchRequestReceiveMessage:
       name: RematchPropositionMessage
-      title: "rematch proposition"
+      title: "rematch request"
       payload:
         type: object
         properties:
           type:
             type: string
-            enum: [ "rematch proposition" ]
+            enum: [ "rematch request" ]
           content:
             type: object
             properties:
