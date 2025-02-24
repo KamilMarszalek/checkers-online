@@ -13,10 +13,12 @@ import static pw.checkers.utils.Constants.*;
 public class GameServiceImpl implements GameService{
     private final Map<String, GameState> games = new ConcurrentHashMap<>();
     private final BoardManager boardManager;
+    private final GameRules gameRules;
     private final MoveValidator moveValidator;
 
-    public GameServiceImpl(BoardManager boardManager, MoveValidator moveValidator) {
+    public GameServiceImpl(BoardManager boardManager, GameRules gameRules, MoveValidator moveValidator) {
         this.boardManager = boardManager;
+        this.gameRules = gameRules;
         this.moveValidator = moveValidator;
     }
 
@@ -61,6 +63,6 @@ public class GameServiceImpl implements GameService{
 
     @Override
     public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
-        return  boardManager.getPossibleMoves(gameState, row, col);
+        return gameRules.getPossibleMoves(gameState, row, col);
     }
 }

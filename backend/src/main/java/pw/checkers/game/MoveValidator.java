@@ -15,9 +15,11 @@ import pw.checkers.message.PossibleMoves;
 @Service
 public class MoveValidator {
     private final BoardManager boardManager;
+    private final GameRules gameRules;
 
-    public MoveValidator(BoardManager boardManager) {
+    public MoveValidator(BoardManager boardManager, GameRules gameRules) {
         this.boardManager = boardManager;
+        this.gameRules = gameRules;
     }
 
     public boolean validateMove(GameState gameState, Move move) {
@@ -43,7 +45,7 @@ public class MoveValidator {
         if (brokenMultipleCaptureSequence(move, gameState)) {
             return false;
         }
-        PossibleMoves possibleMoves = boardManager.getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
+        PossibleMoves possibleMoves = gameRules.getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
         return possibleMoves.getMoves().contains(new MoveHelper(move.getToRow(), move.getToCol()));
 
     }
