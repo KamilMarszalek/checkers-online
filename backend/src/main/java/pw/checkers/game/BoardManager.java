@@ -1,8 +1,6 @@
 package pw.checkers.game;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.springframework.stereotype.Service;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
 import pw.checkers.data.enums.PieceColor;
@@ -19,9 +17,7 @@ import static java.lang.Math.abs;
 import static pw.checkers.utils.Constants.*;
 import static pw.checkers.utils.Constants.DIRECTIONS_KING;
 
-@NoArgsConstructor
-@Getter
-@Setter
+@Service
 public class BoardManager {
     public void initializeBoard(GameState gameState){
         Piece[][] board = new Piece[BOARD_SIZE][BOARD_SIZE];

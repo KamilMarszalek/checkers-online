@@ -1,8 +1,8 @@
 package pw.checkers.game;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.stereotype.Service;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
 import pw.checkers.data.enums.PieceColor;
@@ -10,11 +10,15 @@ import pw.checkers.message.Move;
 import pw.checkers.message.MoveHelper;
 import pw.checkers.message.PossibleMoves;
 
-@NoArgsConstructor
 @Getter
 @Setter
+@Service
 public class MoveValidator {
-    private final BoardManager boardManager = new BoardManager();
+    private final BoardManager boardManager;
+
+    public MoveValidator(BoardManager boardManager) {
+        this.boardManager = boardManager;
+    }
 
     public boolean validateMove(GameState gameState, Move move) {
         if (isGameStateNull(gameState)) {
