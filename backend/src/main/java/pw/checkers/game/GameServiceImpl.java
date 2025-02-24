@@ -2,7 +2,6 @@ package pw.checkers.game;
 
 import org.springframework.stereotype.Service;
 import pw.checkers.data.GameState;
-import pw.checkers.data.Piece;
 import pw.checkers.data.enums.PieceColor;
 import pw.checkers.message.*;
 
@@ -14,6 +13,7 @@ import static pw.checkers.utils.Constants.*;
 public class GameServiceImpl implements GameService{
     private final Map<String, GameState> games = new ConcurrentHashMap<>();
     private final BoardManager boardManager = new BoardManager();
+    private final MoveValidator moveValidator = new MoveValidator();
 
     @Override
     public GameState createGame() {
@@ -43,54 +43,15 @@ public class GameServiceImpl implements GameService{
         return games.get(gameId);
     }
 
-    private boolean validateMove(GameState gameState, Move move) {
-        Piece[][] board = gameState.getBoard();
-        Piece piece = board[move.getFromRow()][move.getFromCol()];
-        if (piece == null) return false;
-
-        if (!piece.getColor().equals(gameState.getCurrentPlayer())) {
-            return false;
-        }
-
-        if (gameState.getLastCaptureCol() != null && gameState.getLastCaptureRow() != null) {
-            if (move.getFromRow() != gameState.getLastCaptureRow() || move.getFromCol() != gameState.getLastCaptureCol()) {
-                return false;
-            }
-        }
-        PossibleMoves pm = getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
-        return pm.getMoves().contains(new MoveHelper(move.getToRow(), move.getToCol()));
-    }
-
-
-
-
-
-
-    private PieceColor mapStringToColor(String color) {
-        return switch (color) {
-            case "black" -> PieceColor.BLACK;
-            case "white" -> PieceColor.WHITE;
-            default -> null;
-        };
-    }
-
     @Override
     public MoveOutput makeMove(String gameId, Move move, String currentTurn) {
-        PieceColor playerColor = mapStringToColor(currentTurn);
         MoveOutput response = new MoveOutput();
         response.setMove(move);
         GameState gameState = getGame(gameId);
-        if (gameState == null || gameState.isFinished()){
+        if (!moveValidator.validateMove(gameState, move)) {
             return null;
         }
-        if (!gameState.getCurrentPlayer().equals(playerColor)) {
-            return null;
-        }
-        boolean b = validateMove(gameState, move);
-        if (!b) {
-            return null;
-        }
-        return boardManager.makeMove(gameState, response, playerColor);
+        return boardManager.makeMove(gameState, response);
     }
 
     @Override

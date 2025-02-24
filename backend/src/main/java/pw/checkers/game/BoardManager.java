@@ -108,7 +108,7 @@ public class BoardManager {
         return !possibleMoves.getMoves().isEmpty();
     }
 
-    public MoveOutput makeMove(GameState gameState, MoveOutput response, PieceColor playerColor) {
+    public MoveOutput makeMove(GameState gameState, MoveOutput response) {
         Move move = response.getMove();
         Piece[][] board = gameState.getBoard();
         Piece pawn = board[move.getFromRow()][move.getFromCol()];
