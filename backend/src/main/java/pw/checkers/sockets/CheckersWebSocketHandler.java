@@ -167,7 +167,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 .findFirst();
         if (opponent.isPresent()) {
             Message<RematchRequest> message =
-                    new Message<>("rematch proposition", new RematchRequest(gameId));
+                    new Message<>("rematch request", new RematchRequest(gameId));
             sendMessage(opponent.get(), message);
         } else {
             Message<String> message =
