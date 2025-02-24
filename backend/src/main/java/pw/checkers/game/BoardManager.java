@@ -1,45 +1,29 @@
-package pw.checkers.service;
+package pw.checkers.game;
 
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
 import pw.checkers.data.enums.PieceColor;
 import pw.checkers.data.enums.PieceType;
-import pw.checkers.message.*;
+import pw.checkers.message.Move;
+import pw.checkers.message.MoveHelper;
+import pw.checkers.message.MoveOutput;
+import pw.checkers.message.PossibleMoves;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Math.abs;
 import static pw.checkers.utils.Constants.*;
+import static pw.checkers.utils.Constants.DIRECTIONS_KING;
 
-@Service
-public class GameServiceImpl implements GameService{
-    private final Map<String, GameState> games = new ConcurrentHashMap<>();
-
-    @Override
-    public GameState createGame() {
-        String newGameId = UUID.randomUUID().toString();
-        GameState gameState = new GameState();
-        gameState.setWhitePiecesLeft(AMOUNT_OF_PIECES);
-        gameState.setBlackPiecesLeft(AMOUNT_OF_PIECES);
-        gameState.setNoCapturesCounter(0);
-        gameState.setGameId(newGameId);
-        gameState.setNumberOfPositions(new HashMap<>());
-        initializeBoard(gameState);
-        gameState.setCurrentPlayer(PieceColor.WHITE);
-        gameState.setWinner(null);
-        gameState.setFinished(false);
-        games.put(newGameId, gameState);
-        return gameState;
-    }
-
-    @Override
-    public void deleteGame(String id) {
-        games.remove(id);
-    }
-
-    private void initializeBoard(GameState gameState) {
+@NoArgsConstructor
+@Getter
+@Setter
+public class BoardManager {
+    public void initializeBoard(GameState gameState){
         Piece[][] board = new Piece[BOARD_SIZE][BOARD_SIZE];
         for (int row = 0; row < 3; row++) {
             for (int col = (row + 1) % 2; col < BOARD_SIZE; col+=2) {
@@ -52,29 +36,6 @@ public class GameServiceImpl implements GameService{
             }
         }
         gameState.setBoard(board);
-    }
-
-    @Override
-    public GameState getGame(String gameId) {
-        return games.get(gameId);
-    }
-
-    private boolean validateMove(GameState gameState, Move move) {
-        Piece[][] board = gameState.getBoard();
-        Piece piece = board[move.getFromRow()][move.getFromCol()];
-        if (piece == null) return false;
-
-        if (!piece.getColor().equals(gameState.getCurrentPlayer())) {
-            return false;
-        }
-
-        if (gameState.getLastCaptureCol() != null && gameState.getLastCaptureRow() != null) {
-            if (move.getFromRow() != gameState.getLastCaptureRow() || move.getFromCol() != gameState.getLastCaptureCol()) {
-                return false;
-            }
-        }
-        PossibleMoves pm = getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
-        return pm.getMoves().contains(new MoveHelper(move.getToRow(), move.getToCol()));
     }
 
     private void doTake(GameState gameState, MoveOutput move) {
@@ -110,36 +71,51 @@ public class GameServiceImpl implements GameService{
         return false;
     }
 
-    private PieceColor mapStringToColor(String color) {
-        return switch (color) {
-            case "black" -> PieceColor.BLACK;
-            case "white" -> PieceColor.WHITE;
-            default -> null;
-        };
+    private boolean findTakes(PossibleMoves possibleMoves, Piece[][] board, int row, int col, boolean isKing) {
+        Piece pawn = board[row][col];
+        PieceColor color = pawn.getColor();
+
+        PieceColor opponentColor = (color == PieceColor.BLACK) ? PieceColor.WHITE : PieceColor.BLACK;
+        List<int[]> directions = (color == PieceColor.BLACK)
+                ? DIRECTIONS_PAWN_BLACK
+                : DIRECTIONS_PAWN_WHITE;
+        if (isKing) {
+            directions = DIRECTIONS_KING;
+        }
+
+        for (int[] direction : directions) {
+            int deltaRow = direction[0];
+            int deltaCol = direction[1];
+
+            int middleRow = row + deltaRow;
+            int middleCol = col + deltaCol;
+
+            int landingRow = row + 2 * deltaRow;
+            int landingCol = col + 2 * deltaCol;
+
+            if (landingRow < 0 || landingRow >= BOARD_SIZE
+                    || landingCol < 0 || landingCol >= BOARD_SIZE) {
+                continue;
+            }
+
+            if (board[middleRow][middleCol] != null
+                    && board[middleRow][middleCol].getColor() == opponentColor
+                    && board[landingRow][landingCol] == null) {
+                possibleMoves.getMoves().add(new MoveHelper(landingRow, landingCol));
+            }
+        }
+
+        return !possibleMoves.getMoves().isEmpty();
     }
 
-    @Override
-    public MoveOutput makeMove(String gameId, Move move, String currentTurn) {
-        PieceColor playerColor = mapStringToColor(currentTurn);
-        MoveOutput response = new MoveOutput();
-        response.setMove(move);
-        GameState gameState = getGame(gameId);
-        if (gameState == null || gameState.isFinished()){
-            return null;
-        }
-        if (!gameState.getCurrentPlayer().equals(playerColor)) {
-            return null;
-        }
-        boolean b = validateMove(gameState, move);
-        if (!b) {
-            return null;
-        }
+    public MoveOutput makeMove(GameState gameState, MoveOutput response) {
+        Move move = response.getMove();
         Piece[][] board = gameState.getBoard();
         Piece pawn = board[move.getFromRow()][move.getFromCol()];
-        promotePiece(pawn, move, gameState);
         board[move.getToRow()][move.getToCol()] = pawn;
         board[move.getFromRow()][move.getFromCol()] = null;
         gameState.setNoCapturesCounter(gameState.getNoCapturesCounter() + 1);
+        promotePiece(pawn, move, gameState);
         doTake(gameState, response);
         int posCounter = gameState.getNumberOfPositions().get(gameState.boardToString()) == null ? 0 : gameState.getNumberOfPositions().get(gameState.boardToString());
         gameState.getNumberOfPositions().put(gameState.boardToString(), posCounter + 1);
@@ -154,7 +130,6 @@ public class GameServiceImpl implements GameService{
             gameState.setLastCaptureCol(null);
             gameState.setLastCaptureRow(null);
         }
-
         if (hasSomebodyWon(gameState)) {
             setWinner(gameState);
         } else if (isDraw(gameState)) {
@@ -209,6 +184,7 @@ public class GameServiceImpl implements GameService{
         return gameState.getNoCapturesCounter() >= 50;
     }
 
+
     private boolean hasSomebodyWon(GameState gameState) {
         PieceColor currentPlayer = gameState.getCurrentPlayer();
         PieceColor otherPlayer = PieceColor.WHITE.equals(currentPlayer) ? PieceColor.BLACK : PieceColor.WHITE;
@@ -237,7 +213,6 @@ public class GameServiceImpl implements GameService{
         }
     }
 
-    @Override
     public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
         if (gameState.getLastCaptureCol() != null && gameState.getLastCaptureRow() != null) {
             if (row != gameState.getLastCaptureRow() || col != gameState.getLastCaptureCol()) {
@@ -320,42 +295,4 @@ public class GameServiceImpl implements GameService{
             }
         }
     }
-
-    private boolean findTakes(PossibleMoves possibleMoves, Piece[][] board, int row, int col, boolean isKing) {
-        Piece pawn = board[row][col];
-        PieceColor color = pawn.getColor();
-
-        PieceColor opponentColor = (color == PieceColor.BLACK) ? PieceColor.WHITE : PieceColor.BLACK;
-        List<int[]> directions = (color == PieceColor.BLACK)
-                ? DIRECTIONS_PAWN_BLACK
-                : DIRECTIONS_PAWN_WHITE;
-        if (isKing) {
-            directions = DIRECTIONS_KING;
-        }
-
-        for (int[] direction : directions) {
-            int deltaRow = direction[0];
-            int deltaCol = direction[1];
-
-            int middleRow = row + deltaRow;
-            int middleCol = col + deltaCol;
-
-            int landingRow = row + 2 * deltaRow;
-            int landingCol = col + 2 * deltaCol;
-
-            if (landingRow < 0 || landingRow >= BOARD_SIZE
-                    || landingCol < 0 || landingCol >= BOARD_SIZE) {
-                continue;
-            }
-
-            if (board[middleRow][middleCol] != null
-                    && board[middleRow][middleCol].getColor() == opponentColor
-                    && board[landingRow][landingCol] == null) {
-                possibleMoves.getMoves().add(new MoveHelper(landingRow, landingCol));
-            }
-        }
-
-        return !possibleMoves.getMoves().isEmpty();
-    }
-
 }

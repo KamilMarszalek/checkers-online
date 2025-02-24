@@ -1,4 +1,4 @@
-package pw.checkers.service;
+package pw.checkers.game;
 
 import pw.checkers.data.GameState;
 import pw.checkers.message.Move;
