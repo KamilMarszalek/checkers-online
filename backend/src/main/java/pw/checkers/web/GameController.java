@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pw.checkers.data.GameState;
-import pw.checkers.service.GameService;
+import pw.checkers.game.GameService;
 
 @RestController
 @RequestMapping("/game")

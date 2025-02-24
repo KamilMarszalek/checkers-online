@@ -10,7 +10,7 @@ import pw.checkers.data.Piece;
 import pw.checkers.data.enums.PieceColor;
 import pw.checkers.data.enums.PieceType;
 import pw.checkers.message.*;
-import pw.checkers.service.GameServiceImpl;
+import pw.checkers.game.GameServiceImpl;
 
 import java.util.Arrays;
 import java.util.UUID;

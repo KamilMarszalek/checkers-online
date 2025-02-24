@@ -9,7 +9,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pw.checkers.data.GameState;
 import pw.checkers.message.*;
-import pw.checkers.service.GameService;
+import pw.checkers.game.GameService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pw.checkers.utils.WaitingPlayer;
