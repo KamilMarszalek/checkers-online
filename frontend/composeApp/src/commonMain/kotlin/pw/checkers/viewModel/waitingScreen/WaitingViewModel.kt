@@ -9,7 +9,6 @@ import pw.checkers.data.messageType.MessageType
 import pw.checkers.data.response.GameInfo
 import pw.checkers.data.response.WaitingMessage
 import pw.checkers.viewModel.BaseViewModel
-import pw.checkers.viewModel.ScreenState
 
 class WaitingViewModel(
     message: Message,
