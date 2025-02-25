@@ -21,9 +21,6 @@ enum class MessageType {
     @SerialName("gameEnd")
     GAME_ENDING,
 
-    @SerialName("rematch proposition")
-    REMATCH_PROPOSITION,
-
     @SerialName("rejection")
     REJECTION,
 
