@@ -62,8 +62,7 @@ fun Checkers(navController: NavHostController = rememberNavController()) {
                 },
                 nextGame = { message, user ->
                     navController.popAndNavigate(Routes.WaitingScreen(message, user))
-                },
-                rematch = { println("Rematch") },
+                }
             )
         }
     }
