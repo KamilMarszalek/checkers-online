@@ -184,7 +184,7 @@ class GameViewModel(
     }
 
     fun declineRematch() {
-//        sendMessage(MessageType.DECLINE_REMATCH, gameId.toDataClass())
+        sendMessage(MessageType.DECLINE_REMATCH, gameId.toDataClass())
         updateState(GameScreenState.RematchRejected)
     }
 }
