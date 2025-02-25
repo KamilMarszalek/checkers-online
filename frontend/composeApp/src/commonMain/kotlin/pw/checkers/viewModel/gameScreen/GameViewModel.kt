@@ -127,8 +127,8 @@ class GameViewModel(
             MessageType.POSSIBILITIES -> handleMessageContent<Possibilities>(msg, ::processPossibilities)
             MessageType.GAME_ENDING -> handleMessageContent<GameEnd>(msg, ::processGameEnd)
             MessageType.WAITING, MessageType.GAME_CREATED -> processNextGameMessages(msg)
-            MessageType.REMATCH_PROPOSITION -> { TODO() }
-            MessageType.REJECTION -> { TODO() }
+            MessageType.REMATCH_REQUEST -> updateState(GameScreenState.RematchRequested)
+            MessageType.REJECTION -> updateState(GameScreenState.RematchRejected)
             else -> return
         }
     }
@@ -168,12 +168,23 @@ class GameViewModel(
         }
     }
 
+    fun getRematchRequestMessage() = "${opponent.username} requested a rematch"
+
     fun playNextGame() {
         sendMessage(MessageType.JOIN_QUEUE, JoinQueue(user))
     }
 
     fun requestRematch() {
-        sendMessage(MessageType.REMATCH_REQUEST, gameId)
+        sendMessage(MessageType.REMATCH_REQUEST, gameId.toDataClass())
         updateState(GameScreenState.RematchPending)
+    }
+
+    fun acceptRematch() {
+        sendMessage(MessageType.ACCEPT_REMATCH, gameId.toDataClass())
+    }
+
+    fun declineRematch() {
+//        sendMessage(MessageType.DECLINE_REMATCH, gameId.toDataClass())
+        updateState(GameScreenState.RematchRejected)
     }
 }
