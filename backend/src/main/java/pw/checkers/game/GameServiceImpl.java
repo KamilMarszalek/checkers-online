@@ -12,8 +12,15 @@ import static pw.checkers.utils.Constants.*;
 @Service
 public class GameServiceImpl implements GameService{
     private final Map<String, GameState> games = new ConcurrentHashMap<>();
-    private final BoardManager boardManager = new BoardManager();
-    private final MoveValidator moveValidator = new MoveValidator();
+    private final BoardManager boardManager;
+    private final GameRules gameRules;
+    private final MoveValidator moveValidator;
+
+    public GameServiceImpl(BoardManager boardManager, GameRules gameRules, MoveValidator moveValidator) {
+        this.boardManager = boardManager;
+        this.gameRules = gameRules;
+        this.moveValidator = moveValidator;
+    }
 
     @Override
     public GameState createGame() {
@@ -56,6 +63,6 @@ public class GameServiceImpl implements GameService{
 
     @Override
     public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
-        return  boardManager.getPossibleMoves(gameState, row, col);
+        return gameRules.getPossibleMoves(gameState, row, col);
     }
 }

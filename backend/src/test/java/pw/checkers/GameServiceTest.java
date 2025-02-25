@@ -5,12 +5,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
 import pw.checkers.data.enums.PieceColor;
 import pw.checkers.data.enums.PieceType;
+import pw.checkers.game.*;
 import pw.checkers.message.*;
-import pw.checkers.game.GameServiceImpl;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -18,6 +19,19 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GameServiceTest {
+
+    @Spy
+    private GameRules gameRules = new GameRules();
+
+    @Spy
+    private GameEndManager gameEndManager = new GameEndManager(gameRules);
+
+    @Spy
+    private BoardManager boardManager = new BoardManager(gameEndManager, gameRules);
+
+    @Spy
+    private MoveValidator moveValidator = new MoveValidator(boardManager, gameRules);
+
     @InjectMocks
     private GameServiceImpl gameService;
 
