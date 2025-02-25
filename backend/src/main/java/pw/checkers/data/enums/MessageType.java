@@ -12,6 +12,11 @@ public enum MessageType {
     ACCEPT_REMATCH("accept rematch"),
     DECLINE_REMATCH("decline rematch"),
     LEAVE("leave"),
+    REJECTION("rejection"),
+    ERROR("error"),
+    GAME_CREATED("Game created"),
+    WAITING("waiting"),
+    GAME_END("gameEnd"),
     UNKNOWN("unknown");
 
     private final String value;
