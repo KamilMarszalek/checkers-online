@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
+import static pw.checkers.data.enums.MessageType.*;
+
 public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(CheckersWebSocketHandler.class);
@@ -109,7 +111,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         if (handler != null) {
             handler.handle(session, rawMessage);
         } else {
-            Message<String> defaultMessage = new Message<>("error", "Unknown message type: " + rawMessage.getType());
+            Message<String> defaultMessage = new Message<>(ERROR.getValue(), "Unknown message type: " + rawMessage.getType());
             sendMessage(session, defaultMessage);
         }
     }
@@ -135,11 +137,11 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
         if (opponent.isPresent()) {
             Message<PromptMessage> message =
-                    new Message<>("rejection", new PromptMessage("Your opponent reject your rematch request"));
+                    new Message<>(REJECTION.getValue(), new PromptMessage("Your opponent reject your rematch request"));
             sendMessage(opponent.get(), message);
         } else {
             Message<PromptMessage> message =
-                    new Message<>("rejection", new PromptMessage("Opponent has already left the game"));
+                    new Message<>(REJECTION.getValue(), new PromptMessage("Opponent has already left the game"));
             sendMessage(session, message);
         }
 
@@ -158,7 +160,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         Set<WebSocketSession> sessions = sessionsByGame.get(gameId);
         if (sessions == null) {
             Message<PromptMessage> message =
-                    new Message<>("rejection", new PromptMessage("Opponent has already left the game"));
+                    new Message<>(REJECTION.getValue(), new PromptMessage("Opponent has already left the game"));
             sendMessage(session, message);
             return;
         }
@@ -178,11 +180,11 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
         if (opponent.isPresent()) {
             Message<GameIdMessage> message =
-                    new Message<>("rematch request", new GameIdMessage(gameId));
+                    new Message<>(REMATCH_REQUEST.getValue(), new GameIdMessage(gameId));
             sendMessage(opponent.get(), message);
         } else {
             Message<PromptMessage> message =
-                    new Message<>("rejection", new PromptMessage("Opponent has already left the game"));
+                    new Message<>(REJECTION.getValue(), new PromptMessage("Opponent has already left the game"));
             sendMessage(session, message);
         }
 
@@ -214,7 +216,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         String gameId = gameIdMessage.getGameId();
         Map<WebSocketSession, String> gamePlayers = colorAssignmentsByGame.get(gameId);
         if (gamePlayers == null) {
-            Message<PromptMessage> message = new Message<>("rejection", new PromptMessage("Opponent has already left the game"));
+            Message<PromptMessage> message = new Message<>(REJECTION.getValue(), new PromptMessage("Opponent has already left the game"));
             sendMessage(session, message);
             return;
         }
@@ -228,11 +230,11 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
         // white player will play black in rematch
         Message<JoinMessage> messageForOriginalWhite = new Message<>(
-                "Game created",
+                GAME_CREATED.getValue(),
                 new JoinMessage(newGameId, "black", usersBySessions.get(playersByColor.get("black")))
         );
         Message<JoinMessage> messageForOriginalBlack = new Message<>(
-                "Game created",
+                GAME_CREATED.getValue(),
                 new JoinMessage(newGameId, "white", usersBySessions.get(playersByColor.get("white")))
         );
         sendMessage(playersByColor.get("white"), "black", messageForOriginalWhite);
@@ -252,7 +254,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private void addPlayerToQueue(WebSocketSession session, User user) throws IOException {
         waitingQueue.add(new WaitingPlayer(session, user));
         Message<PromptMessage> waitingMessage =
-                new Message<>("waiting", new PromptMessage("Waiting for an opponent..."));
+                new Message<>(WAITING.getValue(), new PromptMessage("Waiting for an opponent..."));
         sendMessage(session, waitingMessage);
     }
 
@@ -265,11 +267,11 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         addToUserBySessions(waitingSession, waitingPlayer.user(), session, user);
 
         Message<JoinMessage> waitingPlayerResponse = new Message<>(
-                "Game created",
+                GAME_CREATED.getValue(),
                 new JoinMessage(newGameId, "white", new User(user.getUsername()))
         );
         Message<JoinMessage> sessionPlayerResponse = new Message<>(
-                "Game created",
+                GAME_CREATED.getValue(),
                 new JoinMessage(newGameId, "black", new User(waitingPlayer.user().getUsername()))
         );
 
@@ -300,7 +302,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         if (maybeColor.isEmpty()) return;
         String assignedColor = maybeColor.get();
         MoveOutput moveOutput = gameService.makeMove(gameId, moveInput.getMove(), assignedColor);
-        Message<MoveOutput> moveMessage = new Message<>("move", moveOutput);
+        Message<MoveOutput> moveMessage = new Message<>(MOVE.getValue(), moveOutput);
         GameState updatedState = gameService.getGame(gameId);
 
         broadcastToGame(gameId, moveMessage);
@@ -315,7 +317,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                     moveOutput.getMove().getToRow(),
                     moveOutput.getMove().getToCol()
             );
-            Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
+            Message<PossibleMoves> responseMessage = new Message<>(POSSIBILITIES.getValue(), moves);
             sendMessage(session, assignedColor, responseMessage);
         }
     }
@@ -331,7 +333,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 possibilitiesInput.getRow(),
                 possibilitiesInput.getCol()
         );
-        Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
+        Message<PossibleMoves> responseMessage = new Message<>(POSSIBILITIES.getValue(), moves);
         sendMessage(session, assignedColor, responseMessage);
     }
 
@@ -345,7 +347,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void sendError(WebSocketSession session, String error) throws IOException {
-        Message<String> errorMessage = new Message<>("error", error);
+        Message<String> errorMessage = new Message<>(ERROR.getValue(), error);
         sendMessage(session, errorMessage);
     }
 
@@ -378,9 +380,9 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 String wsColor = colorAssignmentsByGame.get(gameId).get(ws);
                 Message<GameEnd> gameEndMsg;
                 if (updatedState.getWinner() == null) {
-                    gameEndMsg = new Message<>("gameEnd", new GameEnd("draw"));
+                    gameEndMsg = new Message<>(GAME_END.getValue(), new GameEnd("draw"));
                 } else {
-                    gameEndMsg = new Message<>("gameEnd", new GameEnd(updatedState.getWinner().toString().toLowerCase()));
+                    gameEndMsg = new Message<>(GAME_END.getValue(), new GameEnd(updatedState.getWinner().toString().toLowerCase()));
                 }
                 sendMessage(ws, wsColor, gameEndMsg);
             }
