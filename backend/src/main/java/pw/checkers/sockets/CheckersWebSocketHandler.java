@@ -39,6 +39,10 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     public CheckersWebSocketHandler(GameService gameService) {
         this.gameService = gameService;
+        initializeHandlers();
+    }
+
+    private void initializeHandlers() {
         handlers.put(MessageType.JOIN_QUEUE, (session, rawMessage) -> {
             QueueMessage queueMsg = convertContent(rawMessage, QueueMessage.class);
             handleJoinQueue(session, queueMsg.getUser());
