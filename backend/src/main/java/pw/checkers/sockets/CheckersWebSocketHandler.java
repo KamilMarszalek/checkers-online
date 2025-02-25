@@ -28,6 +28,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(CheckersWebSocketHandler.class);
 
+    private final Map<MessageType, WebSocketMessageHandler> handlers = new ConcurrentHashMap<>();
     private final GameService gameService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, Set<WebSocketSession>> sessionsByGame = new ConcurrentHashMap<>();
@@ -38,6 +39,46 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     public CheckersWebSocketHandler(GameService gameService) {
         this.gameService = gameService;
+        handlers.put(MessageType.JOIN_QUEUE, (session, rawMessage) -> {
+            QueueMessage queueMsg = convertContent(rawMessage, QueueMessage.class);
+            handleJoinQueue(session, queueMsg.getUser());
+        });
+
+        handlers.put(MessageType.LEAVE_QUEUE, (session, rawMessage) -> {
+            QueueMessage queueMsg = convertContent(rawMessage, QueueMessage.class);
+            handleLeaveQueue(session, queueMsg.getUser());
+        });
+
+        handlers.put(MessageType.MOVE, (session, rawMessage) -> {
+            MoveInput moveInput = convertContent(rawMessage, MoveInput.class);
+            handleMove(session, moveInput);
+        });
+
+        handlers.put(MessageType.POSSIBILITIES, (session, rawMessage) -> {
+            PossibilitiesInput possibilitiesInput = convertContent(rawMessage, PossibilitiesInput.class);
+            handlePossibilities(session, possibilitiesInput);
+        });
+
+        handlers.put(MessageType.REMATCH_REQUEST, (session, rawMessage) -> {
+            GameIdMessage gameIdMessage = convertContent(rawMessage, GameIdMessage.class);
+            proposeRematch(session, gameIdMessage);
+        });
+
+        handlers.put(MessageType.ACCEPT_REMATCH, (session, rawMessage) -> {
+            GameIdMessage gameIdMessage = convertContent(rawMessage, GameIdMessage.class);
+            startRematch(session, gameIdMessage);
+        });
+
+        handlers.put(MessageType.DECLINE_REMATCH, (session, rawMessage) -> {
+            GameIdMessage gameIdMessage = convertContent(rawMessage, GameIdMessage.class);
+            sendRejection(session, gameIdMessage);
+            cleanGameHistory(session, gameIdMessage);
+        });
+
+        handlers.put(MessageType.LEAVE, (session, rawMessage) -> {
+            GameIdMessage gameIdMessage = convertContent(rawMessage, GameIdMessage.class);
+            cleanGameHistory(session, gameIdMessage);
+        });
     }
 
     private <T> T convertContent(Message<Map<String, Object>> rawMessage, Class<T> tClass){
@@ -59,45 +100,13 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         );
 
         MessageType type = MessageType.fromString(rawMessage.getType());
-        switch (type) {
-            case JOIN_QUEUE: {
-                handleJoinQueue(session, convertContent(rawMessage, QueueMessage.class).getUser());
-                break;
-            }
-            case LEAVE_QUEUE: {
-                handleLeaveQueue(session, convertContent(rawMessage, QueueMessage.class).getUser());
-                break;
-            }
-            case MOVE: {
-                handleMove(session, convertContent(rawMessage, MoveInput.class));
-                break;
-            }
-            case POSSIBILITIES: {
-                handlePossibilities(session, convertContent(rawMessage, PossibilitiesInput.class));
-                break;
-            }
-            case REMATCH_REQUEST: {
-                proposeRematch(session, convertContent(rawMessage, GameIdMessage.class));
-                break;
-            }
-            case ACCEPT_REMATCH: {
-                startRematch(session, convertContent(rawMessage, GameIdMessage.class));
-                break;
-            }
-            case DECLINE_REMATCH: {
-                GameIdMessage gameIdMessage = convertContent(rawMessage, GameIdMessage.class);
-                sendRejection(session, gameIdMessage);
-                cleanGameHistory(session, gameIdMessage);
-                break;
-            }
-            case LEAVE:
-                cleanGameHistory(session, convertContent(rawMessage, GameIdMessage.class));
-                break;
-            default: {
-                Message<String> defaultMessage = new Message<>("error", "Unknown message type: " + rawMessage.getType());
-                sendMessage(session, defaultMessage);
-                break;
-            }
+        WebSocketMessageHandler handler = handlers.get(type);
+
+        if (handler != null) {
+            handler.handle(session, rawMessage);
+        } else {
+            Message<String> defaultMessage = new Message<>("error", "Unknown message type: " + rawMessage.getType());
+            sendMessage(session, defaultMessage);
         }
     }
 
@@ -105,17 +114,21 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         waitingQueue.removeIf(waitingPlayer -> waitingPlayer.session().equals(session) && waitingPlayer.user().equals(user));
     }
 
-    private void sendRejection(WebSocketSession session, GameIdMessage gameIdMessage) throws IOException {
-        String gameId = gameIdMessage.getGameId();
+    private Optional<WebSocketSession> getOpponent(String gameId, WebSocketSession session) throws IOException {
         Set<WebSocketSession> sessions = sessionsByGame.get(gameId);
         if (sessions == null || sessions.isEmpty()) {
-            Message<String> message = new Message<>("error", "Opponent has already left the game");
-            sendMessage(session, message);
-            return;
+            return Optional.empty();
         }
-        Optional<WebSocketSession> opponent = sessions.stream()
+        return sessions.stream()
                 .filter(s -> !s.equals(session))
                 .findFirst();
+    }
+
+    private void sendRejection(WebSocketSession session, GameIdMessage gameIdMessage) throws IOException {
+        String gameId = gameIdMessage.getGameId();
+
+        Optional<WebSocketSession> opponent = getOpponent(gameId, session);
+
         if (opponent.isPresent()) {
             Message<PromptMessage> message =
                     new Message<>("rejection", new PromptMessage("Your opponent reject your rematch request"));
@@ -139,11 +152,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private void proposeRematch(WebSocketSession session, GameIdMessage gameIdMessage) throws IOException {
         String gameId = gameIdMessage.getGameId();
         Set<WebSocketSession> sessions = sessionsByGame.get(gameId);
-        if (sessions == null || sessions.isEmpty()) {
-            Message<String> message = new Message<>("error", "Opponent has already left the game");
-            sendMessage(session, message);
-            return;
-        }
+        Optional<WebSocketSession> opponent = getOpponent(gameId, session);
 
         rematchRequests.putIfAbsent(gameId, ConcurrentHashMap.newKeySet());
         Set<WebSocketSession> rematchSet = rematchRequests.get(gameId);
@@ -157,9 +166,6 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             }
         }
 
-        Optional<WebSocketSession> opponent = sessions.stream()
-                .filter(s -> !s.equals(session))
-                .findFirst();
         if (opponent.isPresent()) {
             Message<GameIdMessage> message =
                     new Message<>("rematch request", new GameIdMessage(gameId));
