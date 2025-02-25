@@ -15,21 +15,18 @@ import pw.checkers.data.response.MoveInfo
 import pw.checkers.data.response.Possibilities
 import pw.checkers.models.createInitialBoard
 import pw.checkers.viewModel.BaseViewModel
-import pw.checkers.viewModel.ScreenState
 
 class GameViewModel(
     gameInfo: GameInfo,
     val user: User,
     messageClient: RealtimeMessageClient
-) : BaseViewModel(messageClient) {
+) : BaseViewModel<GameScreenState>(messageClient) {
 
     private val color = gameInfo.color
     private val gameId = gameInfo.gameId
     private val opponent = gameInfo.opponent
 
-    override val _uiState = MutableStateFlow<ScreenState?>(GameScreenState.Game)
     val uiState = _uiState.asStateFlow()
-
 
     private val _board = MutableStateFlow(createInitialBoard())
     val board = _board.map { board ->
@@ -158,7 +155,7 @@ class GameViewModel(
     }
 
     private fun processNextGameMessages(message: Message) {
-        if (_uiState.value !is GameScreenState.GameEnded) return
+        if (_uiState.value == null) return
         updateState(GameScreenState.PlayNext(message))
     }
 

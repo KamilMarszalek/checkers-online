@@ -15,14 +15,14 @@ class WaitingViewModel(
     message: Message,
     private val user: User,
     messageClient: RealtimeMessageClient
-) : BaseViewModel(messageClient) {
+) : BaseViewModel<WaitingScreenState>(messageClient) {
+
+    override val _uiState = MutableStateFlow<WaitingScreenState?>(null)
+    val uiState = _uiState.asStateFlow()
 
     init {
-        println(message)
+        handleServerMessage(message)
     }
-
-    override val _uiState = MutableStateFlow<ScreenState?>(null)
-    val uiState = _uiState.asStateFlow()
 
     override fun handleServerMessage(msg: Message) {
         when (msg.type) {
