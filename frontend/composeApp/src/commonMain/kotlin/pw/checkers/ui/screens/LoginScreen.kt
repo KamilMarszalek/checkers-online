@@ -33,6 +33,8 @@ fun LoginScreen(loginViewModel: LoginViewModel, onPlayClick: (Message, User) -> 
             val state = uiState as LoginScreenState.Queued
             onPlayClick(state.message, state.userInfo)
         }
+
+        else -> {}
     }
 }
 
