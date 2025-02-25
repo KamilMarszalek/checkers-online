@@ -5,12 +5,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
 import pw.checkers.data.enums.PieceColor;
 import pw.checkers.data.enums.PieceType;
-import pw.checkers.messages.*;
-import pw.checkers.service.GameServiceImpl;
+import pw.checkers.game.*;
+import pw.checkers.message.*;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -18,6 +19,19 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GameServiceTest {
+
+    @Spy
+    private GameRules gameRules = new GameRules();
+
+    @Spy
+    private GameEndManager gameEndManager = new GameEndManager(gameRules);
+
+    @Spy
+    private BoardManager boardManager = new BoardManager(gameEndManager, gameRules);
+
+    @Spy
+    private MoveValidator moveValidator = new MoveValidator(boardManager, gameRules);
+
     @InjectMocks
     private GameServiceImpl gameService;
 
@@ -38,7 +52,7 @@ public class GameServiceTest {
         GameState gameState = gameService.createGame();
         assertNotNull(gameState);
         assertNotNull(gameState.getGameId());
-        assertEquals("white", gameState.getCurrentPlayer());
+        assertEquals(PieceColor.WHITE, gameState.getCurrentPlayer());
         assertFalse(gameState.isFinished());
         assertNull(gameState.getWinner());
         assertNotNull(gameState.getBoard());
@@ -73,6 +87,28 @@ public class GameServiceTest {
                 }
             }
         }
+    }
+
+    @Test
+    void deleteGame_ShouldDeleteExistingGame(){
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+
+        gameService.deleteGame(gameId);
+        GameState fetchedGame = gameService.getGame(gameId);
+
+        assertNull(fetchedGame);
+    }
+
+    @Test
+    void deleteGame_ShouldHandleNonExistingGame() {
+        GameState gameState = gameService.createGame();
+        String gameId = gameState.getGameId();
+
+        gameService.deleteGame("random");
+        GameState fetchedGame = gameService.getGame(gameId);
+        assertNull(gameService.getGame("random"));
+        assertNotNull(fetchedGame);
     }
 
     @Test
@@ -359,7 +395,7 @@ public class GameServiceTest {
         assertTrue(secondOutput.isCaptured());
 
         if (!secondOutput.isHasMoreTakes()) {
-            assertEquals("black", gameService.getGame(gameId).getCurrentPlayer());
+            assertEquals(PieceColor.BLACK, gameService.getGame(gameId).getCurrentPlayer());
         }
     }
 
@@ -386,7 +422,7 @@ public class GameServiceTest {
         assertTrue(result.isCaptured());
         assertFalse(result.isHasMoreTakes());
         assertTrue(gameState.isFinished());
-        assertEquals("white", gameState.getWinner());
+        assertEquals(PieceColor.WHITE, gameState.getWinner());
     }
 
     @Test

@@ -1,41 +1,32 @@
-package pw.checkers.viewModel
+package pw.checkers.viewModel.gameScreen
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import pw.checkers.client.RealtimeMessageClient
-import pw.checkers.data.Content
-import pw.checkers.data.domain.Cell
-import pw.checkers.data.domain.Move
-import pw.checkers.data.domain.PieceType
-import pw.checkers.data.domain.PlayerColor
+import pw.checkers.data.domain.*
 import pw.checkers.data.message.Message
 import pw.checkers.data.messageType.MessageType
 import pw.checkers.data.request.GetPossibilities
+import pw.checkers.data.request.JoinQueue
 import pw.checkers.data.request.MakeMove
-import pw.checkers.data.response.GameCreated
+import pw.checkers.data.response.GameInfo
 import pw.checkers.data.response.GameEnd
 import pw.checkers.data.response.MoveInfo
 import pw.checkers.data.response.Possibilities
 import pw.checkers.models.createInitialBoard
-import pw.checkers.util.handleMessageContent
+import pw.checkers.viewModel.BaseViewModel
 
-class GameViewModel(gameCreated: GameCreated, private val messageClient: RealtimeMessageClient) : ViewModel() {
+class GameViewModel(
+    gameInfo: GameInfo,
+    val user: User,
+    messageClient: RealtimeMessageClient
+) : BaseViewModel<GameScreenState>(messageClient) {
 
-    private val color = gameCreated.color
-    private val gameId = gameCreated.gameId
-    private val opponent = gameCreated.opponent
+    private val color = gameInfo.color
+    private val gameId = gameInfo.gameId
+    private val opponent = gameInfo.opponent
 
-    init {
-        viewModelScope.launch {
-            messageClient.getMessageStream().collect { message ->
-                handleMessage(message)
-            }
-        }
-    }
+    val uiState = _uiState.asStateFlow()
 
     private val _board = MutableStateFlow(createInitialBoard())
     val board = _board.map { board ->
@@ -65,7 +56,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
             return
         }
         selected = Cell(-1, -1)
-        _highlightedCells.value = emptyList()
+        _highlightedCells.update { emptyList() }
     }
 
     fun getPossibleMoves(row: Int, col: Int) {
@@ -78,13 +69,13 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     }
 
     fun makeMove(row: Int, col: Int) {
-        _highlightedCells.value = emptyList()
+        _highlightedCells.update { emptyList() }
         val move = Move(selected.row, selected.col, row, col)
         sendMessage(MessageType.MOVE, MakeMove(gameId, move))
     }
 
     private fun setHighlighted(cells: List<Cell>) {
-        _highlightedCells.value = cells
+        _highlightedCells.update { cells }
     }
 
     private fun movePiece(move: Move, captured: Cell? = null) {
@@ -113,8 +104,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
             newBoard[captured.row] = capturedRow.toList()
         }
 
-        _board.value = newBoard.toList()
-        println(move)
+        _board.update { newBoard.toList() }
     }
 
     private fun checkSkipClick(row: Int, col: Int): Boolean {
@@ -130,12 +120,15 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
         }
     }
 
-    private fun handleMessage(msg: Message) {
+    override fun handleServerMessage(msg: Message) {
         println("Received: $msg")
         when (msg.type) {
             MessageType.MOVE -> handleMessageContent<MoveInfo>(msg, ::processMoveInfoMessage)
             MessageType.POSSIBILITIES -> handleMessageContent<Possibilities>(msg, ::processPossibilities)
             MessageType.GAME_ENDING -> handleMessageContent<GameEnd>(msg, ::processGameEnd)
+            MessageType.WAITING, MessageType.GAME_CREATED -> processNextGameMessages(msg)
+            MessageType.REMATCH_REQUEST -> updateState(GameScreenState.RematchRequested)
+            MessageType.REJECTION -> updateState(GameScreenState.RematchRejected)
             else -> return
         }
     }
@@ -149,7 +142,7 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
             multiMove = false
         }
         movePiece(moveInfo.move, moveInfo.capturedPiece)
-        _currentPlayer.value = moveInfo.currentTurn
+        _currentPlayer.update { moveInfo.currentTurn }
         multiMove = moveInfo.hasMoreTakes
     }
 
@@ -158,19 +151,40 @@ class GameViewModel(gameCreated: GameCreated, private val messageClient: Realtim
     }
 
     private fun processGameEnd(gameEnd: GameEnd) {
-        // TODO: properly handle finished game
-        println(gameEnd)
+        updateState(GameScreenState.GameEnded(gameEnd.result))
     }
 
-    private inline fun <reified T : Content> sendMessage(type: MessageType, content: T) {
-        val message = Message(
-            type = type,
-            content = Json.encodeToJsonElement<T>(content)
-        )
+    private fun processNextGameMessages(message: Message) {
+        if (_uiState.value == null) return
+        updateState(GameScreenState.PlayNext(message))
+    }
 
-        viewModelScope.launch {
-            println("Sending: $message")
-            messageClient.sendMessage(message)
+    fun getEndGameText(): String {
+        val result = (_uiState.value as GameScreenState.GameEnded).result
+        return when {
+            result == color.toResult() -> "You won"
+            result != Result.DRAW -> "${opponent.username} won"
+            else -> "Draw"
         }
+    }
+
+    fun getRematchRequestMessage() = "${opponent.username} requested a rematch"
+
+    fun playNextGame() {
+        sendMessage(MessageType.JOIN_QUEUE, JoinQueue(user))
+    }
+
+    fun requestRematch() {
+        sendMessage(MessageType.REMATCH_REQUEST, gameId.toDataClass())
+        updateState(GameScreenState.RematchPending)
+    }
+
+    fun acceptRematch() {
+        sendMessage(MessageType.ACCEPT_REMATCH, gameId.toDataClass())
+    }
+
+    fun declineRematch() {
+        sendMessage(MessageType.DECLINE_REMATCH, gameId.toDataClass())
+        updateState(GameScreenState.RematchRejected)
     }
 }

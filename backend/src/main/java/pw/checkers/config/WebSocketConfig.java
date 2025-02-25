@@ -2,7 +2,7 @@ package pw.checkers.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
-import pw.checkers.service.GameService;
+import pw.checkers.game.GameService;
 import pw.checkers.sockets.CheckersWebSocketHandler;
 
 @Configuration

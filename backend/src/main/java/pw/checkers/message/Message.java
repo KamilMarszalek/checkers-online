@@ -1,4 +1,4 @@
-package pw.checkers.messages;
+package pw.checkers.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,8 +7,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class User {
-    private String username;
+@NoArgsConstructor
+public class Message<T> {
+    private String type;
+    private T content;
 }

@@ -1,4 +1,4 @@
-package pw.checkers.messages;
+package pw.checkers.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Message<T> {
-    private String type;
-    private T content;
+public class GameEnd {
+    private String result;
 }

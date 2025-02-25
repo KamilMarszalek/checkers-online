@@ -8,17 +8,20 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pw.checkers.data.GameState;
-import pw.checkers.messages.*;
-import pw.checkers.service.GameService;
+import pw.checkers.message.*;
+import pw.checkers.game.GameService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pw.checkers.utils.WaitingPlayer;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
@@ -27,8 +30,10 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     private final GameService gameService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, Set<WebSocketSession>> sessionsByGame = new ConcurrentHashMap<>();
-    private final Map<String, Map<String, String>> colorAssignmentsByGame = new ConcurrentHashMap<>();
-    private final Queue<Map<WebSocketSession, User>> waitingQueue = new ConcurrentLinkedQueue<>();
+    private final Map<String, Map<WebSocketSession, String>> colorAssignmentsByGame = new ConcurrentHashMap<>();
+    private final Map<WebSocketSession, User> usersBySessions = new ConcurrentHashMap<>();
+    private final Queue<WaitingPlayer> waitingQueue = new ConcurrentLinkedQueue<>();
+    private final Map<String, Set<WebSocketSession>> rematchRequests = new ConcurrentHashMap<>();
 
     public CheckersWebSocketHandler(GameService gameService) {
         this.gameService = gameService;
@@ -56,6 +61,13 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 handleJoinQueue(session, user);
                 break;
             }
+            case "leaveQueue": {
+                Map<String, Object> content = rawMessage.getContent();
+                Object userObj = content.get("user");
+                User user = objectMapper.convertValue(userObj, User.class);
+                handleLeaveQueue(session, user);
+                break;
+            }
             case "move": {
                 MoveInput moveInput = objectMapper.convertValue(rawMessage.getContent(), MoveInput.class);
                 handleMove(session, moveInput);
@@ -66,6 +78,26 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 handlePossibilities(session, possibilitiesInput);
                 break;
             }
+            case "rematch request": {
+                RematchRequest rematchRequest = objectMapper.convertValue(rawMessage.getContent(), RematchRequest.class);
+                proposeRematch(session, rematchRequest);
+                break;
+            }
+            case "accept rematch": {
+                RematchRequest rematchRequest = objectMapper.convertValue(rawMessage.getContent(), RematchRequest.class);
+                startRematch(session, rematchRequest);
+                break;
+            }
+            case "decline rematch": {
+                RematchRequest rematchRequest = objectMapper.convertValue(rawMessage.getContent(), RematchRequest.class);
+                sendRejection(session, rematchRequest);
+                cleanGameHistory(session, rematchRequest);
+                break;
+            }
+            case "leave":
+                RematchRequest rematchRequest = objectMapper.convertValue(rawMessage.getContent(), RematchRequest.class);
+                cleanGameHistory(session, rematchRequest);
+                break;
             default: {
                 Message<String> defaultMessage = new Message<>("error", "Unknown message type: " + rawMessage.getType());
                 sendMessage(session, defaultMessage);
@@ -74,19 +106,123 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    private void handleLeaveQueue(WebSocketSession session, User user) {
+        waitingQueue.removeIf(waitingPlayer -> waitingPlayer.session().equals(session) && waitingPlayer.user().equals(user));
+    }
+
+    private void sendRejection(WebSocketSession session, RematchRequest rematchRequest) throws IOException {
+        String gameId = rematchRequest.getGameId();
+        Set<WebSocketSession> sessions = sessionsByGame.get(gameId);
+        if (sessions == null || sessions.isEmpty()) {
+            Message<String> message = new Message<>("error", "Opponent has already left the game");
+            sendMessage(session, message);
+            return;
+        }
+        Optional<WebSocketSession> opponent = sessions.stream()
+                .filter(s -> !s.equals(session))
+                .findFirst();
+        if (opponent.isPresent()) {
+            Message<PromptMessage> message =
+                    new Message<>("rejection", new PromptMessage("Your opponent reject your rematch request"));
+            sendMessage(opponent.get(), message);
+        } else {
+            Message<String> message =
+                    new Message<>("error", "Opponent has already left the game");
+            sendMessage(session, message);
+        }
+
+    }
+
+    private void cleanGameHistory(WebSocketSession session, RematchRequest rematchRequest) {
+        String gameId = rematchRequest.getGameId();
+        colorAssignmentsByGame.remove(gameId);
+        usersBySessions.remove(session);
+        sessionsByGame.remove(gameId);
+        gameService.deleteGame(gameId);
+    }
+
+    private void proposeRematch(WebSocketSession session, RematchRequest rematchRequest) throws IOException {
+        String gameId = rematchRequest.getGameId();
+        Set<WebSocketSession> sessions = sessionsByGame.get(gameId);
+        if (sessions == null || sessions.isEmpty()) {
+            Message<String> message = new Message<>("error", "Opponent has already left the game");
+            sendMessage(session, message);
+            return;
+        }
+
+        rematchRequests.putIfAbsent(gameId, ConcurrentHashMap.newKeySet());
+        Set<WebSocketSession> rematchSet = rematchRequests.get(gameId);
+
+        synchronized (rematchSet) {
+            rematchSet.add(session);
+            if (rematchSet.size() == sessions.size()) {
+                startRematch(session, rematchRequest);
+                rematchRequests.remove(gameId);
+                return;
+            }
+        }
+
+        Optional<WebSocketSession> opponent = sessions.stream()
+                .filter(s -> !s.equals(session))
+                .findFirst();
+        if (opponent.isPresent()) {
+            Message<RematchRequest> message =
+                    new Message<>("rematch request", new RematchRequest(gameId));
+            sendMessage(opponent.get(), message);
+        } else {
+            Message<String> message =
+                    new Message<>("error", "Opponent has already left the game");
+            sendMessage(session, message);
+        }
+
+    }
+
+    private void startRematch(WebSocketSession session, RematchRequest rematchRequest) throws IOException {
+        String gameId = rematchRequest.getGameId();
+        Map<WebSocketSession, String> gamePlayers = colorAssignmentsByGame.get(gameId);
+        if (gamePlayers == null) {
+            Message<String> message = new Message<>("error", "Opponent has already left the game");
+            sendMessage(session, message);
+            return;
+        }
+        Map<String, WebSocketSession> playersByColor = gamePlayers.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+        colorAssignmentsByGame.remove(gameId);
+        sessionsByGame.remove(gameId);
+        GameState newGame = gameService.createGame();
+        String newGameId = newGame.getGameId();
+
+        sessionsByGame.putIfAbsent(newGameId, ConcurrentHashMap.newKeySet());
+        sessionsByGame.get(newGameId).add(playersByColor.get("white"));
+        sessionsByGame.get(newGameId).add(playersByColor.get("black"));
+
+        colorAssignmentsByGame.putIfAbsent(newGameId, new ConcurrentHashMap<>());
+        colorAssignmentsByGame.get(newGameId).put(playersByColor.get("white"), "black");
+        colorAssignmentsByGame.get(newGameId).put(playersByColor.get("black"), "white");
+
+        // white player will play black in rematch
+        Message<JoinMessage> messageForOriginalWhite = new Message<>(
+                "Game created",
+                new JoinMessage(newGameId, "black", usersBySessions.get(playersByColor.get("black")))
+        );
+        Message<JoinMessage> messageForOriginalBlack = new Message<>(
+                "Game created",
+                new JoinMessage(newGameId, "white", usersBySessions.get(playersByColor.get("white")))
+        );
+        sendMessage(playersByColor.get("white"), "black", messageForOriginalWhite);
+        sendMessage(playersByColor.get("black"), "white", messageForOriginalBlack);
+    }
+
     private void handleJoinQueue(WebSocketSession session, User user) throws IOException {
-        Map<WebSocketSession, User> waiting = waitingQueue.poll();
+        WaitingPlayer waitingPlayer = waitingQueue.poll();
 
-        if (waiting == null) {
-            Map<WebSocketSession, User> newWaiting = new ConcurrentHashMap<>();
-            newWaiting.put(session, user);
-            waitingQueue.add(newWaiting);
-
+        if (waitingPlayer == null) {
+            waitingQueue.add(new WaitingPlayer(session, user));
             Message<PromptMessage> waitingMessage =
                     new Message<>("waiting", new PromptMessage("Waiting for an opponent..."));
             sendMessage(session, waitingMessage);
         } else {
-            WebSocketSession waitingSession = waiting.keySet().iterator().next();
+            WebSocketSession waitingSession = waitingPlayer.session();
             GameState newGame = gameService.createGame();
             String newGameId = newGame.getGameId();
 
@@ -95,8 +231,11 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             sessionsByGame.get(newGameId).add(session);
 
             colorAssignmentsByGame.putIfAbsent(newGameId, new ConcurrentHashMap<>());
-            colorAssignmentsByGame.get(newGameId).put(waitingSession.getId(), "white");
-            colorAssignmentsByGame.get(newGameId).put(session.getId(), "black");
+            colorAssignmentsByGame.get(newGameId).put(waitingSession, "white");
+            colorAssignmentsByGame.get(newGameId).put(session, "black");
+
+            usersBySessions.put(waitingSession, waitingPlayer.user());
+            usersBySessions.put(session, user);
 
             Message<JoinMessage> waitingPlayerResponse = new Message<>(
                     "Game created",
@@ -104,7 +243,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             );
             Message<JoinMessage> sessionPlayerResponse = new Message<>(
                     "Game created",
-                    new JoinMessage(newGameId, "black", new User(waiting.get(waitingSession).getUsername()))
+                    new JoinMessage(newGameId, "black", new User(waitingPlayer.user().getUsername()))
             );
 
             sendMessage(waitingSession, "white", waitingPlayerResponse);
@@ -122,7 +261,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
             sendError(session, "Game with id " + gameId + " not found");
             return;
         }
-        String assignedColor = colorAssignmentsByGame.get(gameId).get(session.getId());
+        String assignedColor = colorAssignmentsByGame.get(gameId).get(session);
         if (assignedColor == null) {
             sendError(session, "You do not belong to this game or no color assigned");
             return;
@@ -166,16 +305,16 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
                 possibilitiesInput.getCol()
         );
         Message<PossibleMoves> responseMessage = new Message<>("possibilities", moves);
-        String wsColor = colorAssignmentsByGame.get(gameId).get(session.getId());
+        String wsColor = colorAssignmentsByGame.get(gameId).get(session);
         sendMessage(session, wsColor, responseMessage);
     }
 
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        waitingQueue.removeIf(waitingMap -> waitingMap.containsKey(session));
+        waitingQueue.removeIf(waitingPlayer -> waitingPlayer.session().equals(session));
         sessionsByGame.values().forEach(sessions -> sessions.remove(session));
-        colorAssignmentsByGame.values().forEach(assignment -> assignment.remove(session.getId()));
+        colorAssignmentsByGame.values().forEach(assignment -> assignment.remove(session));
         logger.debug("Connection closed: {}", session.getId());
     }
 
@@ -200,7 +339,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         Set<WebSocketSession> sessions = sessionsByGame.getOrDefault(gameId, Set.of());
         for (WebSocketSession ws : sessions) {
             if (ws.isOpen()) {
-                String wsColor = colorAssignmentsByGame.get(gameId).get(ws.getId());
+                String wsColor = colorAssignmentsByGame.get(gameId).get(ws);
                 sendMessage(ws, wsColor, message);
             }
         }
@@ -210,12 +349,12 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         Set<WebSocketSession> sessions = sessionsByGame.getOrDefault(gameId, Set.of());
         for (WebSocketSession ws : sessions) {
             if (ws.isOpen()) {
-                String wsColor = colorAssignmentsByGame.get(gameId).get(ws.getId());
+                String wsColor = colorAssignmentsByGame.get(gameId).get(ws);
                 Message<GameEnd> gameEndMsg;
                 if (updatedState.getWinner() == null) {
                     gameEndMsg = new Message<>("gameEnd", new GameEnd("draw"));
                 } else {
-                    gameEndMsg = new Message<>("gameEnd", new GameEnd(updatedState.getWinner()));
+                    gameEndMsg = new Message<>("gameEnd", new GameEnd(updatedState.getWinner().toString().toLowerCase()));
                 }
                 sendMessage(ws, wsColor, gameEndMsg);
             }
