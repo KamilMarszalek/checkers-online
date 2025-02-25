@@ -8,6 +8,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pw.checkers.data.GameState;
+import pw.checkers.data.enums.Color;
 import pw.checkers.data.enums.MessageType;
 import pw.checkers.message.*;
 import pw.checkers.game.GameService;
@@ -203,8 +204,8 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     private void addToColorAssignments (String newGameId, WebSocketSession white, WebSocketSession black) {
         colorAssignmentsByGame.putIfAbsent(newGameId, new ConcurrentHashMap<>());
-        colorAssignmentsByGame.get(newGameId).put(white, "black");
-        colorAssignmentsByGame.get(newGameId).put(black, "white");
+        colorAssignmentsByGame.get(newGameId).put(white, Color.WHITE.getValue());
+        colorAssignmentsByGame.get(newGameId).put(black, Color.BLACK.getValue());
     }
 
     private void addToUserBySessions(WebSocketSession session1, User user1, WebSocketSession session2, User user2) {
@@ -225,20 +226,20 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         cleanGameHistory(gameIdMessage);
         String newGameId = createGame();
 
-        addToSessionsByGame(newGameId, playersByColor.get("white"), playersByColor.get("black"));
-        addToColorAssignments(newGameId, playersByColor.get("black"), playersByColor.get("white"));
+        addToSessionsByGame(newGameId, playersByColor.get(Color.WHITE.getValue()), playersByColor.get(Color.BLACK.getValue()));
+        addToColorAssignments(newGameId, playersByColor.get(Color.BLACK.getValue()), playersByColor.get(Color.WHITE.getValue()));
 
         // white player will play black in rematch
         Message<JoinMessage> messageForOriginalWhite = new Message<>(
                 GAME_CREATED.getValue(),
-                new JoinMessage(newGameId, "black", usersBySessions.get(playersByColor.get("black")))
+                new JoinMessage(newGameId, Color.BLACK.getValue(), usersBySessions.get(playersByColor.get(Color.BLACK.getValue())))
         );
         Message<JoinMessage> messageForOriginalBlack = new Message<>(
                 GAME_CREATED.getValue(),
-                new JoinMessage(newGameId, "white", usersBySessions.get(playersByColor.get("white")))
+                new JoinMessage(newGameId, Color.WHITE.getValue(), usersBySessions.get(playersByColor.get(Color.WHITE.getValue())))
         );
-        sendMessage(playersByColor.get("white"), "black", messageForOriginalWhite);
-        sendMessage(playersByColor.get("black"), "white", messageForOriginalBlack);
+        sendMessage(playersByColor.get(Color.WHITE.getValue()), Color.BLACK.getValue(), messageForOriginalWhite);
+        sendMessage(playersByColor.get(Color.BLACK.getValue()), Color.WHITE.getValue(), messageForOriginalBlack);
     }
 
     private void handleJoinQueue(WebSocketSession session, User user) throws IOException {
@@ -268,15 +269,15 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
         Message<JoinMessage> waitingPlayerResponse = new Message<>(
                 GAME_CREATED.getValue(),
-                new JoinMessage(newGameId, "white", new User(user.getUsername()))
+                new JoinMessage(newGameId, Color.WHITE.getValue(), new User(user.getUsername()))
         );
         Message<JoinMessage> sessionPlayerResponse = new Message<>(
                 GAME_CREATED.getValue(),
-                new JoinMessage(newGameId, "black", new User(waitingPlayer.user().getUsername()))
+                new JoinMessage(newGameId, Color.BLACK.getValue(), new User(waitingPlayer.user().getUsername()))
         );
 
-        sendMessage(waitingSession, "white", waitingPlayerResponse);
-        sendMessage(session, "black", sessionPlayerResponse);
+        sendMessage(waitingSession, Color.WHITE.getValue(), waitingPlayerResponse);
+        sendMessage(session, Color.BLACK.getValue(), sessionPlayerResponse);
     }
 
     private Optional<String> getAssignedColor(String gameId, WebSocketSession session) throws IOException {

@@ -2,7 +2,7 @@ package pw.checkers.game;
 
 import org.springframework.stereotype.Service;
 import pw.checkers.data.GameState;
-import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.Color;
 
 @Service
 public class GameEndManager {
@@ -18,15 +18,15 @@ public class GameEndManager {
     }
 
     public void setWinner(GameState gameState) {
-        PieceColor currentPlayer = gameState.getCurrentPlayer();
-        PieceColor otherPlayer = PieceColor.WHITE.equals(currentPlayer) ? PieceColor.BLACK : PieceColor.WHITE;
+        Color currentPlayer = gameState.getCurrentPlayer();
+        Color otherPlayer = Color.WHITE.equals(currentPlayer) ? Color.BLACK : Color.WHITE;
 
         if (gameState.getWhitePiecesLeft() == 0) {
-            gameState.setWinner(PieceColor.BLACK);
+            gameState.setWinner(Color.BLACK);
             gameState.setFinished(true);
             return;
         } else if (gameState.getBlackPiecesLeft() == 0) {
-            gameState.setWinner(PieceColor.WHITE);
+            gameState.setWinner(Color.WHITE);
             gameState.setFinished(true);
             return;
         }

@@ -2,7 +2,7 @@ package pw.checkers.game;
 
 import org.springframework.stereotype.Service;
 import pw.checkers.data.GameState;
-import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.Color;
 import pw.checkers.message.*;
 
 import java.util.*;
@@ -32,7 +32,7 @@ public class GameServiceImpl implements GameService{
         gameState.setGameId(newGameId);
         gameState.setNumberOfPositions(new HashMap<>());
         boardManager.initializeBoard(gameState);
-        gameState.setCurrentPlayer(PieceColor.WHITE);
+        gameState.setCurrentPlayer(Color.WHITE);
         gameState.setWinner(null);
         gameState.setFinished(false);
         games.put(newGameId, gameState);
