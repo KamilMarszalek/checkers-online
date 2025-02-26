@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.Color;
 import pw.checkers.data.enums.PieceType;
 
 @Getter
@@ -14,7 +14,7 @@ import pw.checkers.data.enums.PieceType;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Piece implements Cloneable {
-    private PieceColor color;
+    private Color color;
     private PieceType type;
 
     @Override

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pw.checkers.data.enums.Color;
 
 import java.util.Map;
 
@@ -15,9 +16,9 @@ import java.util.Map;
 public class GameState {
     private String gameId;
     private Piece[][] board;
-    private String currentPlayer;
+    private Color currentPlayer;
     private boolean isFinished;
-    private String winner;
+    private Color winner;
     private int whitePiecesLeft;
     private int blackPiecesLeft;
     private int noCapturesCounter;
@@ -32,7 +33,7 @@ public class GameState {
                 if (piece == null) {
                     response.append(".");
                 } else {
-                    response.append(piece.toString());
+                    response.append(piece);
                 }
             }
         }
