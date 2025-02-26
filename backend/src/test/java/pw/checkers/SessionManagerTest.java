@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.HashSet;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,10 +61,6 @@ public class SessionManagerTest {
     @Test
     public void testGetOpponent_WhenOpponentExists() throws IOException {
         String gameId = "game123";
-        // Create a set with two sessions.
-        Set<WebSocketSession> sessions = new HashSet<>();
-        sessions.add(session1);
-        sessions.add(session2);
         // Assume sessions are stored in SessionManager's internal map.
         // We simulate this by adding via addToSessionsByGame.
         sessionManager.addToSessionsByGame(gameId, session1, session2);
