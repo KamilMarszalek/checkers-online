@@ -21,6 +21,11 @@ public class SessionManager {
     private final Map<String, Map<WebSocketSession, String>> colorAssignmentsByGame = new ConcurrentHashMap<>();
     private final Map<WebSocketSession, User> usersBySessions = new ConcurrentHashMap<>();
     private final Queue<WaitingPlayer> waitingQueue = new ConcurrentLinkedQueue<>();
+    private final MessageSender messageSender;
+
+    public SessionManager(MessageSender messageSender) {
+        this.messageSender = messageSender;
+    }
 
     public void removeWaitingPlayerFromQueue(WebSocketSession session, User user) {
         waitingQueue.removeIf(waitingPlayer -> waitingPlayer.session().equals(session) && waitingPlayer.user().equals(user));
@@ -99,5 +104,22 @@ public class SessionManager {
 
     public void removeUsersBySessionEntry(WebSocketSession session) {
         usersBySessions.remove(session);
+    }
+
+    public Optional<String> getAssignedColor(String gameId, WebSocketSession session) throws IOException {
+        if (gameId == null) {
+            messageSender.sendError(session, "No game id specified");
+            return Optional.empty();
+        }
+        if (isGameIdInvalid(gameId)) {
+            messageSender.sendError(session, "Game with id " + gameId + " not found");
+            return Optional.empty();
+        }
+        String assignedColor = getAssignedColorByGameIdAndSession(gameId, session);
+        if (assignedColor == null) {
+            messageSender.sendError(session, "You do not belong to this game or no color assigned");
+            return Optional.empty();
+        }
+        return Optional.of(assignedColor);
     }
 }
