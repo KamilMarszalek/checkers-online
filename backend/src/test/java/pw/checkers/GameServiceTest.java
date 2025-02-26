@@ -8,7 +8,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
-import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.Color;
 import pw.checkers.data.enums.PieceType;
 import pw.checkers.game.*;
 import pw.checkers.message.*;
@@ -52,7 +52,7 @@ public class GameServiceTest {
         GameState gameState = gameService.createGame();
         assertNotNull(gameState);
         assertNotNull(gameState.getGameId());
-        assertEquals(PieceColor.WHITE, gameState.getCurrentPlayer());
+        assertEquals(Color.WHITE, gameState.getCurrentPlayer());
         assertFalse(gameState.isFinished());
         assertNull(gameState.getWinner());
         assertNotNull(gameState.getBoard());
@@ -69,7 +69,7 @@ public class GameServiceTest {
                 if (row < 3) {
                     if ((row + col) % 2 == 1) {
                         assertNotNull(piece);
-                        assertEquals(PieceColor.BLACK, piece.getColor());
+                        assertEquals(Color.BLACK, piece.getColor());
                         assertEquals(PieceType.PAWN, piece.getType());
                     } else {
                         assertNull(piece);
@@ -77,7 +77,7 @@ public class GameServiceTest {
                 } else if (row > 4) {
                     if ((row + col) % 2 == 1) {
                         assertNotNull(piece);
-                        assertEquals(PieceColor.WHITE, piece.getColor());
+                        assertEquals(Color.WHITE, piece.getColor());
                         assertEquals(PieceType.PAWN, piece.getType());
                     } else {
                         assertNull(piece);
@@ -162,8 +162,8 @@ public class GameServiceTest {
         String gameId = gameState.getGameId();
         Piece[][] board = gameState.getBoard();
 
-        board[4][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-        board[5][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[4][3] = new Piece(Color.BLACK, PieceType.PAWN);
+        board[5][2] = new Piece(Color.WHITE, PieceType.PAWN);
 
         Move captureMove = new Move(5, 2, 3, 4);
         MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
@@ -193,9 +193,9 @@ public class GameServiceTest {
             }
         }
 
-        board[4][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-        board[2][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-        board[5][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[4][3] = new Piece(Color.BLACK, PieceType.PAWN);
+        board[2][3] = new Piece(Color.BLACK, PieceType.PAWN);
+        board[5][2] = new Piece(Color.WHITE, PieceType.PAWN);
 
         Move captureMove = new Move(5, 2, 3, 4);
         MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
@@ -221,7 +221,7 @@ public class GameServiceTest {
         Piece[][] board = gameState.getBoard();
         board[0][3] = null;
 
-        board[1][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[1][2] = new Piece(Color.WHITE, PieceType.PAWN);
         Move promotionMove = new Move(1, 2, 0, 3);
 
         gameService.makeMove(gameId, promotionMove, "white");
@@ -271,8 +271,8 @@ public class GameServiceTest {
         for (Piece[] pieces : board) {
             Arrays.fill(pieces, null);
         }
-        board[4][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-        board[5][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[4][3] = new Piece(Color.BLACK, PieceType.PAWN);
+        board[5][2] = new Piece(Color.WHITE, PieceType.PAWN);
 
 
         PossibleMoves pm = gameService.getPossibleMoves(gameState, 5, 2);
@@ -291,7 +291,7 @@ public class GameServiceTest {
         for (Piece[] pieces : board) {
             Arrays.fill(pieces, null);
         }
-        board[4][4] = new Piece(PieceColor.WHITE, PieceType.KING);
+        board[4][4] = new Piece(Color.WHITE, PieceType.KING);
 
         PossibleMoves pm = gameService.getPossibleMoves(gameState, 4, 4);
 
@@ -324,11 +324,11 @@ public class GameServiceTest {
             }
         }
 
-        board[5][0] = new Piece(PieceColor.WHITE, PieceType.PAWN);
-        board[3][4] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[5][0] = new Piece(Color.WHITE, PieceType.PAWN);
+        board[3][4] = new Piece(Color.WHITE, PieceType.PAWN);
 
-        board[4][1] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-        board[2][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+        board[4][1] = new Piece(Color.BLACK, PieceType.PAWN);
+        board[2][3] = new Piece(Color.BLACK, PieceType.PAWN);
 
         Move firstCapture = new Move(5, 0, 3, 2);
         MoveOutput firstOutput = gameService.makeMove(gameId, firstCapture,"white");
@@ -370,11 +370,11 @@ public class GameServiceTest {
             }
         }
 
-        Piece whiteKing = new Piece(PieceColor.WHITE, PieceType.KING);
+        Piece whiteKing = new Piece(Color.WHITE, PieceType.KING);
         board[4][4] = whiteKing;
 
-        board[5][3] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-        board[5][1] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+        board[5][3] = new Piece(Color.BLACK, PieceType.PAWN);
+        board[5][1] = new Piece(Color.BLACK, PieceType.PAWN);
 
         Move firstCapture = new Move(4, 4, 6, 2);
         MoveOutput firstOutput = gameService.makeMove(gameId, firstCapture, "white");
@@ -395,7 +395,7 @@ public class GameServiceTest {
         assertTrue(secondOutput.isCaptured());
 
         if (!secondOutput.isHasMoreTakes()) {
-            assertEquals(PieceColor.BLACK, gameService.getGame(gameId).getCurrentPlayer());
+            assertEquals(Color.BLACK, gameService.getGame(gameId).getCurrentPlayer());
         }
     }
 
@@ -409,8 +409,8 @@ public class GameServiceTest {
             Arrays.fill(pieces, null);
         }
 
-        board[3][2] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-        board[4][1] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[3][2] = new Piece(Color.BLACK, PieceType.PAWN);
+        board[4][1] = new Piece(Color.WHITE, PieceType.PAWN);
 
         gameState.setBlackPiecesLeft(1);
         gameState.setWhitePiecesLeft(1);
@@ -422,7 +422,7 @@ public class GameServiceTest {
         assertTrue(result.isCaptured());
         assertFalse(result.isHasMoreTakes());
         assertTrue(gameState.isFinished());
-        assertEquals(PieceColor.WHITE, gameState.getWinner());
+        assertEquals(Color.WHITE, gameState.getWinner());
     }
 
     @Test
@@ -434,11 +434,11 @@ public class GameServiceTest {
         for (Piece[] pieces : board) {
             Arrays.fill(pieces, null);
         }
-        board[0][0] = new Piece(PieceColor.WHITE, PieceType.PAWN);
-        board[0][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
-        board[7][5] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-        board[7][7] = new Piece(PieceColor.BLACK, PieceType.PAWN);
-        board[2][2] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+        board[0][0] = new Piece(Color.WHITE, PieceType.PAWN);
+        board[0][2] = new Piece(Color.WHITE, PieceType.PAWN);
+        board[7][5] = new Piece(Color.BLACK, PieceType.PAWN);
+        board[7][7] = new Piece(Color.BLACK, PieceType.PAWN);
+        board[2][2] = new Piece(Color.WHITE, PieceType.PAWN);
         gameService.makeMove(gameId, new Move(2,2,1,1), "white");
         boolean isDraw = (gameState.isFinished() && gameState.getWinner() == null);
         assertTrue(isDraw, "Game should be finished as a draw if no moves are possible for both sides.");
@@ -468,8 +468,8 @@ public class GameServiceTest {
             Arrays.fill(pieces, null);
         }
 
-        board[0][2] = new Piece(PieceColor.WHITE, PieceType.KING);
-        board[7][5] = new Piece(PieceColor.BLACK, PieceType.KING);
+        board[0][2] = new Piece(Color.WHITE, PieceType.KING);
+        board[7][5] = new Piece(Color.BLACK, PieceType.KING);
 
         gameService.makeMove(gameId, new Move(0, 2, 1, 3), "white");
         gameService.makeMove(gameId, new Move(7, 5, 6, 4), "black");

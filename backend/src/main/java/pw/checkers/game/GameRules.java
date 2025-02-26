@@ -3,7 +3,7 @@ package pw.checkers.game;
 import org.springframework.stereotype.Service;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
-import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.Color;
 import pw.checkers.data.enums.PieceType;
 import pw.checkers.message.Move;
 import pw.checkers.message.MoveHelper;
@@ -43,7 +43,7 @@ public class GameRules {
         if (piece == null) {
             return possibleMoves;
         }
-        PieceColor color = piece.getColor();
+        Color color = piece.getColor();
         boolean anyCaptureInColor = hasAnyCapture(gameState, color);
         if (anyCaptureInColor) {
             findTakes(possibleMoves, board, row, col, isKing);
@@ -53,7 +53,7 @@ public class GameRules {
         return possibleMoves;
     }
 
-    private boolean hasAnyCapture(GameState gameState, PieceColor color) {
+    private boolean hasAnyCapture(GameState gameState, Color color) {
         Piece[][] board = gameState.getBoard();
 
         for (int row = 0; row < BOARD_SIZE; row++) {
@@ -76,10 +76,10 @@ public class GameRules {
 
     private boolean findTakes(PossibleMoves possibleMoves, Piece[][] board, int row, int col, boolean isKing) {
         Piece pawn = board[row][col];
-        PieceColor color = pawn.getColor();
+        Color color = pawn.getColor();
 
-        PieceColor opponentColor = (color == PieceColor.BLACK) ? PieceColor.WHITE : PieceColor.BLACK;
-        List<int[]> directions = (color == PieceColor.BLACK)
+        Color opponentColor = (color == Color.BLACK) ? Color.WHITE : Color.BLACK;
+        List<int[]> directions = (color == Color.BLACK)
                 ? DIRECTIONS_PAWN_BLACK
                 : DIRECTIONS_PAWN_WHITE;
         if (isKing) {
@@ -113,8 +113,8 @@ public class GameRules {
 
     private void findOtherMoves(PossibleMoves possibleMoves, Piece[][] board, int row, int col, boolean isKing) {
         Piece pawn = board[row][col];
-        PieceColor color = pawn.getColor();
-        List<int[]> directions = (color == PieceColor.BLACK)
+        Color color = pawn.getColor();
+        List<int[]> directions = (color == Color.BLACK)
                 ? DIRECTIONS_PAWN_BLACK
                 : DIRECTIONS_PAWN_WHITE;
         if (isKing) {
@@ -147,15 +147,15 @@ public class GameRules {
     }
 
     public boolean hasSomebodyWon(GameState gameState) {
-        PieceColor currentPlayer = gameState.getCurrentPlayer();
-        PieceColor otherPlayer = PieceColor.WHITE.equals(currentPlayer) ? PieceColor.BLACK : PieceColor.WHITE;
+        Color currentPlayer = gameState.getCurrentPlayer();
+        Color otherPlayer = Color.WHITE.equals(currentPlayer) ? Color.BLACK : Color.WHITE;
 
         return gameState.getBlackPiecesLeft() == 0
                 || gameState.getWhitePiecesLeft() == 0
-                || (!playerHasMoves(gameState, otherPlayer) && playerHasMoves(gameState, currentPlayer));
+                || (playerHasMoves(gameState, otherPlayer) && !playerHasMoves(gameState, currentPlayer));
     }
 
-    public boolean playerHasMoves(GameState gameState, PieceColor player) {
+    public boolean playerHasMoves(GameState gameState, Color player) {
         for (int row = 0; row < BOARD_SIZE; row++) {
             for (int column = (row + 1) % 2; column < BOARD_SIZE; column+=2) {
                 if (gameState.getBoard()[row][column] != null) {
@@ -180,8 +180,8 @@ public class GameRules {
     }
 
     public boolean isDraw(GameState gameState) {
-        PieceColor currentPlayer = gameState.getCurrentPlayer();
-        PieceColor otherPlayer = currentPlayer.equals(PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE;
+        Color currentPlayer = gameState.getCurrentPlayer();
+        Color otherPlayer = currentPlayer.equals(Color.WHITE) ? Color.BLACK : Color.WHITE;
 
         return (!playerHasMoves(gameState, currentPlayer) && !playerHasMoves(gameState, otherPlayer))
                 || isFiftyMoveViolation(gameState)

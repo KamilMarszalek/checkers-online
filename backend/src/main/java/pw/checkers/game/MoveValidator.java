@@ -5,7 +5,7 @@ import lombok.Setter;
 import org.springframework.stereotype.Service;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
-import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.Color;
 import pw.checkers.message.Move;
 import pw.checkers.message.MoveHelper;
 import pw.checkers.message.PossibleMoves;
@@ -57,7 +57,7 @@ public class MoveValidator {
         return false;
     }
 
-    private boolean isPieceWrongColor(Piece piece, PieceColor currentPlayer) {
+    private boolean isPieceWrongColor(Piece piece, Color currentPlayer) {
         return !piece.getColor().equals(currentPlayer);
     }
 

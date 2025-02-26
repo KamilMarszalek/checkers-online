@@ -7,8 +7,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class RematchRequest {
-    private String gameId;
+@AllArgsConstructor
+public class QueueMessage {
+    private User user;
 }

@@ -3,7 +3,7 @@ package pw.checkers.game;
 import org.springframework.stereotype.Service;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
-import pw.checkers.data.enums.PieceColor;
+import pw.checkers.data.enums.Color;
 import pw.checkers.data.enums.PieceType;
 import pw.checkers.message.Move;
 import pw.checkers.message.MoveHelper;
@@ -26,12 +26,12 @@ public class BoardManager {
         Piece[][] board = new Piece[BOARD_SIZE][BOARD_SIZE];
         for (int row = 0; row < 3; row++) {
             for (int col = (row + 1) % 2; col < BOARD_SIZE; col+=2) {
-                board[row][col] = new Piece(PieceColor.BLACK, PieceType.PAWN);
+                board[row][col] = new Piece(Color.BLACK, PieceType.PAWN);
             }
         }
         for (int row = 5; row < BOARD_SIZE; row++) {
             for (int col = (row + 1) % 2; col < BOARD_SIZE; col+=2) {
-                board[row][col] = new Piece(PieceColor.WHITE, PieceType.PAWN);
+                board[row][col] = new Piece(Color.WHITE, PieceType.PAWN);
             }
         }
         gameState.setBoard(board);
@@ -44,9 +44,9 @@ public class BoardManager {
             int opponentRow = (move.getToRow() +move.getFromRow()) / 2;
             int opponentCol = (move.getToCol() + move.getFromCol()) / 2;
             Piece capturedPiece = board[opponentRow][opponentCol];
-            if (capturedPiece.getColor().equals(PieceColor.BLACK)) {
+            if (capturedPiece.getColor().equals(Color.BLACK)) {
                 gameState.setBlackPiecesLeft(gameState.getBlackPiecesLeft() - 1);
-            } else if (capturedPiece.getColor().equals(PieceColor.WHITE)) {
+            } else if (capturedPiece.getColor().equals(Color.WHITE)) {
                 gameState.setWhitePiecesLeft(gameState.getWhitePiecesLeft() - 1);
             }
             board[opponentRow][opponentCol] = null;
@@ -61,7 +61,7 @@ public class BoardManager {
     }
 
     private void promotePiece(Piece pawn, Move move, GameState gameState) {
-        if ((gameState.getCurrentPlayer().equals(PieceColor.WHITE) && move.getToRow() == 0) || (gameState.getCurrentPlayer().equals(PieceColor.BLACK) && move.getToRow() == 7)) {
+        if ((gameState.getCurrentPlayer().equals(Color.WHITE) && move.getToRow() == 0) || (gameState.getCurrentPlayer().equals(Color.BLACK) && move.getToRow() == 7)) {
             pawn.setType(PieceType.KING);
         }
     }
@@ -95,14 +95,14 @@ public class BoardManager {
             gameEndManager.setDraw(gameState);
         }
 
-        if (gameState.getCurrentPlayer().equals(PieceColor.WHITE)) {
-            gameState.setCurrentPlayer(PieceColor.BLACK);
-            response.setCurrentTurn("black");
-            response.setPreviousTurn("white");
+        if (gameState.getCurrentPlayer().equals(Color.WHITE)) {
+            gameState.setCurrentPlayer(Color.BLACK);
+            response.setCurrentTurn(Color.BLACK.getValue());
+            response.setPreviousTurn(Color.WHITE.getValue());
         } else {
-            gameState.setCurrentPlayer(PieceColor.WHITE);
-            response.setCurrentTurn("white");
-            response.setPreviousTurn("black");
+            gameState.setCurrentPlayer(Color.WHITE);
+            response.setCurrentTurn(Color.WHITE.getValue());
+            response.setPreviousTurn(Color.BLACK.getValue());
         }
         return response;
     }
