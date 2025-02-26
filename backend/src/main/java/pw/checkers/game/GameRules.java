@@ -152,7 +152,7 @@ public class GameRules {
 
         return gameState.getBlackPiecesLeft() == 0
                 || gameState.getWhitePiecesLeft() == 0
-                || (!playerHasMoves(gameState, otherPlayer) && playerHasMoves(gameState, currentPlayer));
+                || (playerHasMoves(gameState, otherPlayer) && !playerHasMoves(gameState, currentPlayer));
     }
 
     public boolean playerHasMoves(GameState gameState, Color player) {
