@@ -2,6 +2,7 @@ package pw.checkers.viewModel.gameScreen
 
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import pw.checkers.client.RealtimeMessageClient
 import pw.checkers.data.domain.*
 import pw.checkers.data.message.Message
@@ -9,24 +10,25 @@ import pw.checkers.data.messageType.MessageType
 import pw.checkers.data.request.GetPossibilities
 import pw.checkers.data.request.JoinQueue
 import pw.checkers.data.request.MakeMove
-import pw.checkers.data.response.GameInfo
 import pw.checkers.data.response.GameEnd
+import pw.checkers.data.response.GameInfo
 import pw.checkers.data.response.MoveInfo
 import pw.checkers.data.response.Possibilities
 import pw.checkers.models.createInitialBoard
 import pw.checkers.viewModel.BaseViewModel
 
 class GameViewModel(
-    gameInfo: GameInfo,
-    val user: User,
-    messageClient: RealtimeMessageClient
-) : BaseViewModel<GameScreenState>(messageClient) {
+    gameInfo: GameInfo, val user: User, messageClient: RealtimeMessageClient
+) : BaseViewModel(messageClient) {
 
     private val color = gameInfo.color
     private val gameId = gameInfo.gameId
     private val opponent = gameInfo.opponent
+    private var selected = Cell(-1, -1)
+    private var multiMove: Boolean = false
 
-    val uiState = _uiState.asStateFlow()
+    private val _state = MutableStateFlow(GameState())
+    val state = _state.asStateFlow()
 
     private val _board = MutableStateFlow(createInitialBoard())
     val board = _board.map { board ->
@@ -41,25 +43,20 @@ class GameViewModel(
         initialValue = if (color == PlayerColor.BLACK) _board.value.asReversed() else _board.value
     )
 
-    private val _highlightedCells = MutableStateFlow<List<Cell>>(emptyList())
-    val highlightedCells = _highlightedCells.asStateFlow()
+    private val _events = MutableSharedFlow<GameEvent>()
+    val events = _events.asSharedFlow()
 
-    private val _currentPlayer = MutableStateFlow(PlayerColor.WHITE)
-    val currentPlayer = _currentPlayer.asStateFlow()
-
-    private var selected = Cell(-1, -1)
-    private var multiMove: Boolean = false
 
     @Suppress("UNUSED_PARAMETER")
-    fun unselectPiece(row: Int, col: Int) {
+    private fun unselectPiece(row: Int, col: Int) {
         if (multiMove) {
             return
         }
         selected = Cell(-1, -1)
-        _highlightedCells.update { emptyList() }
+        _state.update { it.copy(highlightedCells = emptyList()) }
     }
 
-    fun getPossibleMoves(row: Int, col: Int) {
+    private fun getPossibleMoves(row: Int, col: Int) {
         if (checkSkipClick(row, col)) {
             return
         }
@@ -68,14 +65,14 @@ class GameViewModel(
         sendMessage(MessageType.POSSIBILITIES, GetPossibilities(gameId, row, col))
     }
 
-    fun makeMove(row: Int, col: Int) {
-        _highlightedCells.update { emptyList() }
+    private fun makeMove(row: Int, col: Int) {
+        _state.update { it.copy(highlightedCells = emptyList()) }
         val move = Move(selected.row, selected.col, row, col)
         sendMessage(MessageType.MOVE, MakeMove(gameId, move))
     }
 
     private fun setHighlighted(cells: List<Cell>) {
-        _highlightedCells.update { cells }
+        _state.update { it.copy(highlightedCells = cells) }
     }
 
     private fun movePiece(move: Move, captured: Cell? = null) {
@@ -108,7 +105,7 @@ class GameViewModel(
     }
 
     private fun checkSkipClick(row: Int, col: Int): Boolean {
-        return ((row == selected.row && col == selected.col) || _board.value[row][col].piece!!.color != color || _currentPlayer.value != color || multiMove)
+        return ((row == selected.row && col == selected.col) || _board.value[row][col].piece!!.color != color || _state.value.currentPlayer != color || multiMove)
     }
 
     private fun checkIfUpgrade(pieceCell: Cell): Boolean {
@@ -123,12 +120,12 @@ class GameViewModel(
     override fun handleServerMessage(msg: Message) {
         println("Received: $msg")
         when (msg.type) {
-            MessageType.MOVE -> handleMessageContent<MoveInfo>(msg, ::processMoveInfoMessage)
-            MessageType.POSSIBILITIES -> handleMessageContent<Possibilities>(msg, ::processPossibilities)
-            MessageType.GAME_ENDING -> handleMessageContent<GameEnd>(msg, ::processGameEnd)
+            MessageType.MOVE -> handleMessageContent(msg, ::processMoveInfoMessage)
+            MessageType.POSSIBILITIES -> handleMessageContent(msg, ::processPossibilities)
+            MessageType.GAME_ENDING -> handleMessageContent(msg, ::processGameEnd)
             MessageType.WAITING, MessageType.GAME_CREATED -> processNextGameMessages(msg)
-            MessageType.REMATCH_REQUEST -> updateState(GameScreenState.RematchRequested)
-            MessageType.REJECTION -> updateState(GameScreenState.RematchRejected)
+            MessageType.REMATCH_REQUEST -> processRematchRequest()
+            MessageType.REJECTION -> processRematchRejection()
             else -> return
         }
     }
@@ -142,7 +139,7 @@ class GameViewModel(
             multiMove = false
         }
         movePiece(moveInfo.move, moveInfo.capturedPiece)
-        _currentPlayer.update { moveInfo.currentTurn }
+        _state.update { it.copy(currentPlayer = moveInfo.currentTurn) }
         multiMove = moveInfo.hasMoreTakes
     }
 
@@ -151,16 +148,20 @@ class GameViewModel(
     }
 
     private fun processGameEnd(gameEnd: GameEnd) {
-        updateState(GameScreenState.GameEnded(gameEnd.result))
+        _state.update {
+            it.copy(gameEnded = true, result = gameEnd.result)
+        }
     }
 
     private fun processNextGameMessages(message: Message) {
-        if (_uiState.value == null) return
-        updateState(GameScreenState.PlayNext(message))
+        if (!_state.value.gameEnded) return
+        viewModelScope.launch {
+            _events.emit(GameEvent.NextGame(message))
+        }
     }
 
     fun getEndGameText(): String {
-        val result = (_uiState.value as GameScreenState.GameEnded).result
+        val result = _state.value.result
         return when {
             result == color.toResult() -> "You won"
             result != Result.DRAW -> "${opponent.username} won"
@@ -170,21 +171,70 @@ class GameViewModel(
 
     fun getRematchRequestMessage() = "${opponent.username} requested a rematch"
 
-    fun playNextGame() {
+    private fun playNextGame() {
         sendMessage(MessageType.JOIN_QUEUE, JoinQueue(user))
     }
 
-    fun requestRematch() {
-        sendMessage(MessageType.REMATCH_REQUEST, gameId.toDataClass())
-        updateState(GameScreenState.RematchPending)
-    }
-
-    fun acceptRematch() {
+    private fun acceptRematch() {
         sendMessage(MessageType.ACCEPT_REMATCH, gameId.toDataClass())
     }
 
-    fun declineRematch() {
+    private fun requestRematch() {
+        sendMessage(MessageType.REMATCH_REQUEST, gameId.toDataClass())
+        _state.update {
+            it.copy(
+                rematchPending = true,
+                rematchRequested = false,
+                rematchRequestRejected = false,
+                rematchPropositionRejected = false,
+            )
+        }
+    }
+
+    private fun declineRematch() {
         sendMessage(MessageType.DECLINE_REMATCH, gameId.toDataClass())
-        updateState(GameScreenState.RematchRejected)
+        _state.update {
+            it.copy(
+                rematchPending = false,
+                rematchRequested = false,
+                rematchRequestRejected = true,
+                rematchPropositionRejected = false,
+            )
+        }
+    }
+
+    private fun processRematchRequest() {
+        _state.update {
+            it.copy(
+                rematchPending = false,
+                rematchRequested = true,
+                rematchRequestRejected = false,
+                rematchPropositionRejected = false,
+            )
+        }
+    }
+
+    private fun processRematchRejection() {
+        _state.update {
+            it.copy(
+                rematchPending = false,
+                rematchRequested = false,
+                rematchRequestRejected = false,
+                rematchPropositionRejected = true,
+            )
+        }
+    }
+
+    fun onAction(action: GameAction) {
+        when (action) {
+            is GameAction.GetPossibleMoves -> getPossibleMoves(action.row, action.col)
+            is GameAction.MakeMove -> makeMove(action.row, action.col)
+            is GameAction.UnselectPiece -> unselectPiece(action.row, action.col)
+            GameAction.AcceptRematch -> acceptRematch()
+            GameAction.DeclineRematch -> declineRematch()
+            GameAction.PlayNext -> playNextGame()
+            GameAction.RequestRematch -> requestRematch()
+            GameAction.MainMenu -> {}
+        }
     }
 }

@@ -8,8 +8,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,28 +21,30 @@ import pw.checkers.ui.icons.pawns.BlackQueen
 import pw.checkers.ui.icons.pawns.WhitePawn
 import pw.checkers.ui.icons.pawns.WhiteQueen
 import pw.checkers.data.domain.PlayerColor
-import pw.checkers.viewModel.gameScreen.GameViewModel
+import pw.checkers.models.Board
+import pw.checkers.viewModel.gameScreen.GameAction
+import pw.checkers.viewModel.gameScreen.GameState
 
 @Composable
 fun Board(
-    viewModel: GameViewModel,
+    board: Board,
+    uiState: GameState,
     cellSize: Dp,
+    onAction: (GameAction) -> Unit,
 ) {
-    val board by viewModel.board.collectAsState()
-    val highlightedCells by viewModel.highlightedCells.collectAsState()
 
     Column {
         board.forEach { row ->
             Row {
                 row.forEach { cell ->
-                    val isHighlighted = highlightedCells.contains(cell)
+                    val isHighlighted = uiState.highlightedCells.contains(cell)
                     Cell(
                         cell,
                         cellSize,
                         isHighlighted,
-                        viewModel::getPossibleMoves,
-                        viewModel::makeMove,
-                        viewModel::unselectPiece
+                        onPieceClick = { row, col -> onAction(GameAction.GetPossibleMoves(row, col)) },
+                        onHighlightedClick = { row, col -> onAction(GameAction.MakeMove(row, col)) },
+                        onEmptyClick = { row, col -> onAction(GameAction.UnselectPiece(row, col)) },
                     )
                 }
             }

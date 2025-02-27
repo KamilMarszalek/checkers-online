@@ -10,7 +10,7 @@ import kotlinx.coroutines.delay
 import pw.checkers.data.domain.User
 import pw.checkers.data.response.GameInfo
 import pw.checkers.ui.util.messageCollectionDisposableEffect
-import pw.checkers.viewModel.waitingScreen.WaitingScreenState
+import pw.checkers.viewModel.waitingScreen.WaitingScreenEvent
 import pw.checkers.viewModel.waitingScreen.WaitingViewModel
 
 @Composable
@@ -18,27 +18,28 @@ fun WaitingScreen(
     waitingViewModel: WaitingViewModel,
     onGameCreated: (GameInfo, User) -> Unit,
 ) {
-    val uiState by waitingViewModel.uiState.collectAsState()
+    val state by waitingViewModel.state.collectAsState()
 
     messageCollectionDisposableEffect(waitingViewModel)
 
+    LaunchedEffect(Unit) {
+        waitingViewModel.events.collect { event ->
+            when (event) {
+                is WaitingScreenEvent.GameCreated -> onGameCreated(event.gameInfo, waitingViewModel.user)
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
-        when (uiState) {
-            is WaitingScreenState.Waiting -> {
-                val message = (uiState as WaitingScreenState.Waiting).message
-                AnimatedWaitingText(message, 3)
-            }
-            is WaitingScreenState.GameCreated -> {
-                val state = (uiState as WaitingScreenState.GameCreated)
-                onGameCreated(state.gameInfo, state.user)
-            }
-            else -> {}
+        when {
+            state.waiting -> AnimatedWaitingText(state.message)
+            else -> AnimatedWaitingText(state.message, maxDotCount = 0)
         }
     }
 }
 
 @Composable
-private fun AnimatedWaitingText(message: String, maxDotCount: Int) {
+private fun AnimatedWaitingText(message: String? = null, maxDotCount: Int = 3) {
     var dotCount by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
@@ -47,5 +48,5 @@ private fun AnimatedWaitingText(message: String, maxDotCount: Int) {
             dotCount = (dotCount + 1) % (maxDotCount + 1)
         }
     }
-    Text(text = message + ".".repeat(dotCount))
+    message?.let { Text(text = it + ".".repeat(dotCount)) }
 }

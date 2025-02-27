@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -13,14 +13,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pw.checkers.data.domain.User
 import pw.checkers.data.message.Message
+import pw.checkers.models.Board
 import pw.checkers.ui.Board
 import pw.checkers.ui.util.messageCollectionDisposableEffect
 import pw.checkers.ui.windowSize.WindowSize
 import pw.checkers.ui.windowSize.rememberWindowSize
 import pw.checkers.util.calcCellSize
-import pw.checkers.viewModel.gameScreen.GameScreenState
+import pw.checkers.viewModel.gameScreen.GameEvent
+import pw.checkers.viewModel.gameScreen.GameAction
+import pw.checkers.viewModel.gameScreen.GameState
 import pw.checkers.viewModel.gameScreen.GameViewModel
 
 // TODO: make popups responsive, stack buttons in column when screen to narrow
@@ -33,55 +37,40 @@ fun GameScreen(
 ) {
     messageCollectionDisposableEffect(gameViewModel)
 
-    val windowSize = rememberWindowSize()
-    val uiState by gameViewModel.uiState.collectAsState()
-
-    Game(gameViewModel, windowSize)
-
-    when (uiState) {
-        is GameScreenState.GameEnded -> {
-            GameEndPopup(
-                message = gameViewModel.getEndGameText(),
-                onMainMenuClick,
-                gameViewModel::playNextGame,
-                gameViewModel::requestRematch
-            )
+    LaunchedEffect(Unit) {
+        gameViewModel.events.collect { event ->
+            when (event) {
+                is GameEvent.NextGame -> nextGame(event.message, gameViewModel.user)
+            }
         }
-
-        is GameScreenState.PlayNext -> {
-            val state = uiState as GameScreenState.PlayNext
-            nextGame(state.message, gameViewModel.user)
-        }
-
-        is GameScreenState.RematchPending -> RematchPendingPopup()
-
-        is GameScreenState.RematchRequested -> {
-            RematchRequestPopup(
-                message = gameViewModel.getRematchRequestMessage(),
-                gameViewModel::acceptRematch,
-                gameViewModel::declineRematch
-            )
-        }
-
-        is GameScreenState.RematchRejected -> {
-            GameEndPopupNoRematch(
-                message = "Game over",
-                onMainMenuClick,
-                gameViewModel::playNextGame,
-            )
-        }
-
-        else -> {}
     }
+
+    val windowSize = rememberWindowSize()
+    val board by gameViewModel.board.collectAsStateWithLifecycle()
+    val state by gameViewModel.state.collectAsStateWithLifecycle()
+
+    Game(
+        board = board,
+        state = state,
+        onAction = gameViewModel::onAction,
+        windowSize = windowSize,
+    )
+
+    if (state.gameEnded) EndGamePopupFromState(state, gameViewModel, onMainMenuClick)
 }
 
+
 @Composable
-private fun Game(gameViewModel: GameViewModel, windowSize: WindowSize) {
+private fun Game(board: Board, state: GameState, onAction: (GameAction) -> Unit, windowSize: WindowSize) {
     val cellSize = remember { calcCellSize(windowSize.width, windowSize.height) }
+
     Column {
         UserPanelPlaceHolder(cellSize * 8, height = cellSize)
         Board(
-            gameViewModel, cellSize
+            board = board,
+            uiState = state,
+            cellSize = cellSize,
+            onAction = { action -> onAction(action) },
         )
         UserPanelPlaceHolder(cellSize * 8, height = cellSize)
     }
@@ -94,12 +83,65 @@ private fun UserPanelPlaceHolder(width: Dp, height: Dp) {
     )
 }
 
+
+@Composable
+private fun EndGamePopupFromState(
+    state: GameState,
+    gameViewModel: GameViewModel,
+    onMainMenuClick: () -> Unit
+) {
+    val handleAction: (GameAction) -> Unit = { action ->
+        when (action) {
+            GameAction.MainMenu -> onMainMenuClick()
+            else -> Unit
+        }
+        gameViewModel.onAction(action)
+    }
+
+    when {
+        state.rematchPending -> RematchPendingPopup()
+        state.rematchRequested -> {
+            RematchRequestPopup(
+                message = gameViewModel.getRematchRequestMessage(),
+                onAction = handleAction
+            )
+        }
+
+        state.rematchRequestRejected -> {
+            GameEndPopupNoRematch(
+                message = "Game over",
+                onAction = handleAction
+            )
+        }
+
+        state.rematchPropositionRejected -> {
+            GameEndPopupNoRematch(
+                message = "Your rematch has been rejected",
+                onAction = handleAction
+            )
+        }
+
+        state.rematchRequested -> {
+            RematchRequestPopup(
+                message = gameViewModel.getRematchRequestMessage(),
+                onAction = handleAction
+            )
+        }
+
+        else -> {
+            GameEndPopup(
+                message = gameViewModel.getEndGameText(),
+                onAction = handleAction
+            )
+        }
+    }
+}
+
+
 @Composable
 private fun GameEndPopup(
     message: String,
-    mainMenu: () -> Unit,
-    nextGame: () -> Unit,
-    rematch: () -> Unit,
+    onAction: (GameAction) -> Unit
 ) {
     Dialog(
         onDismissRequest = {}
@@ -123,13 +165,13 @@ private fun GameEndPopup(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    Button(onClick = mainMenu) {
+                    Button(onClick = { onAction(GameAction.MainMenu) }) {
                         Text("Main menu")
                     }
-                    Button(onClick = nextGame) {
+                    Button(onClick = { onAction(GameAction.PlayNext) }) {
                         Text("Next game")
                     }
-                    Button(onClick = rematch) {
+                    Button(onClick = { onAction(GameAction.RequestRematch) }) {
                         Text("Rematch")
                     }
                 }
@@ -167,8 +209,7 @@ private fun RematchPendingPopup() {
 @Composable
 private fun GameEndPopupNoRematch(
     message: String,
-    mainMenu: () -> Unit,
-    nextGame: () -> Unit,
+    onAction: (GameAction) -> Unit
 ) {
     Dialog(
         onDismissRequest = {}
@@ -192,10 +233,10 @@ private fun GameEndPopupNoRematch(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    Button(onClick = mainMenu) {
+                    Button(onClick = { onAction(GameAction.MainMenu) }) {
                         Text("Main menu")
                     }
-                    Button(onClick = nextGame) {
+                    Button(onClick = { onAction(GameAction.PlayNext) }) {
                         Text("Next game")
                     }
                 }
@@ -207,8 +248,7 @@ private fun GameEndPopupNoRematch(
 @Composable
 private fun RematchRequestPopup(
     message: String,
-    onAccept: () -> Unit,
-    onDecline: () -> Unit
+    onAction: (GameAction) -> Unit
 ) {
     Dialog(
         onDismissRequest = {}
@@ -232,10 +272,10 @@ private fun RematchRequestPopup(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    Button(onClick = onAccept) {
+                    Button(onClick = { onAction(GameAction.AcceptRematch) }) {
                         Text("Accept")
                     }
-                    Button(onClick = onDecline) {
+                    Button(onClick = { onAction(GameAction.DeclineRematch) }) {
                         Text("Decline")
                     }
                 }

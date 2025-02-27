@@ -1,23 +1,26 @@
 package pw.checkers.viewModel.waitingScreen
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import pw.checkers.client.RealtimeMessageClient
 import pw.checkers.data.domain.User
 import pw.checkers.data.message.Message
 import pw.checkers.data.messageType.MessageType
 import pw.checkers.data.response.GameInfo
-import pw.checkers.data.response.WaitingMessage
 import pw.checkers.viewModel.BaseViewModel
 
 class WaitingViewModel(
     message: Message,
-    private val user: User,
+    val user: User,
     messageClient: RealtimeMessageClient
-) : BaseViewModel<WaitingScreenState>(messageClient) {
+) : BaseViewModel(messageClient) {
 
-    override val _uiState = MutableStateFlow<WaitingScreenState?>(null)
-    val uiState = _uiState.asStateFlow()
+    private val _state = MutableStateFlow(WaitingScreenState())
+    val state = _state.asStateFlow()
+
+    private val _events = MutableSharedFlow<WaitingScreenEvent>(replay = 1)
+    val events = _events.asSharedFlow()
 
     init {
         handleServerMessage(message)
@@ -25,17 +28,24 @@ class WaitingViewModel(
 
     override fun handleServerMessage(msg: Message) {
         when (msg.type) {
-            MessageType.WAITING -> handleMessageContent<WaitingMessage>(msg, ::processWaitingMessage)
-            MessageType.GAME_CREATED -> handleMessageContent<GameInfo>(msg, ::processGameCreated)
+            MessageType.WAITING -> processWaitingMessage()
+            MessageType.GAME_CREATED -> handleMessageContent(msg, ::processGameCreated)
             else -> {}
         }
     }
 
-    private fun processWaitingMessage(waitingMessage: WaitingMessage) {
-        updateState(WaitingScreenState.Waiting(waitingMessage.message.replace(".", "")))
+    private fun processWaitingMessage() {
+        _state.update {
+            it.copy(message = "Waiting for an opponent")
+        }
     }
 
     private fun processGameCreated(gameInfo: GameInfo) {
-        updateState(WaitingScreenState.GameCreated(gameInfo, user))
+        viewModelScope.launch {
+            _events.emit(WaitingScreenEvent.GameCreated(gameInfo))
+        }
+        _state.update {
+            it.copy(message = "Opponent found", waiting = false)
+        }
     }
 }
