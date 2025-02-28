@@ -13,6 +13,7 @@ active_sessions = {}
         uvicorn server:app
 """
 
+
 @app.get("/play")
 async def play():
     session_id = str(uuid.uuid4())

@@ -49,11 +49,7 @@ class BotSession:
                     json.dumps(
                         {
                             "type": "joinQueue",
-                            "content": {
-                                "user": {
-                                    "username": "Herkules"
-                                }
-                            }
+                            "content": {"user": {"username": "Herkules"}},
                         }
                     )
                 )
@@ -121,7 +117,7 @@ class BotSession:
             self.bot.current_player = content["currentTurn"]
 
             if (self.my_color == "white" and self.bot.current_player == "white") or (
-                    self.my_color == "black" and self.bot.current_player == "black"
+                self.my_color == "black" and self.bot.current_player == "black"
             ):
                 await self.do_bot_move()
 

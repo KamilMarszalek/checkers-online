@@ -43,7 +43,7 @@ class Bot:
         return board
 
     def make_local_move(
-            self, board: List[List[Optional[str]]], move: List[int]
+        self, board: List[List[Optional[str]]], move: List[int]
     ) -> List[List[Optional[str]]]:
         """
         Apply a move to a copy of the board and return the new board state.
@@ -81,7 +81,7 @@ class Bot:
         return new_board
 
     def get_all_moves(
-            self, board: List[List[Optional[str]]], player_color: str
+        self, board: List[List[Optional[str]]], player_color: str
     ) -> List[Tuple[int, int, int, int]]:
         """
         Generate all possible moves for a given player.
@@ -106,7 +106,7 @@ class Bot:
                 if piece is None:
                     continue
                 if (piece.lower() == "w" and player_color == "white") or (
-                        piece.lower() == "b" and player_color == "black"
+                    piece.lower() == "b" and player_color == "black"
                 ):
                     piece_moves = self.get_piece_moves(board, r, c)
                     # Check for capture moves
@@ -120,7 +120,7 @@ class Bot:
         return moves
 
     def get_piece_moves(
-            self, board: List[List[Optional[str]]], row: int, col: int
+        self, board: List[List[Optional[str]]], row: int, col: int
     ) -> List[Tuple[int, int, int, int]]:
         """
         Return all possible moves for a specific piece at a given position.
@@ -166,10 +166,10 @@ class Bot:
             r_landing = row + 2 * dr
             c_landing = col + 2 * dc
             if (
-                    0 <= r_cap < 8
-                    and 0 <= c_cap < 8
-                    and 0 <= r_landing < 8
-                    and 0 <= c_landing < 8
+                0 <= r_cap < 8
+                and 0 <= c_cap < 8
+                and 0 <= r_landing < 8
+                and 0 <= c_landing < 8
             ):
                 cap_piece = board[r_cap][c_cap]
                 if cap_piece is not None and piece.lower() != cap_piece.lower():
@@ -230,12 +230,12 @@ class Bot:
         return (len(white_moves) == 0) or (len(black_moves) == 0)
 
     def minimax(
-            self,
-            board: List[List[Optional[str]]],
-            depth: int,
-            alpha: int,
-            beta: int,
-            maximizing_player: bool,
+        self,
+        board: List[List[Optional[str]]],
+        depth: int,
+        alpha: int,
+        beta: int,
+        maximizing_player: bool,
     ) -> Tuple[int, Optional[List[Tuple[int, int, int, int]]]]:
         """
         Perform the minimax search with alpha-beta pruning.
@@ -299,7 +299,7 @@ class Bot:
             return best_value, best_moves
 
     def choose_best_move(
-            self, depth: int = MINIMAX_DEPTH
+        self, depth: int = MINIMAX_DEPTH
     ) -> Optional[Tuple[int, int, int, int]]:
         """
         Choose the best move for the bot by running the minimax algorithm.
