@@ -320,8 +320,8 @@ public class GameRulesTest {
     @Test
     public void testHasSomebodyWonByOpponentBeingBlocked() {
         GameState state = createEmptyGameState();
-        // Black player turn - he has no moves
-        state.setCurrentPlayer(Color.BLACK);
+        // Black player turn - white made previous move
+        state.setCurrentPlayer(Color.WHITE);
         Piece blackPawn = new Piece(Color.BLACK, PieceType.PAWN);
         Piece whitePawn1 = new Piece(Color.WHITE, PieceType.PAWN);
         Piece whitePawn2 = new Piece(Color.WHITE, PieceType.PAWN);
