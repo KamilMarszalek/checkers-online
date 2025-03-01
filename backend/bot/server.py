@@ -3,7 +3,7 @@ import uuid
 from bot_session import BotSession
 import asyncio
 
-URL = "ws://localhost:8080/ws"
+URL = "ws://172.28.144.1:8080/ws"
 app = FastAPI()
 
 active_sessions = {}

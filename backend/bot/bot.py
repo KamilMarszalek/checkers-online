@@ -9,28 +9,11 @@ MINIMAX_DEPTH: int = 5
 
 class Bot:
     def __init__(self, my_color: str) -> None:
-        """
-        Initialize the bot with a given color and set up the board.
-
-        Args:
-            my_color (str): The color assigned to this bot ("white" or "black").
-        """
         self.my_color: str = my_color
         self.board: List[List[Optional[str]]] = self._initialize_board()
         self.current_player: str = "white"
 
     def _initialize_board(self) -> List[List[Optional[str]]]:
-        """
-        Creates and returns the initial game board.
-
-        The board is an 8x8 grid where pieces are placed on valid positions:
-          - "b" for black pieces in the first three rows.
-          - "w" for white pieces in the last three rows.
-          - None for empty squares.
-
-        Returns:
-            List[List[Optional[str]]]: The initialized board.
-        """
         board: List[List[Optional[str]]] = [[None for _ in range(8)] for _ in range(8)]
         for row in range(3):
             for col in range(8):
@@ -45,20 +28,6 @@ class Bot:
     def make_local_move(
         self, board: List[List[Optional[str]]], move: List[int]
     ) -> List[List[Optional[str]]]:
-        """
-        Apply a move to a copy of the board and return the new board state.
-
-        A move is defined as a list of four integers [from_row, from_col, to_row, to_col].
-
-        This method also handles capture (jump moves) and promotion of pieces.
-
-        Args:
-            board (List[List[Optional[str]]]): The current board state.
-            move (List[int]): The move to apply.
-
-        Returns:
-            List[List[Optional[str]]]: The new board state after applying the move.
-        """
         (fr, fc, tr, tc) = move
         new_board = copy.deepcopy(board)
         piece = new_board[fr][fc]
@@ -83,20 +52,6 @@ class Bot:
     def get_all_moves(
         self, board: List[List[Optional[str]]], player_color: str
     ) -> List[Tuple[int, int, int, int]]:
-        """
-        Generate all possible moves for a given player.
-
-        If any capture moves are available, only those moves are returned since captures
-        are mandatory.
-
-        Args:
-            board (List[List[Optional[str]]]): The current board state.
-            player_color (str): The player's color ("white" or "black").
-
-        Returns:
-            List[Tuple[int, int, int, int]]: A list of moves represented as
-            tuples: (from_row, from_col, to_row, to_col).
-        """
         moves: List[Tuple[int, int, int, int]] = []
         has_capture: bool = False
 
@@ -122,20 +77,6 @@ class Bot:
     def get_piece_moves(
         self, board: List[List[Optional[str]]], row: int, col: int
     ) -> List[Tuple[int, int, int, int]]:
-        """
-        Return all possible moves for a specific piece at a given position.
-
-        The moves consider normal moves and potential captures based on the piece type.
-        Kings can move in all four diagonal directions.
-
-        Args:
-            board (List[List[Optional[str]]]): The current board state.
-            row (int): The row position of the piece.
-            col (int): The column position of the piece.
-
-        Returns:
-            List[Tuple[int, int, int, int]]: A list of valid moves for the piece.
-        """
         piece = board[row][col]
         moves: List[Tuple[int, int, int, int]] = []
         if piece is None:
@@ -179,19 +120,6 @@ class Bot:
         return moves
 
     def evaluate_board(self, board: List[List[Optional[str]]]) -> int:
-        """
-        Evaluate the board state and return a numerical score.
-
-        A positive score favors white while a negative score favors black.
-        King pieces score higher. If the board is terminal (i.e. one player has no moves),
-        a large value is returned.
-
-        Args:
-            board (List[List[Optional[str]]]): The current board state.
-
-        Returns:
-            int: The evaluated score of the board.
-        """
         if self.is_terminal(board):
             white_moves = self.get_all_moves(board, "white")
             black_moves = self.get_all_moves(board, "black")
@@ -214,17 +142,6 @@ class Bot:
         return score
 
     def is_terminal(self, board: List[List[Optional[str]]]) -> bool:
-        """
-        Determine if the game is over based on available moves.
-
-        The game is considered terminal if either player has no legal moves.
-
-        Args:
-            board (List[List[Optional[str]]]): The current board state.
-
-        Returns:
-            bool: True if the game is over, False otherwise.
-        """
         white_moves = self.get_all_moves(board, "white")
         black_moves = self.get_all_moves(board, "black")
         return (len(white_moves) == 0) or (len(black_moves) == 0)
@@ -237,25 +154,6 @@ class Bot:
         beta: int,
         maximizing_player: bool,
     ) -> Tuple[int, Optional[List[Tuple[int, int, int, int]]]]:
-        """
-        Perform the minimax search with alpha-beta pruning.
-
-        Recursively explores possible board states from the given board and depth.
-        Returns a tuple containing the evaluated value and a list of the best moves at that state.
-        If no moves are available, the second element is None.
-
-        Args:
-            board (List[List[Optional[str]]]): The current board state.
-            depth (int): The depth remaining for search.
-            alpha (int): The best value achievable by the maximizer so far.
-            beta (int): The best value achievable by the minimizer so far.
-            maximizing_player (bool): True if searching for the maximizer's best move, else False.
-
-        Returns:
-            Tuple[int, Optional[List[Tuple[int, int, int, int]]]]:
-                A tuple where the first element is the board evaluation and the second
-                is a list of moves leading to that evaluation (or None if no moves).
-        """
         if depth == 0 or self.is_terminal(board):
             return self.evaluate_board(board), None
 
@@ -301,20 +199,6 @@ class Bot:
     def choose_best_move(
         self, depth: int = MINIMAX_DEPTH
     ) -> Optional[Tuple[int, int, int, int]]:
-        """
-        Choose the best move for the bot by running the minimax algorithm.
-
-        The move is selected from the available best moves at the root level.
-        If no moves are available, returns None.
-
-        Args:
-            depth (int, optional): The search depth for the minimax algorithm.
-                Defaults to MINIMAX_DEPTH.
-
-        Returns:
-            Optional[Tuple[int, int, int, int]]: The chosen move represented as a tuple
-            (from_row, from_col, to_row, to_col) or None if no move is possible.
-        """
         maximizing: bool = self.current_player == "white"
         _, best_moves = self.minimax(self.board, depth, -math.inf, math.inf, maximizing)
         if best_moves:
