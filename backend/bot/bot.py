@@ -197,13 +197,22 @@ class Bot:
         if maximizing_player:
             best_value: int = -math.inf
             best_moves: List[Tuple[int, int, int, int]] = []
-            moves: List[Tuple[int, int, int, int]] = self.get_all_moves(board, "white")
+            moves: List[Tuple[int, int, int, int]] = self.get_all_moves(
+                board, "white", piece_during_capture
+            )
             if not moves:
                 return self.evaluate_board(board, current_player), None
 
             for move in moves:
-                new_board = self.make_local_move(board, list(move))
-                val, _ = self.minimax(new_board, depth - 1, alpha, beta, False)
+                new_board, piece_during_capture = self.make_local_move(board, move)
+                val, _ = self.minimax(
+                    new_board,
+                    depth - 1,
+                    alpha,
+                    beta,
+                    self.next_player(maximizing_player, piece_during_capture),
+                    piece_during_capture,
+                )
                 if val > best_value:
                     best_value = val
                     best_moves = [move]
@@ -216,13 +225,22 @@ class Bot:
         else:
             best_value: int = math.inf
             best_moves: List[Tuple[int, int, int, int]] = []
-            moves: List[Tuple[int, int, int, int]] = self.get_all_moves(board, "black")
+            moves: List[Tuple[int, int, int, int]] = self.get_all_moves(
+                board, "black", piece_during_capture
+            )
             if not moves:
                 return self.evaluate_board(board, current_player), None
 
             for move in moves:
-                new_board = self.make_local_move(board, list(move))
-                val, _ = self.minimax(new_board, depth - 1, alpha, beta, True)
+                new_board, piece_during_capture = self.make_local_move(board, move)
+                val, _ = self.minimax(
+                    new_board,
+                    depth - 1,
+                    alpha,
+                    beta,
+                    self.next_player(maximizing_player, piece_during_capture),
+                    piece_during_capture,
+                )
                 if val < best_value:
                     best_value = val
                     best_moves = [move]
