@@ -283,3 +283,11 @@ def test_bot_filter_only_piece_during_capture():
     assert bot.filter_only_piece_during_capture(moves, piece_during_capture) == [
         [3, 2, 4, 2]
     ]
+
+
+def test_bot_next_player():
+    bot = Bot("white")
+    assert bot.next_player(True, None) is False
+    assert bot.next_player(True, 1) is True
+    assert bot.next_player(False, None) is True
+    assert bot.next_player(False, 1) is False
