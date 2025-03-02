@@ -72,7 +72,12 @@ class Bot:
 
         if self.has_capture(moves):
             moves = self.filter_capture_moves(moves)
+        if piece_during_capture:
+            moves = self.filter_only_piece_during_capture(moves, piece_during_capture)
         return moves
+
+    def filter_only_piece_during_capture(self, moves, piece_during_capture):
+        return [mv for mv in moves if (mv[0], mv[1]) == piece_during_capture]
 
     def has_capture(self, moves):
         return any(self.is_capture(m) for m in moves)
