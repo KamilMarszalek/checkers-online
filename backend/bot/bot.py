@@ -24,7 +24,7 @@ class Bot:
         return board
 
     def make_local_move(
-        self, board: List[List[Optional[str]]], move: List[int]
+        self, board: List[List[Optional[str]]], move: Tuple[int, int, int, int]
     ) -> List[List[Optional[str]]]:
         (fr, fc, tr, tc) = move
         new_board = copy.deepcopy(board)
