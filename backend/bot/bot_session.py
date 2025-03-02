@@ -112,14 +112,18 @@ class BotSession:
             fc = move_data["fromCol"]
             tr = move_data["toRow"]
             tc = move_data["toCol"]
-            self.bot.board = self.bot.make_local_move(self.bot.board, (fr, fc, tr, tc))
+            has_more_takes = dict_message["content"]["hasMoreTakes"]
+            captured = dict_message["content"]["captured"]
+            self.bot.board, _ = self.bot.make_local_move(
+                self.bot.board, (fr, fc, tr, tc)
+            )
 
             self.bot.current_player = content["currentTurn"]
-
+            piece_during_capture = (tr, tc) if has_more_takes and captured else None
             if (self.my_color == "white" and self.bot.current_player == "white") or (
                 self.my_color == "black" and self.bot.current_player == "black"
             ):
-                await self.do_bot_move()
+                await self.do_bot_move(piece_during_capture)
 
         elif msg_type == "gameEnd":
             result = dict_message["content"]["result"]
@@ -134,7 +138,7 @@ class BotSession:
         else:
             print("Unknown message type:", msg_type)
 
-    async def do_bot_move(self) -> None:
+    async def do_bot_move(self, piece_during_capture=None) -> None:
         """
         Chooses the best move for the bot and sends it to the server.
 
@@ -143,7 +147,11 @@ class BotSession:
         if not self.bot:
             return
 
-        best_move = await asyncio.to_thread(self.bot.choose_best_move, depth=6)
+        best_move = await asyncio.to_thread(
+            self.bot.choose_best_move,
+            depth=6,
+            piece_during_capture=piece_during_capture,
+        )
         if best_move is None:
             print("No moves available")
             for row in self.bot.board:
