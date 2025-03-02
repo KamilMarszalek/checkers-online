@@ -31,7 +31,7 @@ def test_bot_make_local_move():
     bot = Bot("white")
     board = bot.board
     move = [5, 0, 4, 1]
-    new_board = bot.make_local_move(board, move)
+    new_board, piece_during_capture = bot.make_local_move(board, move)
     assert new_board == [
         [None, "b", None, "b", None, "b", None, "b"],
         ["b", None, "b", None, "b", None, "b", None],
@@ -42,6 +42,7 @@ def test_bot_make_local_move():
         [None, "w", None, "w", None, "w", None, "w"],
         ["w", None, "w", None, "w", None, "w", None],
     ]
+    assert piece_during_capture is None
 
 
 def test_bot_should_promote():
@@ -68,6 +69,7 @@ def test_bot_promote():
     bot = Bot("white")
     board = bot.board
     move = [5, 2, 0, 7]
+    bot.board[0][7] = "w"
     bot.promote(board, move)
     assert board == [
         [None, "b", None, "b", None, "b", None, "W"],
@@ -256,7 +258,7 @@ def test_bot_evaluate_board():
     assert bot.evaluate_board(board, "black") == 10000
 
 
-def test_is_terminal():
+def test_bot_is_terminal():
     bot = Bot("white")
     board = bot.board
     assert bot.is_terminal(board, "white") is False
@@ -272,3 +274,12 @@ def test_is_terminal():
     ]
     assert bot.is_terminal(board, "black") is True
     assert bot.is_terminal(board, "white") is False
+
+
+def test_bot_filter_only_piece_during_capture():
+    bot = Bot("white")
+    moves = [[3, 2, 4, 2], [5, 0, 4, 1], [5, 0, 5, 2], [5, 0, 5, 3]]
+    piece_during_capture = (3, 2)
+    assert bot.filter_only_piece_during_capture(moves, piece_during_capture) == [
+        [3, 2, 4, 2]
+    ]
