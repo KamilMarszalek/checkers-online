@@ -33,13 +33,18 @@ class Bot:
         new_board[fr][fc] = None
         new_board[tr][tc] = piece
 
+        piece_during_capture = None
+
         if self.is_capture(move):
             self.make_capture(new_board, move)
 
         if self.should_promote(piece, tr):
             self.promote(new_board, move)
 
-        return new_board
+        if self.is_capture(move):
+            if self.has_capture(self.get_piece_moves(new_board, tr, tc)):
+                piece_during_capture = (tr, tc)
+        return new_board, piece_during_capture
 
     def should_promote(self, piece, tr):
         return (piece == "w" and tr == 0) or (piece == "b" and tr == 7)
@@ -58,7 +63,10 @@ class Bot:
         board[captured_r][captured_c] = None
 
     def get_all_moves(
-        self, board: List[List[Optional[str]]], player_color: str
+        self,
+        board: List[List[Optional[str]]],
+        player_color: str,
+        piece_during_capture: Optional[Tuple[int, int]] = None,
     ) -> List[Tuple[int, int, int, int]]:
         moves: List[Tuple[int, int, int, int]] = []
         for r in range(BOARD_SIZE):
@@ -180,6 +188,7 @@ class Bot:
         alpha: int,
         beta: int,
         maximizing_player: bool,
+        piece_during_capture: Optional[Tuple[int, int]] = None,
     ) -> Tuple[int, Optional[List[Tuple[int, int, int, int]]]]:
         current_player = "white" if maximizing_player else "black"
         if depth == 0 or self.is_terminal(board, current_player):
@@ -224,11 +233,20 @@ class Bot:
                     break
             return best_value, best_moves
 
+    def next_player(self, maximizing, piece_during_capture):
+        if piece_during_capture:
+            return maximizing
+        return not maximizing
+
     def choose_best_move(
-        self, depth: int = MINIMAX_DEPTH
+        self,
+        depth: int = MINIMAX_DEPTH,
+        piece_during_capture: Optional[Tuple[int, int]] = None,
     ) -> Optional[Tuple[int, int, int, int]]:
         maximizing: bool = self.current_player == "white"
-        _, best_moves = self.minimax(self.board, depth, -math.inf, math.inf, maximizing)
+        _, best_moves = self.minimax(
+            self.board, depth, -math.inf, math.inf, maximizing, piece_during_capture
+        )
         if best_moves:
             return random.choice(best_moves)
         return None
