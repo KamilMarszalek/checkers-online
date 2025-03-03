@@ -1,11 +1,13 @@
 package pw.checkers.message;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pw.checkers.data.enums.MessageType;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class JoinMessage extends Message{
     private String gameId;
     private String color;
@@ -16,9 +18,5 @@ public class JoinMessage extends Message{
         this.gameId = gameId;
         this.color = color;
         this.opponent = opponent;
-    }
-
-    public JoinMessage() {
-        super(MessageType.GAME_CREATED.getValue());
     }
 }
