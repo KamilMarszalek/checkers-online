@@ -88,7 +88,7 @@ public class RematchServiceTest {
         ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(messageSender).sendMessage(eq(session2), captor.capture());
         Message sentMessage = captor.getValue();
-        assertEquals("rematch request", sentMessage.getType());
+        assertEquals("rematchRequest", sentMessage.getType());
     }
 
     @Test
@@ -169,11 +169,11 @@ public class RematchServiceTest {
         ArgumentCaptor<Message> captor1 = ArgumentCaptor.forClass(Message.class);
         verify(messageSender).sendMessage(eq(session1), eq(Color.BLACK.getValue()), captor1.capture());
         Message msg1 = captor1.getValue();
-        assertEquals("game created", msg1.getType().toLowerCase());
+        assertEquals("gameCreated", msg1.getType());
 
         ArgumentCaptor<Message> captor2 = ArgumentCaptor.forClass(Message.class);
         verify(messageSender).sendMessage(eq(session2), eq(Color.WHITE.getValue()), captor2.capture());
         Message msg2 = captor2.getValue();
-        assertEquals("game created", msg2.getType().toLowerCase());
+        assertEquals("gameCreated", msg2.getType());
     }
 }

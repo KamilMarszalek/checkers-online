@@ -113,7 +113,7 @@ public class CheckersWebSocketHandlerTest {
     public void testHandleRematchDecline() throws Exception {
         // Simulate a decline rematch message.
         String gameId = "game123";
-        String jsonPayload = "{\"type\":\"decline rematch\",\"gameId\":\"" + gameId + "\"}";
+        String jsonPayload = "{\"type\":\"declineRematch\",\"gameId\":\"" + gameId + "\"}";
         handler.handleTextMessage(session, new TextMessage(jsonPayload));
         // Verify that gameManager.cleanGameHistory is called.
         verify(gameManager, times(1)).cleanGameHistory(any(GameIdMessage.class));
