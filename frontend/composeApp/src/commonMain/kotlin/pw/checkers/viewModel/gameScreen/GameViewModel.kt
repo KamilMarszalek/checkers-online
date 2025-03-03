@@ -20,15 +20,13 @@ class GameViewModel(
     gameInfo: GameInfo,
     val user: User,
     messageClient: RealtimeMessageClient
-) : BaseViewModel(messageClient) {
+) : BaseViewModel<GameScreenState>(messageClient) {
 
     private val color = gameInfo.color
     private val gameId = gameInfo.gameId
     private val opponent = gameInfo.opponent
 
-    private val _uiState = MutableStateFlow<GameScreenState>(GameScreenState.Game)
     val uiState = _uiState.asStateFlow()
-
 
     private val _board = MutableStateFlow(createInitialBoard())
     val board = _board.map { board ->
@@ -58,7 +56,7 @@ class GameViewModel(
             return
         }
         selected = Cell(-1, -1)
-        _highlightedCells.value = emptyList()
+        _highlightedCells.update { emptyList() }
     }
 
     fun getPossibleMoves(row: Int, col: Int) {
@@ -71,13 +69,13 @@ class GameViewModel(
     }
 
     fun makeMove(row: Int, col: Int) {
-        _highlightedCells.value = emptyList()
+        _highlightedCells.update { emptyList() }
         val move = Move(selected.row, selected.col, row, col)
         sendMessage(MessageType.MOVE, MakeMove(gameId, move))
     }
 
     private fun setHighlighted(cells: List<Cell>) {
-        _highlightedCells.value = cells
+        _highlightedCells.update { cells }
     }
 
     private fun movePiece(move: Move, captured: Cell? = null) {
@@ -106,8 +104,7 @@ class GameViewModel(
             newBoard[captured.row] = capturedRow.toList()
         }
 
-        _board.value = newBoard.toList()
-        println(move)
+        _board.update { newBoard.toList() }
     }
 
     private fun checkSkipClick(row: Int, col: Int): Boolean {
@@ -129,7 +126,9 @@ class GameViewModel(
             MessageType.MOVE -> handleMessageContent<MoveInfo>(msg, ::processMoveInfoMessage)
             MessageType.POSSIBILITIES -> handleMessageContent<Possibilities>(msg, ::processPossibilities)
             MessageType.GAME_ENDING -> handleMessageContent<GameEnd>(msg, ::processGameEnd)
-            MessageType.WAITING, MessageType.GAME_CREATED -> handleNextGameMessage(msg)
+            MessageType.WAITING, MessageType.GAME_CREATED -> processNextGameMessages(msg)
+            MessageType.REMATCH_REQUEST -> updateState(GameScreenState.RematchRequested)
+            MessageType.REJECTION -> updateState(GameScreenState.RematchRejected)
             else -> return
         }
     }
@@ -143,7 +142,7 @@ class GameViewModel(
             multiMove = false
         }
         movePiece(moveInfo.move, moveInfo.capturedPiece)
-        _currentPlayer.value = moveInfo.currentTurn
+        _currentPlayer.update { moveInfo.currentTurn }
         multiMove = moveInfo.hasMoreTakes
     }
 
@@ -152,7 +151,12 @@ class GameViewModel(
     }
 
     private fun processGameEnd(gameEnd: GameEnd) {
-        _uiState.value = GameScreenState.GameEnded(gameEnd.result)
+        updateState(GameScreenState.GameEnded(gameEnd.result))
+    }
+
+    private fun processNextGameMessages(message: Message) {
+        if (_uiState.value == null) return
+        updateState(GameScreenState.PlayNext(message))
     }
 
     fun getEndGameText(): String {
@@ -164,12 +168,23 @@ class GameViewModel(
         }
     }
 
+    fun getRematchRequestMessage() = "${opponent.username} requested a rematch"
+
     fun playNextGame() {
         sendMessage(MessageType.JOIN_QUEUE, JoinQueue(user))
     }
 
-    private fun handleNextGameMessage(message: Message) {
-        if (_uiState.value !is GameScreenState.GameEnded) return
-        _uiState.value = GameScreenState.PlayNext(message)
+    fun requestRematch() {
+        sendMessage(MessageType.REMATCH_REQUEST, gameId.toDataClass())
+        updateState(GameScreenState.RematchPending)
+    }
+
+    fun acceptRematch() {
+        sendMessage(MessageType.ACCEPT_REMATCH, gameId.toDataClass())
+    }
+
+    fun declineRematch() {
+        sendMessage(MessageType.DECLINE_REMATCH, gameId.toDataClass())
+        updateState(GameScreenState.RematchRejected)
     }
 }

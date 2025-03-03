@@ -1,14 +1,21 @@
 package pw.checkers.message;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class GameIdMessage {
+public class GameIdMessage extends Message{
     private String gameId;
+
+    public GameIdMessage(String gameId) {
+        this.gameId = gameId;
+    }
+
+    public GameIdMessage(String type, String gameId) {
+        super(type);
+        this.gameId = gameId;
+    }
 }

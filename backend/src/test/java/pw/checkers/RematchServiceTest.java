@@ -28,7 +28,6 @@ import pw.checkers.sockets.MessageSender;
 import pw.checkers.sockets.RematchService;
 import pw.checkers.sockets.SessionManager;
 
-@SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 public class RematchServiceTest {
 
@@ -63,11 +62,11 @@ public class RematchServiceTest {
         rematchService.proposeRematch(session1, msg);
 
         // Expect a rejection message sent to session1.
-        ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(messageSender).sendMessage(eq(session1), captor.capture());
-        Message<?> sentMessage = captor.getValue();
+        Message sentMessage = captor.getValue();
         assertEquals("rejection", sentMessage.getType());
-        assertTrue(((PromptMessage) sentMessage.getContent()).getMessage()
+        assertTrue(((PromptMessage) sentMessage).getMessage()
                 .contains("Opponent has already left the game"));
     }
 
@@ -86,10 +85,10 @@ public class RematchServiceTest {
         rematchService.proposeRematch(session1, msg);
 
         // In this case, a rematch request message is sent to session2.
-        ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(messageSender).sendMessage(eq(session2), captor.capture());
-        Message<?> sentMessage = captor.getValue();
-        assertEquals("rematch request", sentMessage.getType());
+        Message sentMessage = captor.getValue();
+        assertEquals("rematchRequest", sentMessage.getType());
     }
 
     @Test
@@ -131,11 +130,11 @@ public class RematchServiceTest {
         rematchService.startRematch(session1, msg);
 
         // Expect that a rejection message is sent to session1.
-        ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
         verify(messageSender).sendMessage(eq(session1), captor.capture());
-        Message<?> sentMessage = captor.getValue();
+        Message sentMessage = captor.getValue();
         assertEquals("rejection", sentMessage.getType());
-        assertTrue(((PromptMessage) sentMessage.getContent()).getMessage()
+        assertTrue(((PromptMessage) sentMessage).getMessage()
                 .contains("Opponent has already left the game"));
     }
 
@@ -167,14 +166,14 @@ public class RematchServiceTest {
         verify(sessionManager, times(1)).addToColorAssignments(eq("newGameId"), eq(session2), eq(session1));
 
         // Verify that messageSender.sendMessage is called for both sessions with GAME_CREATED messages.
-        ArgumentCaptor<Message<?>> captor1 = ArgumentCaptor.forClass(Message.class);
+        ArgumentCaptor<Message> captor1 = ArgumentCaptor.forClass(Message.class);
         verify(messageSender).sendMessage(eq(session1), eq(Color.BLACK.getValue()), captor1.capture());
-        Message<?> msg1 = captor1.getValue();
-        assertEquals("game created", msg1.getType().toLowerCase());
+        Message msg1 = captor1.getValue();
+        assertEquals("gameCreated", msg1.getType());
 
-        ArgumentCaptor<Message<?>> captor2 = ArgumentCaptor.forClass(Message.class);
+        ArgumentCaptor<Message> captor2 = ArgumentCaptor.forClass(Message.class);
         verify(messageSender).sendMessage(eq(session2), eq(Color.WHITE.getValue()), captor2.capture());
-        Message<?> msg2 = captor2.getValue();
-        assertEquals("game created", msg2.getType().toLowerCase());
+        Message msg2 = captor2.getValue();
+        assertEquals("gameCreated", msg2.getType());
     }
 }

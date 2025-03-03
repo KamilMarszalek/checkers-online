@@ -275,7 +275,7 @@ public class GameServiceTest {
         board[5][2] = new Piece(Color.WHITE, PieceType.PAWN);
 
 
-        PossibleMoves pm = gameService.getPossibleMoves(gameState, 5, 2);
+        PossibilitiesOutput pm = gameService.getPossibleMoves(gameState, 5, 2);
 
         assertEquals(1, pm.getMoves().size());
         MoveHelper move = pm.getMoves().getFirst();
@@ -293,7 +293,7 @@ public class GameServiceTest {
         }
         board[4][4] = new Piece(Color.WHITE, PieceType.KING);
 
-        PossibleMoves pm = gameService.getPossibleMoves(gameState, 4, 4);
+        PossibilitiesOutput pm = gameService.getPossibleMoves(gameState, 4, 4);
 
         assertEquals(4, pm.getMoves().size(), "King in the middle should have 4 possible moves if no captures exist");
 

@@ -62,7 +62,7 @@ public class GameServiceImpl implements GameService{
     }
 
     @Override
-    public PossibleMoves getPossibleMoves(GameState gameState, int row, int col) {
+    public PossibilitiesOutput getPossibleMoves(GameState gameState, int row, int col) {
         return gameRules.getPossibleMoves(gameState, row, col);
     }
 }

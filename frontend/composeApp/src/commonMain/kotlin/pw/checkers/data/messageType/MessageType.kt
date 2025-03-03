@@ -21,6 +21,24 @@ enum class MessageType {
     @SerialName("gameEnd")
     GAME_ENDING,
 
+    @SerialName("rejection")
+    REJECTION,
+
     @SerialName("joinQueue")
     JOIN_QUEUE,
+
+    @SerialName("leaveQueue")
+    LEAVE_QUEUE,
+
+    @SerialName("rematch request")
+    REMATCH_REQUEST,
+
+    @SerialName("accept rematch")
+    ACCEPT_REMATCH,
+
+    @SerialName("decline rematch")
+    DECLINE_REMATCH,
+
+    @SerialName("leave")
+    LEAVE,
 }

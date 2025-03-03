@@ -14,9 +14,9 @@ import pw.checkers.viewModel.BaseViewModel
 
 class LoginViewModel(
     messageClient: RealtimeMessageClient
-) : BaseViewModel(messageClient) {
+) : BaseViewModel<LoginScreenState>(messageClient) {
 
-    private val _uiState = MutableStateFlow<LoginScreenState>(LoginScreenState.Idle)
+    override val _uiState = MutableStateFlow<LoginScreenState?>(LoginScreenState.Idle)
     val uiState = _uiState.asStateFlow()
 
     private var _username by mutableStateOf("Guest")
@@ -55,6 +55,6 @@ class LoginViewModel(
     }
 
     private fun processWaitingMessage(message: Message) {
-        _uiState.value = LoginScreenState.Queued(message, User(_username))
+        updateState(LoginScreenState.Queued(message, User(_username)))
     }
 }

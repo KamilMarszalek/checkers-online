@@ -14,14 +14,14 @@ class WaitingViewModel(
     message: Message,
     private val user: User,
     messageClient: RealtimeMessageClient
-) : BaseViewModel(messageClient) {
+) : BaseViewModel<WaitingScreenState>(messageClient) {
+
+    override val _uiState = MutableStateFlow<WaitingScreenState?>(null)
+    val uiState = _uiState.asStateFlow()
 
     init {
-        println(message)
+        handleServerMessage(message)
     }
-
-    private val _uiState = MutableStateFlow<WaitingScreenState?>(null)
-    val uiState = _uiState.asStateFlow()
 
     override fun handleServerMessage(msg: Message) {
         when (msg.type) {
@@ -32,10 +32,10 @@ class WaitingViewModel(
     }
 
     private fun processWaitingMessage(waitingMessage: WaitingMessage) {
-        _uiState.value = WaitingScreenState.Waiting(waitingMessage.message.replace(".", ""))
+        updateState(WaitingScreenState.Waiting(waitingMessage.message.replace(".", "")))
     }
 
     private fun processGameCreated(gameInfo: GameInfo) {
-        _uiState.value = WaitingScreenState.GameCreated(gameInfo, user)
+        updateState(WaitingScreenState.GameCreated(gameInfo, user))
     }
 }
