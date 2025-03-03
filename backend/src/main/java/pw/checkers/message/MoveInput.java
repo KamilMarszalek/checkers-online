@@ -6,8 +6,8 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
-public class MoveInput {
+@EqualsAndHashCode(callSuper = false)
+public class MoveInput extends Message {
     private String gameId;
     private Move move;
 }
