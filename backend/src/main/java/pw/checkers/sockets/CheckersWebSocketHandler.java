@@ -1,7 +1,7 @@
 package pw.checkers.sockets;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import org.springframework.lang.NonNull;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -44,37 +44,37 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     private void initializeHandlers() {
         handlers.put(MessageType.JOIN_QUEUE, (session, rawMessage) -> {
-            QueueMessage queueMsg = convertContent(rawMessage, QueueMessage.class);
+            QueueMessage queueMsg = (QueueMessage) rawMessage;
             handleJoinQueue(session, queueMsg.getUser());
         });
 
         handlers.put(MessageType.LEAVE_QUEUE, (session, rawMessage) -> {
-            QueueMessage queueMsg = convertContent(rawMessage, QueueMessage.class);
+            QueueMessage queueMsg = (QueueMessage) rawMessage;
             handleLeaveQueue(session, queueMsg.getUser());
         });
 
         handlers.put(MessageType.MOVE, (session, rawMessage) -> {
-            MoveInput moveInput = convertContent(rawMessage, MoveInput.class);
+            MoveInput moveInput = (MoveInput) rawMessage;
             handleMove(session, moveInput);
         });
 
         handlers.put(MessageType.POSSIBILITIES, (session, rawMessage) -> {
-            PossibilitiesInput possibilitiesInput = convertContent(rawMessage, PossibilitiesInput.class);
+            PossibilitiesInput possibilitiesInput = (PossibilitiesInput) rawMessage;
             handlePossibilities(session, possibilitiesInput);
         });
 
         handlers.put(MessageType.REMATCH_REQUEST, (session, rawMessage) -> {
-            GameIdMessage gameIdMessage = convertContent(rawMessage, GameIdMessage.class);
+            GameIdMessage gameIdMessage = (GameIdMessage) rawMessage;
             proposeRematch(session, gameIdMessage);
         });
 
         handlers.put(MessageType.ACCEPT_REMATCH, (session, rawMessage) -> {
-            GameIdMessage gameIdMessage = convertContent(rawMessage, GameIdMessage.class);
+            GameIdMessage gameIdMessage = (GameIdMessage) rawMessage;
             startRematch(session, gameIdMessage);
         });
 
         handlers.put(MessageType.DECLINE_REMATCH, (session, rawMessage) -> {
-            GameIdMessage gameIdMessage = convertContent(rawMessage, GameIdMessage.class);
+            GameIdMessage gameIdMessage = (GameIdMessage) rawMessage;
             sendRejection(session, gameIdMessage);
             gameManager.cleanGameHistory(gameIdMessage);
             rematchService.removeFromRematchRequests(gameIdMessage.getGameId());
@@ -82,14 +82,10 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         });
 
         handlers.put(MessageType.LEAVE, (session, rawMessage) -> {
-            GameIdMessage gameIdMessage = convertContent(rawMessage, GameIdMessage.class);
+            GameIdMessage gameIdMessage = (GameIdMessage) rawMessage;
             gameManager.cleanGameHistory(gameIdMessage);
             sessionManager.removeUsersBySessionEntry(session);
         });
-    }
-
-    private <T> T convertContent(Message<Map<String, Object>> rawMessage, Class<T> tClass){
-        return objectMapper.convertValue(rawMessage.getContent(), tClass);
     }
 
     @Override
@@ -98,21 +94,19 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) throws Exception {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         logger.debug("Message received: {}", message.getPayload());
-
-        Message<Map<String, Object>> rawMessage = objectMapper.readValue(
-                message.getPayload(),
-                new TypeReference<>() {}
-        );
+        Message rawMessage;
+        try {
+            rawMessage = objectMapper.readValue(message.getPayload(), Message.class);
+        } catch (InvalidTypeIdException e) {
+            Message defaultMessage = new PromptMessage(ERROR.getValue(), "Unknown message type");
+            messageSender.sendMessage(session, defaultMessage);
+            return;
+        }
         MessageType type = MessageType.fromString(rawMessage.getType());
         WebSocketMessageHandler handler = handlers.get(type);
-        if (handler != null) {
-            handler.handle(session, rawMessage);
-        } else {
-            Message<String> defaultMessage = new Message<>(ERROR.getValue(), "Unknown message type: " + rawMessage.getType());
-            messageSender.sendMessage(session, defaultMessage);
-        }
+        handler.handle(session, rawMessage);
     }
 
     private void handleLeaveQueue(WebSocketSession session, User user) {
@@ -125,12 +119,10 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         Optional<WebSocketSession> opponent = sessionManager.getOpponent(gameId, session);
 
         if (opponent.isPresent()) {
-            Message<PromptMessage> message =
-                    new Message<>(REJECTION.getValue(), new PromptMessage("Your opponent reject your rematch request"));
+            Message message = new PromptMessage(REJECTION.getValue(), "Your opponent reject your rematch request");
             messageSender.sendMessage(opponent.get(), message);
         } else {
-            Message<PromptMessage> message =
-                    new Message<>(REJECTION.getValue(), new PromptMessage("Opponent has already left the game"));
+            Message message = new PromptMessage(REJECTION.getValue(), "Opponent has already left the game");
             messageSender.sendMessage(session, message);
         }
 
@@ -156,8 +148,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
 
     private void addPlayerToQueue(WebSocketSession session, User user) throws IOException {
         sessionManager.addPlayerToQueue(session, user);
-        Message<PromptMessage> waitingMessage =
-                new Message<>(WAITING.getValue(), new PromptMessage("Waiting for an opponent..."));
+        Message waitingMessage = new PromptMessage(WAITING.getValue(), "Waiting for an opponent...");
         messageSender.sendMessage(session, waitingMessage);
     }
 
@@ -169,14 +160,8 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         sessionManager.addToColorAssignments(newGameId, waitingSession, session);
         sessionManager.addToUserBySessions(waitingSession, waitingPlayer.user(), session, user);
 
-        Message<JoinMessage> waitingPlayerResponse = new Message<>(
-                GAME_CREATED.getValue(),
-                new JoinMessage(newGameId, Color.WHITE.getValue(), new User(user.getUsername()))
-        );
-        Message<JoinMessage> sessionPlayerResponse = new Message<>(
-                GAME_CREATED.getValue(),
-                new JoinMessage(newGameId, Color.BLACK.getValue(), new User(waitingPlayer.user().getUsername()))
-        );
+        Message waitingPlayerResponse = new JoinMessage(newGameId, Color.WHITE.getValue(), new User(user.getUsername()));
+        Message sessionPlayerResponse = new JoinMessage(newGameId, Color.BLACK.getValue(), new User(waitingPlayer.user().getUsername()));
 
         messageSender.sendMessage(waitingSession, Color.WHITE.getValue(), waitingPlayerResponse);
         messageSender.sendMessage(session, Color.BLACK.getValue(), sessionPlayerResponse);
@@ -188,35 +173,32 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         if (maybeColor.isEmpty()) return;
         String assignedColor = maybeColor.get();
         MoveOutput moveOutput = gameManager.makeMove(gameId, moveInput.getMove(), assignedColor);
-        Message<MoveOutput> moveMessage = new Message<>(MOVE.getValue(), moveOutput);
         GameState updatedState = gameManager.getGame(gameId);
 
-        messageSender.broadcastToGame(sessionManager.getSessionsByGameId(gameId), moveMessage, sessionManager.getColorAssignments(gameId));
+        messageSender.broadcastToGame(sessionManager.getSessionsByGameId(gameId), moveOutput, sessionManager.getColorAssignments(gameId));
 
         if (updatedState.isFinished()) {
             messageSender.broadcastGameEnd(sessionManager.getSessionsByGameId(gameId), updatedState, sessionManager.getColorAssignments(gameId));
         }
 
         if (moveOutput != null && moveOutput.isHasMoreTakes()) {
-            PossibleMoves moves = gameManager.getPossibleMoves(
+            PossibilitiesOutput moves = gameManager.getPossibleMoves(
                     new PossibilitiesInput(gameId,
                             moveOutput.getMove().getToRow(),
                             moveOutput.getMove().getToCol()),
                     session
             );
-            Message<PossibleMoves> responseMessage = new Message<>(POSSIBILITIES.getValue(), moves);
-            messageSender.sendMessage(session, assignedColor, responseMessage);
+            messageSender.sendMessage(session, assignedColor, moves);
         }
     }
 
     private void handlePossibilities(WebSocketSession session, PossibilitiesInput possibilitiesInput) throws IOException {
-        PossibleMoves moves = gameManager.getPossibleMoves(possibilitiesInput, session);
+        PossibilitiesOutput moves = gameManager.getPossibleMoves(possibilitiesInput, session);
         if (moves == null) return;
-        Message<PossibleMoves> responseMessage = new Message<>(POSSIBILITIES.getValue(), moves);
         Optional<String> maybeColor = sessionManager.getAssignedColor(possibilitiesInput.getGameId(), session);
         if (maybeColor.isEmpty()) return;
         String assignedColor = maybeColor.get();
-        messageSender.sendMessage(session, assignedColor, responseMessage);
+        messageSender.sendMessage(session, assignedColor, moves);
     }
 
     @Override

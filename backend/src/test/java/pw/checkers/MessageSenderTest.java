@@ -11,7 +11,9 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
 import pw.checkers.data.enums.Color;
+import pw.checkers.message.GameEnd;
 import pw.checkers.message.Message;
+import pw.checkers.message.PromptMessage;
 import pw.checkers.sockets.MessageSender;
 
 import java.io.IOException;
@@ -52,37 +54,37 @@ class MessageSenderTest {
 
         String sentJson = captor.getValue().getPayload();
         // Deserialize the JSON to a Message
-        Message<?> sentMessage = objectMapper.readValue(sentJson, Message.class);
+        Message sentMessage = objectMapper.readValue(sentJson, Message.class);
         assertEquals("error", sentMessage.getType(), "Message type should be error");
-        assertEquals(errorText, sentMessage.getContent(), "Message content should match error text");
+        assertEquals(errorText, ((PromptMessage)sentMessage).getMessage(), "Message content should match error text");
     }
 
     @Test
     void testSendMessageWithoutColor() throws IOException {
-        Message<String> message = new Message<>("info", "Hello world");
+        Message message = new PromptMessage("info", "Hello world");
         messageSender.sendMessage(session1, message);
 
         ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
         verify(session1).sendMessage(captor.capture());
 
         String sentJson = captor.getValue().getPayload();
-        Message<?> sentMessage = objectMapper.readValue(sentJson, Message.class);
+        Message sentMessage = objectMapper.readValue(sentJson, Message.class);
         assertEquals("info", sentMessage.getType());
-        assertEquals("Hello world", sentMessage.getContent());
+        assertEquals("Hello world", ((PromptMessage)sentMessage).getMessage());
     }
 
     @Test
     void testSendMessageWithColor() throws IOException {
-        Message<String> message = new Message<>("info", "Color message");
+        Message message = new PromptMessage("info", "Color message");
         messageSender.sendMessage(session1, "red", message);
 
         ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
         verify(session1).sendMessage(captor.capture());
 
         String sentJson = captor.getValue().getPayload();
-        Message<?> sentMessage = objectMapper.readValue(sentJson, Message.class);
+        Message sentMessage = objectMapper.readValue(sentJson, Message.class);
         assertEquals("info", sentMessage.getType());
-        assertEquals("Color message", sentMessage.getContent());
+        assertEquals("Color message", ((PromptMessage) sentMessage).getMessage());
         // The color parameter is used only for logging.
     }
 
@@ -99,23 +101,23 @@ class MessageSenderTest {
         colorByPlayer.put(session1, "blue");
         colorByPlayer.put(session2, "green");
 
-        Message<String> message = new Message<>("info", "Broadcast test");
+        Message message = new PromptMessage("info", "Broadcast test");
         messageSender.broadcastToGame(sessions, message, colorByPlayer);
 
         // Verify that sendMessage(session, color, message) is called for both sessions.
         ArgumentCaptor<TextMessage> captor1 = ArgumentCaptor.forClass(TextMessage.class);
         verify(session1).sendMessage(captor1.capture());
         String json1 = captor1.getValue().getPayload();
-        Message<?> m1 = objectMapper.readValue(json1, Message.class);
+        Message m1 = objectMapper.readValue(json1, Message.class);
         assertEquals("info", m1.getType());
-        assertEquals("Broadcast test", m1.getContent());
+        assertEquals("Broadcast test", ((PromptMessage) m1).getMessage());
 
         ArgumentCaptor<TextMessage> captor2 = ArgumentCaptor.forClass(TextMessage.class);
         verify(session2).sendMessage(captor2.capture());
         String json2 = captor2.getValue().getPayload();
-        Message<?> m2 = objectMapper.readValue(json2, Message.class);
+        Message m2 = objectMapper.readValue(json2, Message.class);
         assertEquals("info", m2.getType());
-        assertEquals("Broadcast test", m2.getContent());
+        assertEquals("Broadcast test", ((PromptMessage) m2).getMessage());
     }
 
     @Test
@@ -141,9 +143,9 @@ class MessageSenderTest {
         ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
         verify(session1).sendMessage(captor.capture());
         String json = captor.getValue().getPayload();
-        Message<?> received = objectMapper.readValue(json, Message.class);
+        Message received = objectMapper.readValue(json, Message.class);
         assertEquals("gameEnd", received.getType());
-        assertTrue(received.getContent().toString().contains("draw"));
+        assertEquals("draw", ((GameEnd) received).getResult());
     }
 
     @Test
@@ -169,8 +171,8 @@ class MessageSenderTest {
         ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
         verify(session1).sendMessage(captor.capture());
         String json = captor.getValue().getPayload();
-        Message<?> received = objectMapper.readValue(json, Message.class);
+        Message received = objectMapper.readValue(json, Message.class);
         assertEquals("gameEnd", received.getType());
-        assertTrue(received.getContent().toString().toLowerCase().contains("white"));
+        assertTrue(((GameEnd)received).getResult().equalsIgnoreCase("white"));
     }
 }

@@ -14,7 +14,7 @@ import pw.checkers.data.enums.Color;
 import pw.checkers.data.enums.PieceType;
 import pw.checkers.game.GameRules;
 import pw.checkers.message.Move;
-import pw.checkers.message.PossibleMoves;
+import pw.checkers.message.PossibilitiesOutput;
 
 public class GameRulesTest {
 
@@ -45,7 +45,7 @@ public class GameRulesTest {
     @Test
     public void testGetPossibleMovesForEmptyCell() {
         GameState state = createEmptyGameState();
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 3, 3);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 3, 3);
         assertTrue(moves.getMoves().isEmpty(), "Empty cell should yield no moves");
     }
 
@@ -57,7 +57,7 @@ public class GameRulesTest {
         state.getBoard()[5][2] = whitePawn;
 
         // Expect two normal moves (diagonally down-left and down-right) if within bounds.
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 5, 2);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 5, 2);
         assertFalse(moves.getMoves().isEmpty(), "White pawn should have normal moves");
         // Check that moves are one step diagonally.
         moves.getMoves().forEach(m -> {
@@ -79,7 +79,7 @@ public class GameRulesTest {
         state.getBoard()[5][2] = whitePawn;
 
         // Expect two normal moves (diagonally up-left and upright) if within bounds.
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 5, 2);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 5, 2);
         assertFalse(moves.getMoves().isEmpty(), "White pawn should have normal moves");
         // Check that moves are one step diagonally.
         moves.getMoves().forEach(m -> {
@@ -103,7 +103,7 @@ public class GameRulesTest {
         state.getBoard()[4][3] = blackPawn;
 
         // The landing square (3,4) should be empty.
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 5, 2);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 5, 2);
         // Expect that at least one move is a capture move (distance of 2).
         boolean foundCapture = moves.getMoves().stream()
                 .anyMatch(m -> (5 - m.getRow() == 2) && (m.getCol() - 2 == 2));
@@ -123,7 +123,7 @@ public class GameRulesTest {
         state.getBoard()[4][3] = blackPawn;
 
         // The landing square (6,1) should be empty.
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 4, 3);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 4, 3);
         // Expect that at least one move is a capture move (distance of 2).
         boolean foundCapture = moves.getMoves().stream()
                 .anyMatch(m -> m.getRow() - 4 == 2 && 3 - m.getCol() == 2);
@@ -141,7 +141,7 @@ public class GameRulesTest {
         state.getBoard()[5][2] = whitePawn;
 
         // Expect four normal moves (diagonally left and right) if within bounds.
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 5, 2);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 5, 2);
         assertFalse(moves.getMoves().isEmpty(), "White pawn should have normal moves");
         // Check that moves are one step diagonally.
         moves.getMoves().forEach(m -> {
@@ -163,7 +163,7 @@ public class GameRulesTest {
         state.getBoard()[5][2] = whitePawn;
 
         // Expect four normal moves (diagonally left and right) if within bounds.
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 5, 2);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 5, 2);
         assertFalse(moves.getMoves().isEmpty(), "White pawn should have normal moves");
         // Check that moves are one step diagonally.
         moves.getMoves().forEach(m -> {
@@ -189,7 +189,7 @@ public class GameRulesTest {
         state.getBoard()[6][1] = blackPawn2;
 
         // Expect two captures - the king can go backwards
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 5, 2);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 5, 2);
         assertFalse(moves.getMoves().isEmpty(), "White king should have two capture moves");
         // Check that moves are two-step diagonally.
         moves.getMoves().forEach(m -> {
@@ -215,7 +215,7 @@ public class GameRulesTest {
         state.getBoard()[6][1] = whitePawn2;
 
         // Expect two captures - the king can go backwards
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 5, 2);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 5, 2);
         assertFalse(moves.getMoves().isEmpty(), "White king should have two capture moves");
         // Check that moves are two-step diagonally.
         moves.getMoves().forEach(m -> {
@@ -241,7 +241,7 @@ public class GameRulesTest {
         state.getBoard()[5][4] = whitePawn3;
 
         // Expect no moves - pawn is blocked by his allies
-        PossibleMoves moves = gameRules.getPossibleMoves(state, 6, 3);
+        PossibilitiesOutput moves = gameRules.getPossibleMoves(state, 6, 3);
         assertTrue(moves.getMoves().isEmpty(), "There should be no moves available");
     }
 
