@@ -1,17 +1,15 @@
 package pw.checkers.message;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pw.checkers.data.enums.MessageType;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class GameEnd extends Message{
     private String result;
-
-    public GameEnd() {
-        super(MessageType.GAME_END.getValue());
-    }
 
     public GameEnd(String result) {
         super(MessageType.GAME_END.getValue());
