@@ -19,7 +19,7 @@ import pw.checkers.message.GameIdMessage;
 import pw.checkers.message.Move;
 import pw.checkers.message.MoveOutput;
 import pw.checkers.message.PossibilitiesInput;
-import pw.checkers.message.PossibleMoves;
+import pw.checkers.message.PossibilitiesOutput;
 import pw.checkers.sockets.GameManager;
 import pw.checkers.sockets.SessionManager;
 
@@ -113,7 +113,7 @@ public class GameManagerTest {
         when(sessionManager.getAssignedColor(gameId, session)).thenReturn(Optional.empty());
 
         // When
-        PossibleMoves result = gameManager.getPossibleMoves(input, session);
+        PossibilitiesOutput result = gameManager.getPossibleMoves(input, session);
 
         // Then
         assertNull(result, "When no color is assigned, getPossibleMoves should return null.");
@@ -135,11 +135,11 @@ public class GameManagerTest {
         when(gameService.getGame(gameId)).thenReturn(dummyState);
 
         // Create fake PossibleMoves and stub gameService.getPossibleMoves
-        PossibleMoves expectedMoves = new PossibleMoves();
+        PossibilitiesOutput expectedMoves = new PossibilitiesOutput();
         when(gameService.getPossibleMoves(dummyState, row, col)).thenReturn(expectedMoves);
 
         // When
-        PossibleMoves result = gameManager.getPossibleMoves(input, session);
+        PossibilitiesOutput result = gameManager.getPossibleMoves(input, session);
 
         // Then
         assertEquals(expectedMoves, result);
