@@ -38,7 +38,7 @@ public class GameManager {
         return gameService.getGame(gameId);
     }
 
-    public PossibleMoves getPossibleMoves(PossibilitiesInput possibilitiesInput, WebSocketSession session) throws IOException {
+    public PossibilitiesOutput getPossibleMoves(PossibilitiesInput possibilitiesInput, WebSocketSession session) throws IOException {
         String gameId = possibilitiesInput.getGameId();
         Optional<String> maybeColor = sessionManager.getAssignedColor(gameId, session);
         if (maybeColor.isEmpty()) return null;
