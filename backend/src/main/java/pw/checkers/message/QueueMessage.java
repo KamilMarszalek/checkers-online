@@ -9,6 +9,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class QueueMessage {
+public class QueueMessage extends Message {
     private User user;
+
+    public QueueMessage(String type, User user) {
+        super(type);
+        this.user = user;
+    }
 }
