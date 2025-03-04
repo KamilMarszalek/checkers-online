@@ -30,10 +30,11 @@ fun Board(
     board: Board,
     uiState: GameState,
     cellSize: Dp,
+    modifier: Modifier = Modifier,
     onAction: (GameBoardAction) -> Unit,
 ) {
 
-    Column {
+    Column(modifier = modifier) {
         board.forEach { row ->
             Row {
                 row.forEach { cell ->

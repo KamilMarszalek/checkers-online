@@ -1,6 +1,5 @@
 package pw.checkers.game.presentation.gameScreen.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -9,25 +8,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import pw.checkers.core.presentation.windowSize.WindowSize
+import pw.checkers.core.presentation.windowSize.rememberWindowSize
+import pw.checkers.core.util.DoNothing
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.Board
+import pw.checkers.game.domain.model.PlayerColor
 import pw.checkers.game.domain.model.User
 import pw.checkers.game.presentation.gameScreen.GameBoardAction
 import pw.checkers.game.presentation.gameScreen.GameState
 import pw.checkers.game.presentation.gameScreen.GameViewModel
 import pw.checkers.game.presentation.gameScreen.ui.components.Board
-import pw.checkers.game.util.messageCollectionDisposableEffect
-import pw.checkers.core.presentation.windowSize.WindowSize
-import pw.checkers.core.presentation.windowSize.rememberWindowSize
-import pw.checkers.core.util.DoNothing
+import pw.checkers.game.presentation.gameScreen.ui.components.UserPanel
 import pw.checkers.game.util.calcCellSize
+import pw.checkers.game.util.messageCollectionDisposableEffect
 
 // TODO: make popups responsive, stack buttons in column when screen to narrow
+// TODO: make better system for scaling board and user panels
 
 @Composable
 fun GameScreen(
@@ -55,6 +55,9 @@ fun GameScreen(
         state = state,
         onAction = gameViewModel::onAction,
         windowSize = windowSize,
+        gameViewModel.user,
+        gameViewModel.opponent,
+        gameViewModel.color
     )
 
     if (state.gameEnded) EndGamePopupFromState(state, gameViewModel, onMainMenuClick)
@@ -62,28 +65,38 @@ fun GameScreen(
 
 
 @Composable
-private fun Game(board: Board, state: GameState, onAction: (GameBoardAction) -> Unit, windowSize: WindowSize) {
+private fun Game(
+    board: Board,
+    state: GameState,
+    onAction: (GameBoardAction) -> Unit,
+    windowSize: WindowSize,
+    user: User,
+    opponent: User,
+    assignedColor: PlayerColor
+) {
     val cellSize = remember { calcCellSize(windowSize.width, windowSize.height) }
 
-    Column {
-        UserPanelPlaceHolder(cellSize * 8, height = cellSize)
-        Board(
-            board = board,
-            uiState = state,
-            cellSize = cellSize,
-            onAction = { action -> onAction(action) },
-        )
-        UserPanelPlaceHolder(cellSize * 8, height = cellSize)
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(modifier = Modifier.weight(1f).width(cellSize * 8)) {
+            UserPanel(modifier = Modifier.fillMaxSize(), opponent, assignedColor != state.currentPlayer)
+        }
+        Box(modifier = Modifier.size(width = cellSize * 8, height = cellSize * 8)) {
+            Board(
+                board = board,
+                uiState = state,
+                cellSize = cellSize,
+                modifier = Modifier.fillMaxSize(),
+                onAction = { action -> onAction(action) },
+            )
+        }
+        Box(modifier = Modifier.weight(1f).width(cellSize * 8)) {
+            UserPanel(modifier = Modifier.fillMaxSize(), user, assignedColor == state.currentPlayer)
+        }
     }
 }
-
-@Composable
-private fun UserPanelPlaceHolder(width: Dp, height: Dp) {
-    Box(
-        modifier = Modifier.width(width).height(height).background(Color.Blue)
-    )
-}
-
 
 @Composable
 private fun EndGamePopupFromState(
