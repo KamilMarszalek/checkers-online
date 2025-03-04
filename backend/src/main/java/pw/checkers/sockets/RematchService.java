@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static pw.checkers.data.enums.MessageType.*;
-import static pw.checkers.data.enums.MessageType.GAME_CREATED;
 
 @Service
 public class RematchService {
@@ -34,8 +33,7 @@ public class RematchService {
         String gameId = gameIdMessage.getGameId();
         Set<WebSocketSession> sessions = sessionManager.getSessionsByGameId(gameId);
         if (sessions == null) {
-            Message<PromptMessage> message =
-                    new Message<>(REJECTION.getValue(), new PromptMessage("Opponent has already left the game"));
+            Message message = new PromptMessage(REJECTION.getValue(), "Opponent has already left the game");
             messageSender.sendMessage(session, message);
             return;
         }
@@ -54,12 +52,10 @@ public class RematchService {
         }
 
         if (opponent.isPresent()) {
-            Message<GameIdMessage> message =
-                    new Message<>(REMATCH_REQUEST.getValue(), new GameIdMessage(gameId));
+            Message message = new GameIdMessage(REMATCH_REQUEST.getValue(), gameId);
             messageSender.sendMessage(opponent.get(), message);
         } else {
-            Message<PromptMessage> message =
-                    new Message<>(REJECTION.getValue(), new PromptMessage("Opponent has already left the game"));
+            Message message =new PromptMessage(REJECTION.getValue(), "Opponent has already left the game");
             messageSender.sendMessage(session, message);
         }
 
@@ -70,14 +66,8 @@ public class RematchService {
         sessionManager.addToColorAssignments(newGameId, playersByColor.get(Color.BLACK.getValue()), playersByColor.get(Color.WHITE.getValue()));
 
         // white player will play black in rematch
-        Message<JoinMessage> messageForOriginalWhite = new Message<>(
-                GAME_CREATED.getValue(),
-                new JoinMessage(newGameId, Color.BLACK.getValue(), sessionManager.getUserBySession(playersByColor.get(Color.BLACK.getValue())))
-        );
-        Message<JoinMessage> messageForOriginalBlack = new Message<>(
-                GAME_CREATED.getValue(),
-                new JoinMessage(newGameId, Color.WHITE.getValue(), sessionManager.getUserBySession(playersByColor.get(Color.WHITE.getValue())))
-        );
+        Message messageForOriginalWhite = new JoinMessage(newGameId, Color.BLACK.getValue(), sessionManager.getUserBySession(playersByColor.get(Color.BLACK.getValue())));
+        Message messageForOriginalBlack = new JoinMessage(newGameId, Color.WHITE.getValue(), sessionManager.getUserBySession(playersByColor.get(Color.WHITE.getValue())));
         messageSender.sendMessage(playersByColor.get(Color.WHITE.getValue()), Color.BLACK.getValue(), messageForOriginalWhite);
         messageSender.sendMessage(playersByColor.get(Color.BLACK.getValue()), Color.WHITE.getValue(), messageForOriginalBlack);
     }
@@ -90,7 +80,7 @@ public class RematchService {
         String gameId = gameIdMessage.getGameId();
         Map<WebSocketSession, String> gamePlayers = sessionManager.getColorAssignments(gameId);
         if (gamePlayers == null) {
-            Message<PromptMessage> message = new Message<>(REJECTION.getValue(), new PromptMessage("Opponent has already left the game"));
+            Message message = new PromptMessage(REJECTION.getValue(), "Opponent has already left the game");
             messageSender.sendMessage(session, message);
             return;
         }

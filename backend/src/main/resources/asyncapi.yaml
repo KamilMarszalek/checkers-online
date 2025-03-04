@@ -52,161 +52,133 @@ components:
 
     JoinQueueMessage:
       name: JoinQueueMessage
-      title: "joinQueue"
+      title: "JoinQueue"
       payload:
         type: object
         properties:
           type:
             type: string
             enum: [ "joinQueue" ]
-          content:
+          user:
             type: object
             properties:
-              user:
-                type: object
-                properties:
-                  username:
-                    type: string
-                    description: "Name of the player"
-                required: [username]
-            required: [user]
-        required: [ type, content ]
+              username:
+                type: string
+                description: "Name of the player"
+            required: [username]
+        required: [ type, user ]
         additionalProperties: false
     LeaveQueueMessage:
       name: LeaveQueueMessage
-      title: "leaveQueue"
+      title: "LeaveQueue"
       payload:
         type: object
         properties:
           type:
             type: string
             enum: [ "leaveQueue" ]
-          content:
+          user:
             type: object
             properties:
-              user:
-                type: object
-                properties:
-                  username:
-                    type: string
-                    description: "Name of the player"
-                required: [username]
-            required: [user]
-        required: [ type, content ]
+              username:
+                type: string
+                description: "Name of the player"
+            required: [username]
+        required: [ type, user ]
         additionalProperties: false
 
     MoveMessage:
       name: MoveMessage
-      title: "move"
+      title: "Move"
       payload:
         type: object
         properties:
           type:
             type: string
             enum: [ "move" ]
-          content:
+          gameId:
+            type: string
+            description: "ID of the existing game"
+          move:
             type: object
+            description: "Move details"
             properties:
-              gameId:
-                type: string
-                description: "ID of the existing game"
-              move:
-                type: object
-                description: "Move details"
-                properties:
-                  fromRow:
-                    type: integer
-                  fromCol:
-                    type: integer
-                  toRow:
-                    type: integer
-                  toCol:
-                    type: integer
-                required: [ fromRow, fromCol, toRow, toCol ]
-            required: [ gameId, move ]
-        required: [type, content]
+              fromRow:
+                type: integer
+              fromCol:
+                type: integer
+              toRow:
+                type: integer
+              toCol:
+                type: integer
+            required: [ fromRow, fromCol, toRow, toCol ]
+        required: [type, gameId, move]
         additionalProperties: false
 
     PossibilitiesMessage:
       name: PossibilitiesMessage
-      title: "possibilities"
+      title: "Possibilities"
       payload:
         type: object
         properties:
           type:
             type: string
             enum: [ "possibilities" ]
-          content:
-            type: object
-            properties:
-              gameId:
-                type: string
-                description: "ID of the game"
-              row:
-                type: integer
-                description: "Row for which to get possible moves"
-              col:
-                type: integer
-                description: "Column for which to get possible moves"
-            required: [gameId, row, col]
-        required: [ type, content ]
+          gameId:
+            type: string
+            description: "ID of the game"
+          row:
+            type: integer
+            description: "Row for which to get possible moves"
+          col:
+            type: integer
+            description: "Column for which to get possible moves"
+        required: [ type, gameId, row, col ]
         additionalProperties: false
 
     RematchRequestSendMessage:
       name: RematchRequestMessage
-      title: "rematch request"
+      title: "RematchRequest"
       payload:
         type: object
         properties:
           type:
             type: string
-            enum: [ "rematch request" ]
-          content:
-            type: object
-            properties:
-              gameId:
-                type: string
-                description: "ID of the game for which a rematch is requested"
-            required: [gameId]
-        required: [type, content]
+            enum: [ "rematchRequest" ]
+          gameId:
+            type: string
+            description: "ID of the game for which a rematch is requested"
+        required: [type, gameId]
         additionalProperties: false
 
     AcceptRematchMessage:
       name: AcceptRematchMessage
-      title: "accept rematch"
+      title: "AcceptRematch"
       payload:
         type: object
         properties:
           type:
             type: string
-            enum: [ "accept rematch" ]
-          content:
-            type: object
-            properties:
-              gameId:
-                type: string
-                description: "ID of the game for which rematch is accepted"
-            required: [gameId]
-        required: [type, content]
+            enum: [ "acceptRematch" ]
+          gameId:
+            type: string
+            description: "ID of the game for which rematch is accepted"
+        required: [type, gameId]
         additionalProperties: false
 
     DeclineRematchMessage:
       name: DeclineRematchMessage
-      title: "decline rematch"
+      title: "DeclineRematch"
       payload:
         type: object
         properties:
           type:
             type: string
-            enum: [ "decline rematch" ]
-          content:
-            type: object
-            properties:
-              gameId:
-                type: string
-                description: "ID of the game for which rematch is declined"
-            required: [gameId]
-        required: [type, content]
+            enum: [ "declineRematch" ]
+          gameId:
+            type: string
+            description: "ID of the game for which rematch is declined"
+        required: [type, gameId]
         additionalProperties: false
 
     LeaveMessage:
@@ -218,14 +190,10 @@ components:
           type:
             type: string
             enum: [ "leave" ]
-          content:
-            type: object
-            properties:
-              gameId:
-                type: string
-                description: "ID of the game being left"
-            required: [gameId]
-        required: [type, content]
+          gameId:
+            type: string
+            description: "ID of the game being left"
+        required: [type, gameId]
         additionalProperties: false
 
     ############################################
@@ -240,25 +208,21 @@ components:
         properties:
           type:
             type: string
-            enum: [ "Game created" ]
-          content:
+            enum: [ "gameCreated" ]
+          gameId:
+            type: string
+            description: "ID of the newly created game"
+          color:
+            type: string
+            enum: ["white", "black"]
+            description: "Color assigned to the recipient"
+          opponent:
             type: object
             properties:
-              gameId:
+              username:
                 type: string
-                description: "ID of the newly created game"
-              assignedColor:
-                type: string
-                enum: ["white", "black"]
-                description: "Color assigned to the recipient"
-              opponent:
-                type: object
-                properties:
-                  username:
-                    type: string
-                    description: "Name of the opponent"
-            required: [ type, gameId, assignedColor, opponent ]
-        required: [type, content]
+                description: "Name of the opponent"
+        required: [ type, gameId, color, opponent ]
         additionalProperties: false
 
     MoveResultMessage:
@@ -270,40 +234,36 @@ components:
           type:
             type: string
             enum: ["move"]
-          content:
+          move:
             type: object
             properties:
-              move:
-                type: object
-                properties:
-                  fromRow:
-                    type: integer
-                  fromCol:
-                    type: integer
-                  toRow:
-                    type: integer
-                  toCol:
-                    type: integer
-                required: [fromRow, fromCol, toRow, toCol]
-              captured:
-                type: boolean
-              capturedPiece:
-                type: object
-                properties:
-                  row:
-                    type: integer
-                  col:
-                    type: integer
-              hasMoreTakes:
-                type: boolean
-              currentTurn:
-                type: string
-                enum: ["white", "black"]
-              previousTurn:
-                type: string
-                enum: ["white", "black"]
-            required: [ move, captured, capturedPiece, hasMoreTakes, currentTurn, previousTurn ]
-        required: [type, content]
+              fromRow:
+                type: integer
+              fromCol:
+                type: integer
+              toRow:
+                type: integer
+              toCol:
+                type: integer
+            required: [fromRow, fromCol, toRow, toCol]
+          captured:
+            type: boolean
+          capturedPiece:
+            type: object
+            properties:
+              row:
+                type: integer
+              col:
+                type: integer
+          hasMoreTakes:
+            type: boolean
+          currentTurn:
+            type: string
+            enum: ["white", "black"]
+          previousTurn:
+            type: string
+            enum: ["white", "black"]
+        required: [ type, move, captured, capturedPiece, hasMoreTakes, currentTurn, previousTurn ]
         additionalProperties: false
 
     PossibleMovesMessage:
@@ -315,21 +275,18 @@ components:
           type:
             type: string
             enum: ["possibilities"]
-          content:
-            type: object
-            properties:
-              moves:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    row:
-                      type: integer
-                    col:
-                      type: integer
-                  required: [ row, col ]
-                description: "List of possible moves from the requested position."
-            required: [ moves ]
+          moves:
+            type: array
+            items:
+              type: object
+              properties:
+                row:
+                  type: integer
+                col:
+                  type: integer
+              required: [ row, col ]
+            description: "List of possible moves from the requested position."
+        required: [ type, moves ]
         additionalProperties: false
 
     JoinedWaitingQueueMessage:
@@ -341,12 +298,10 @@ components:
           type:
             type: string
             enum: ["waiting"]
-          content:
-            type: object
-            properties:
-              message:
-                type: string
-                enum: ["Waiting for an opponent..."]
+          message:
+            type: string
+            enum: ["Waiting for an opponent..."]
+        required: [type, message]
         additionalProperties: false
 
     GameEndMessage:
@@ -358,33 +313,25 @@ components:
           type:
             type: string
             enum: ["gameEnd"]
-          content:
-            type: object
-            properties:
-              result:
-                type: string
-                enum: ["draw", "white", "black"]
-            required: [result]
-        required: [type, content]
+          result:
+            type: string
+            enum: ["draw", "white", "black"]
+        required: [type, result]
         additionalProperties: false
 
     RematchRequestReceiveMessage:
       name: RematchPropositionMessage
-      title: "rematch request"
+      title: "RematchRequest"
       payload:
         type: object
         properties:
           type:
             type: string
-            enum: [ "rematch request" ]
-          content:
-            type: object
-            properties:
-              gameId:
-                type: string
-                description: "ID of the game for which a rematch is proposed"
-            required: [gameId]
-        required: [type, content]
+            enum: [ "rematchRequest" ]
+          gameId:
+            type: string
+            description: "ID of the game for which a rematch is proposed"
+        required: [type, gameId]
         additionalProperties: false
 
     ErrorMessage:
@@ -396,10 +343,10 @@ components:
           type:
             type: string
             enum: [ "error" ]
-          content:
+          message:
             type: string
             description: "A description of the error encountered"
-        required: [ type, content ]
+        required: [ type, message ]
         additionalProperties: false
 
     RejectionMessage:
@@ -411,12 +358,8 @@ components:
           type:
             type: string
             enum: [ "rejection" ]
-          content:
-            type: object
-            properties:
-              message:
-                type: string
-                description: "Message indicating that the opponent rejected the rematch request"
-            required: [ message ]
-        required: [ type, content ]
+          message:
+            type: string
+            description: "Message indicating that the opponent rejected the rematch request"
+        required: [ type, message ]
         additionalProperties: false

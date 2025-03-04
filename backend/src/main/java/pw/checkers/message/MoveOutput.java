@@ -1,19 +1,20 @@
 package pw.checkers.message;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pw.checkers.data.enums.MessageType;
 
 @Setter
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class MoveOutput {
+public class MoveOutput extends Message{
     private Move move;
     private boolean captured;
     private MoveHelper capturedPiece;
     private boolean hasMoreTakes;
     private String currentTurn;
     private String previousTurn;
+
+    public MoveOutput() {
+        super(MessageType.MOVE.getValue());
+    }
 }
