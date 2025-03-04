@@ -1,8 +1,8 @@
-package pw.checkers.data.domain
+package pw.checkers.game.data.dto
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class User(
+data class UserDto(
     val username: String
 )

@@ -1,9 +1,9 @@
-package pw.checkers.data.domain
+package pw.checkers.game.data.dto
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Move(
+data class MoveDto(
     val fromRow: Int,
     val fromCol: Int,
     val toRow: Int,
