@@ -14,18 +14,22 @@ kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
-ktor-client-websockets = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktor"}
-ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor"}
+compose-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref= "compose-navigation"}
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor"}
+ktor-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor"}
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization"}
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }
 koin-compose = { module = "io.insert-koin:koin-compose" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
 koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation" }
-compose-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref= "compose-navigation"}
 
 [plugins]
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
+
+[bundles]
+ktor = ["ktor-client-websockets", "ktor-serialization"]
+koin = ["koin-compose", "koin-compose-viewmodel", "koin-compose-viewmodel-navigation", "koin-core"]
