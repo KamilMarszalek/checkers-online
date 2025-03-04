@@ -1,4 +1,4 @@
-package pw.checkers
+package pw.checkers.app
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,15 +10,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.koin.core.context.GlobalContext.startKoin
 import org.koin.core.context.GlobalContext.stopKoin
-import pw.checkers.di.appModule
-import pw.checkers.ui.theme.AppTheme
+import pw.checkers.di.gameModule
+import pw.checkers.core.presentation.AppTheme
 
 @Composable
 fun App() {
 
     remember {
         startKoin {
-            modules(appModule)
+            modules(gameModule)
         }
     }
 
