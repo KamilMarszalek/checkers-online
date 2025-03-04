@@ -1,10 +1,5 @@
-package pw.checkers.ui.icons.pawns
+package pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType.Companion.EvenOdd
 import androidx.compose.ui.graphics.PathFillType.Companion.NonZero
@@ -15,16 +10,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.ImageVector.Builder
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
-import kotlin.Unit
-import pw.checkers.ui.icons.Pawns
+import pw.checkers.game.presentation.gameScreen.ui.components.icons.Pawns
 
-public val Pawns.WhitePawn: ImageVector
+val Pawns.WhiteQueen: ImageVector
     get() {
-        if (_whitepawn != null) {
-            return _whitepawn!!
+        if (_whitequeen != null) {
+            return _whitequeen!!
         }
-        _whitepawn = Builder(name = "Whitepawn", defaultWidth = 257.0.dp, defaultHeight = 256.0.dp,
-                viewportWidth = 257.0f, viewportHeight = 256.0f).apply {
+        _whitequeen = Builder(name = "Whitequeen", defaultWidth = 257.0.dp, defaultHeight =
+                256.0.dp, viewportWidth = 257.0f, viewportHeight = 256.0f).apply {
             path(fill = SolidColor(Color(0xFF444444)), stroke = null, strokeLineWidth = 0.0f,
                     strokeLineCap = Butt, strokeLineJoin = Miter, strokeLineMiter = 4.0f,
                     pathFillType = EvenOdd) {
@@ -53,7 +47,7 @@ public val Pawns.WhitePawn: ImageVector
                 verticalLineTo(147.57f)
                 close()
             }
-            path(fill = SolidColor(Color(0xFF000000)), stroke = null, fillAlpha = 0.4f,
+            path(fill = SolidColor(Color(0xFFff0000)), stroke = null, fillAlpha = 0.6f,
                     strokeLineWidth = 0.0f, strokeLineCap = Butt, strokeLineJoin = Miter,
                     strokeLineMiter = 4.0f, pathFillType = NonZero) {
                 moveTo(128.67f, 214.11f)
@@ -91,7 +85,7 @@ public val Pawns.WhitePawn: ImageVector
             }
         }
         .build()
-        return _whitepawn!!
+        return _whitequeen!!
     }
 
-private var _whitepawn: ImageVector? = null
+private var _whitequeen: ImageVector? = null

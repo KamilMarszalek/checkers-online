@@ -1,10 +1,5 @@
-package pw.checkers.ui.icons.pawns
+package pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType.Companion.EvenOdd
 import androidx.compose.ui.graphics.PathFillType.Companion.NonZero
@@ -15,10 +10,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.ImageVector.Builder
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
-import kotlin.Unit
-import pw.checkers.ui.icons.Pawns
+import pw.checkers.game.presentation.gameScreen.ui.components.icons.Pawns
 
-public val Pawns.BlackPawn: ImageVector
+val Pawns.BlackPawn: ImageVector
     get() {
         if (_blackpawn != null) {
             return _blackpawn!!
