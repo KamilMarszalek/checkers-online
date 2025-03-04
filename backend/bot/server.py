@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uuid
-from bot_session import BotSession
+from bot.bot_session import BotSession
 import asyncio
 
 URL = "ws://localhost:8080/ws"
@@ -9,7 +9,8 @@ app = FastAPI()
 active_sessions = {}
 
 """
-    To run app type in the terminal:
+    To run app go to backend directory
+    and type in the terminal:
         uvicorn server:app
 """
 

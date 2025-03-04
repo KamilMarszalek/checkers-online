@@ -1,6 +1,6 @@
 import websockets
 import json
-from bot import Bot
+from bot.bot import Bot
 import asyncio
 from typing import Optional, Any
 

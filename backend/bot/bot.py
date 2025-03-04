@@ -2,7 +2,7 @@ import copy
 import math
 import random
 from typing import List, Optional, Tuple
-from constants import MINIMAX_DEPTH, WON_PRIZE, BOARD_SIZE
+from bot.constants import MINIMAX_DEPTH, WON_PRIZE, BOARD_SIZE
 
 
 class Bot:
