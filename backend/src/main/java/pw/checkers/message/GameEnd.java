@@ -8,7 +8,7 @@ import pw.checkers.data.enums.MessageType;
 @Getter
 @Setter
 @NoArgsConstructor
-public class GameEnd extends Message{
+public class GameEnd extends Message {
     private String result;
 
     public GameEnd(String result) {
