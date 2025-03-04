@@ -1,8 +1,9 @@
-package pw.checkers.viewModel.gameScreen
+package pw.checkers.game.presentation.gameScreen
 
-import pw.checkers.data.domain.Cell
-import pw.checkers.data.domain.PlayerColor
-import pw.checkers.data.domain.Result
+import pw.checkers.game.domain.model.Cell
+import pw.checkers.game.domain.model.PlayerColor
+import pw.checkers.game.domain.model.Result
+
 
 data class GameState(
     val currentPlayer: PlayerColor = PlayerColor.WHITE,

@@ -1,21 +1,24 @@
-package pw.checkers.viewModel.loginScreen
+package pw.checkers.game.presentation.loginScreen
 
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import pw.checkers.client.RealtimeMessageClient
-import pw.checkers.data.domain.User
-import pw.checkers.data.message.Message
-import pw.checkers.data.messageType.MessageType
-import pw.checkers.data.request.JoinQueue
-import pw.checkers.viewModel.BaseViewModel
+import pw.checkers.game.domain.GameAction
+import pw.checkers.game.domain.GameEvent
+import pw.checkers.game.domain.model.User
+import pw.checkers.game.domain.repository.GameRepository
+import pw.checkers.game.presentation.BaseViewModel
+import pw.checkers.core.util.DoNothing
 
 class LoginViewModel(
-    messageClient: RealtimeMessageClient
-) : BaseViewModel(messageClient) {
+    gameRepository: GameRepository
+) : BaseViewModel(gameRepository) {
 
     private val _state = MutableStateFlow(LoginScreenState())
     val state = _state.asStateFlow()
+
+    private lateinit var user: User
+    fun getUser() = user
 
     val usernameValidation: StateFlow<UserNameValidation> = state
         .map { state ->
@@ -28,7 +31,7 @@ class LoginViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, UserNameValidation(false))
 
-    private val _events = MutableSharedFlow<LoginScreenEvent>()
+    private val _events = MutableSharedFlow<GameEvent>()
     val events = _events.asSharedFlow()
 
     fun onAction(action: LoginScreenAction) {
@@ -45,20 +48,20 @@ class LoginViewModel(
     }
 
     private fun play() {
-        val content = JoinQueue(User(username = _state.value.username))
-        sendMessage(MessageType.JOIN_QUEUE, content)
+        user = User(username = _state.value.username)
+        sendAction(GameAction.JoinQueue(user))
     }
 
-    override fun handleServerMessage(msg: Message) {
-        when (msg.type) {
-            MessageType.WAITING, MessageType.GAME_CREATED -> processWaitingMessage(msg)
-            else -> {}
+    override fun handleGameEvent(event: GameEvent) {
+        when (event) {
+            is GameEvent.GameCreated, is GameEvent.JoinedQueue -> emitEvent(event)
+            else -> DoNothing
         }
     }
 
-    private fun processWaitingMessage(message: Message) {
+    private fun emitEvent(event: GameEvent) {
         viewModelScope.launch {
-            _events.emit(LoginScreenEvent.JoinQueue(message, User(_state.value.username)))
+            _events.emit(event)
         }
     }
 }

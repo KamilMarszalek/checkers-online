@@ -1,4 +1,4 @@
-package pw.checkers.viewModel.waitingScreen
+package pw.checkers.game.presentation.waitingScreen
 
 
 data class WaitingScreenState(
