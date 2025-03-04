@@ -3,6 +3,7 @@ import json
 from bot.bot import Bot
 import asyncio
 from typing import Optional, Any
+import random
 
 
 class BotSession:
@@ -179,4 +180,5 @@ class BotSession:
             },
         }
         if self.ws:
+            await asyncio.sleep(random.randint(1, 5))
             await self.ws.send(json.dumps(request))
