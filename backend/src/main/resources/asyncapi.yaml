@@ -212,7 +212,7 @@ components:
           gameId:
             type: string
             description: "ID of the newly created game"
-          assignedColor:
+          color:
             type: string
             enum: ["white", "black"]
             description: "Color assigned to the recipient"
@@ -222,7 +222,7 @@ components:
               username:
                 type: string
                 description: "Name of the opponent"
-        required: [ type, gameId, assignedColor, opponent ]
+        required: [ type, gameId, color, opponent ]
         additionalProperties: false
 
     MoveResultMessage:
