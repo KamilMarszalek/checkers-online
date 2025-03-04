@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class GameIdMessage extends Message{
+public class GameIdMessage extends Message {
     private String gameId;
 
     public GameIdMessage(String gameId) {
