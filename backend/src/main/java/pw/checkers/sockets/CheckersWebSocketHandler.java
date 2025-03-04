@@ -9,24 +9,20 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pw.checkers.data.GameState;
 import pw.checkers.data.enums.Color;
-import pw.checkers.data.enums.MessageType;
 import pw.checkers.message.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pw.checkers.utils.WaitingPlayer;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static pw.checkers.data.enums.MessageType.*;
 
-public class CheckersWebSocketHandler extends TextWebSocketHandler {
+public class CheckersWebSocketHandler extends TextWebSocketHandler implements MessageVisitor {
 
     private static final Logger logger = LoggerFactory.getLogger(CheckersWebSocketHandler.class);
 
-    private final Map<MessageType, WebSocketMessageHandler> handlers = new ConcurrentHashMap<>();
     private final SessionManager sessionManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RematchService rematchService;
@@ -39,53 +35,6 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         this.rematchService = rematchService;
         this.messageSender = messageSender;
         this.gameManager = gameManager;
-        initializeHandlers();
-    }
-
-    private void initializeHandlers() {
-        handlers.put(MessageType.JOIN_QUEUE, (session, rawMessage) -> {
-            QueueMessage queueMsg = (QueueMessage) rawMessage;
-            handleJoinQueue(session, queueMsg.getUser());
-        });
-
-        handlers.put(MessageType.LEAVE_QUEUE, (session, rawMessage) -> {
-            QueueMessage queueMsg = (QueueMessage) rawMessage;
-            handleLeaveQueue(session, queueMsg.getUser());
-        });
-
-        handlers.put(MessageType.MOVE, (session, rawMessage) -> {
-            MoveInput moveInput = (MoveInput) rawMessage;
-            handleMove(session, moveInput);
-        });
-
-        handlers.put(MessageType.POSSIBILITIES, (session, rawMessage) -> {
-            PossibilitiesInput possibilitiesInput = (PossibilitiesInput) rawMessage;
-            handlePossibilities(session, possibilitiesInput);
-        });
-
-        handlers.put(MessageType.REMATCH_REQUEST, (session, rawMessage) -> {
-            GameIdMessage gameIdMessage = (GameIdMessage) rawMessage;
-            proposeRematch(session, gameIdMessage);
-        });
-
-        handlers.put(MessageType.ACCEPT_REMATCH, (session, rawMessage) -> {
-            GameIdMessage gameIdMessage = (GameIdMessage) rawMessage;
-            startRematch(session, gameIdMessage);
-        });
-
-        handlers.put(MessageType.DECLINE_REMATCH, (session, rawMessage) -> {
-            GameIdMessage gameIdMessage = (GameIdMessage) rawMessage;
-            sendRejection(session, gameIdMessage);
-            gameManager.cleanGameHistory(gameIdMessage);
-            rematchService.removeFromRematchRequests(gameIdMessage.getGameId());
-            sessionManager.removeUsersBySessionEntry(session);
-        });
-
-        handlers.put(MessageType.LEAVE, (session, rawMessage) -> {
-            GameIdMessage gameIdMessage = (GameIdMessage) rawMessage;
-            gameManager.cleanGameHistory(gameIdMessage);
-            sessionManager.removeUsersBySessionEntry(session);
-        });
     }
 
     @Override
@@ -96,17 +45,15 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         logger.debug("Message received: {}", message.getPayload());
-        Message rawMessage;
+        MessageAccept rawMessage;
         try {
-            rawMessage = objectMapper.readValue(message.getPayload(), Message.class);
+            rawMessage = (MessageAccept) objectMapper.readValue(message.getPayload(), Message.class);
         } catch (InvalidTypeIdException e) {
             Message defaultMessage = new PromptMessage(ERROR.getValue(), "Unknown message type");
             messageSender.sendMessage(session, defaultMessage);
             return;
         }
-        MessageType type = MessageType.fromString(rawMessage.getType());
-        WebSocketMessageHandler handler = handlers.get(type);
-        handler.handle(session, rawMessage);
+        rawMessage.accept(this, session);
     }
 
     private void handleLeaveQueue(WebSocketSession session, User user) {
@@ -201,10 +148,70 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler {
         messageSender.sendMessage(session, assignedColor, moves);
     }
 
+    private void handleAcceptRematch(WebSocketSession session, AcceptRematchMessage acceptRematchMessage) throws IOException {
+        startRematch(session, acceptRematchMessage);
+    }
+
+    private void handleLeave(WebSocketSession session, LeaveMessage leaveMessage) throws IOException {
+        gameManager.cleanGameHistory(leaveMessage);
+        sessionManager.removeUsersBySessionEntry(session);
+    }
+
+    private void handleDeclineRematch(WebSocketSession session, DeclineRematchMessage declineRematchMessage) throws IOException {
+        sendRejection(session, declineRematchMessage);
+        gameManager.cleanGameHistory(declineRematchMessage);
+        rematchService.removeFromRematchRequests(declineRematchMessage.getGameId());
+        sessionManager.removeUsersBySessionEntry(session);
+    }
+
+    private void handleRematchRequest(WebSocketSession session, RematchRequestMessage rematchRequestMessage) throws IOException {
+        proposeRematch(session, rematchRequestMessage);
+    }
+
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
         sessionManager.handleSessionClose(session);
         logger.debug("Connection closed: {}", session.getId());
+    }
+
+    @Override
+    public void visit(JoinQueueMessage message, WebSocketSession session) throws IOException {
+        handleJoinQueue(session, message.getUser());
+    }
+
+    @Override
+    public void visit(LeaveQueueMessage message, WebSocketSession session) {
+        handleLeaveQueue(session, message.getUser());
+    }
+
+    @Override
+    public void visit(MoveInput message, WebSocketSession session) throws IOException {
+        handleMove(session, message);
+    }
+
+    @Override
+    public void visit(PossibilitiesInput message, WebSocketSession session) throws IOException {
+        handlePossibilities(session, message);
+    }
+
+    @Override
+    public void visit(AcceptRematchMessage message, WebSocketSession session) throws IOException {
+        handleAcceptRematch(session, message);
+    }
+
+    @Override
+    public void visit(LeaveMessage message, WebSocketSession session) throws IOException {
+        handleLeave(session, message);
+    }
+
+    @Override
+    public void visit(DeclineRematchMessage message, WebSocketSession session) throws IOException {
+        handleDeclineRematch(session, message);
+    }
+
+    @Override
+    public void visit(RematchRequestMessage message, WebSocketSession session) throws IOException {
+        handleRematchRequest(session, message);
     }
 }
