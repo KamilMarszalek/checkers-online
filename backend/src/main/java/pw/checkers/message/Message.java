@@ -1,5 +1,6 @@
 package pw.checkers.message;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.*;
@@ -9,9 +10,9 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
         property = "type",
         visible = true
 )
@@ -29,5 +30,6 @@ import lombok.*;
         @JsonSubTypes.Type(value = PromptMessage.class, name = "error"),
 })
 public abstract class Message {
+    @JsonProperty(access = JsonProperty.Access.READ_WRITE)
     private String type;
 }
