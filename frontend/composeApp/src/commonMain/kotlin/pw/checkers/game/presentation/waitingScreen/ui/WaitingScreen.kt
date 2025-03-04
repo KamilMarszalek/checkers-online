@@ -1,4 +1,4 @@
-package pw.checkers.ui.screens
+package pw.checkers.game.presentation.waitingScreen.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,16 +7,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
-import pw.checkers.data.domain.User
-import pw.checkers.data.response.GameInfo
-import pw.checkers.ui.util.messageCollectionDisposableEffect
-import pw.checkers.viewModel.waitingScreen.WaitingScreenEvent
-import pw.checkers.viewModel.waitingScreen.WaitingViewModel
+import pw.checkers.game.domain.GameEvent
+import pw.checkers.game.domain.model.User
+import pw.checkers.game.presentation.waitingScreen.WaitingViewModel
+import pw.checkers.game.util.messageCollectionDisposableEffect
+import pw.checkers.core.util.DoNothing
 
 @Composable
 fun WaitingScreen(
     waitingViewModel: WaitingViewModel,
-    onGameCreated: (GameInfo, User) -> Unit,
+    toGame: (GameEvent.GameCreated, User) -> Unit
 ) {
     val state by waitingViewModel.state.collectAsState()
 
@@ -25,7 +25,8 @@ fun WaitingScreen(
     LaunchedEffect(Unit) {
         waitingViewModel.events.collect { event ->
             when (event) {
-                is WaitingScreenEvent.GameCreated -> onGameCreated(event.gameInfo, waitingViewModel.user)
+                is GameEvent.GameCreated -> toGame(event, waitingViewModel.user)
+                else -> DoNothing
             }
         }
     }

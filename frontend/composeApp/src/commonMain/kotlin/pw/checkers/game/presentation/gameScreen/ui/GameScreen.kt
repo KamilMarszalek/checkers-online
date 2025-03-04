@@ -1,4 +1,4 @@
-package pw.checkers.ui.screens
+package pw.checkers.game.presentation.gameScreen.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,18 +14,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import pw.checkers.data.domain.User
-import pw.checkers.data.message.Message
-import pw.checkers.models.Board
-import pw.checkers.ui.Board
-import pw.checkers.ui.util.messageCollectionDisposableEffect
-import pw.checkers.ui.windowSize.WindowSize
-import pw.checkers.ui.windowSize.rememberWindowSize
-import pw.checkers.util.calcCellSize
-import pw.checkers.viewModel.gameScreen.GameEvent
-import pw.checkers.viewModel.gameScreen.GameAction
-import pw.checkers.viewModel.gameScreen.GameState
-import pw.checkers.viewModel.gameScreen.GameViewModel
+import pw.checkers.game.domain.GameEvent
+import pw.checkers.game.domain.model.Board
+import pw.checkers.game.domain.model.User
+import pw.checkers.game.presentation.gameScreen.GameBoardAction
+import pw.checkers.game.presentation.gameScreen.GameState
+import pw.checkers.game.presentation.gameScreen.GameViewModel
+import pw.checkers.game.presentation.gameScreen.ui.components.Board
+import pw.checkers.game.util.messageCollectionDisposableEffect
+import pw.checkers.core.presentation.windowSize.WindowSize
+import pw.checkers.core.presentation.windowSize.rememberWindowSize
+import pw.checkers.core.util.DoNothing
+import pw.checkers.game.util.calcCellSize
 
 // TODO: make popups responsive, stack buttons in column when screen to narrow
 
@@ -33,14 +33,15 @@ import pw.checkers.viewModel.gameScreen.GameViewModel
 fun GameScreen(
     gameViewModel: GameViewModel,
     onMainMenuClick: () -> Unit,
-    nextGame: (Message, User) -> Unit,
+    nextGame: (GameEvent, User) -> Unit,
 ) {
     messageCollectionDisposableEffect(gameViewModel)
 
     LaunchedEffect(Unit) {
         gameViewModel.events.collect { event ->
             when (event) {
-                is GameEvent.NextGame -> nextGame(event.message, gameViewModel.user)
+                is GameEvent.GameCreated, is GameEvent.JoinedQueue -> nextGame(event, gameViewModel.user)
+                else -> DoNothing
             }
         }
     }
@@ -61,7 +62,7 @@ fun GameScreen(
 
 
 @Composable
-private fun Game(board: Board, state: GameState, onAction: (GameAction) -> Unit, windowSize: WindowSize) {
+private fun Game(board: Board, state: GameState, onAction: (GameBoardAction) -> Unit, windowSize: WindowSize) {
     val cellSize = remember { calcCellSize(windowSize.width, windowSize.height) }
 
     Column {
@@ -90,9 +91,9 @@ private fun EndGamePopupFromState(
     gameViewModel: GameViewModel,
     onMainMenuClick: () -> Unit
 ) {
-    val handleAction: (GameAction) -> Unit = { action ->
+    val handleAction: (GameBoardAction) -> Unit = { action ->
         when (action) {
-            GameAction.MainMenu -> onMainMenuClick()
+            GameBoardAction.OnMainMenuClick -> onMainMenuClick()
             else -> Unit
         }
         gameViewModel.onAction(action)
@@ -116,7 +117,7 @@ private fun EndGamePopupFromState(
 
         state.rematchPropositionRejected -> {
             GameEndPopupNoRematch(
-                message = "Your rematch has been rejected",
+                message = "Rematch request declined",
                 onAction = handleAction
             )
         }
@@ -141,7 +142,7 @@ private fun EndGamePopupFromState(
 @Composable
 private fun GameEndPopup(
     message: String,
-    onAction: (GameAction) -> Unit
+    onAction: (GameBoardAction) -> Unit
 ) {
     Dialog(
         onDismissRequest = {}
@@ -165,13 +166,13 @@ private fun GameEndPopup(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    Button(onClick = { onAction(GameAction.MainMenu) }) {
+                    Button(onClick = { onAction(GameBoardAction.OnMainMenuClick) }) {
                         Text("Main menu")
                     }
-                    Button(onClick = { onAction(GameAction.PlayNext) }) {
+                    Button(onClick = { onAction(GameBoardAction.OnNextGameClick) }) {
                         Text("Next game")
                     }
-                    Button(onClick = { onAction(GameAction.RequestRematch) }) {
+                    Button(onClick = { onAction(GameBoardAction.OnRematchRequestClick) }) {
                         Text("Rematch")
                     }
                 }
@@ -209,7 +210,7 @@ private fun RematchPendingPopup() {
 @Composable
 private fun GameEndPopupNoRematch(
     message: String,
-    onAction: (GameAction) -> Unit
+    onAction: (GameBoardAction) -> Unit
 ) {
     Dialog(
         onDismissRequest = {}
@@ -233,10 +234,10 @@ private fun GameEndPopupNoRematch(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    Button(onClick = { onAction(GameAction.MainMenu) }) {
+                    Button(onClick = { onAction(GameBoardAction.OnMainMenuClick) }) {
                         Text("Main menu")
                     }
-                    Button(onClick = { onAction(GameAction.PlayNext) }) {
+                    Button(onClick = { onAction(GameBoardAction.OnNextGameClick) }) {
                         Text("Next game")
                     }
                 }
@@ -248,7 +249,7 @@ private fun GameEndPopupNoRematch(
 @Composable
 private fun RematchRequestPopup(
     message: String,
-    onAction: (GameAction) -> Unit
+    onAction: (GameBoardAction) -> Unit
 ) {
     Dialog(
         onDismissRequest = {}
@@ -272,10 +273,10 @@ private fun RematchRequestPopup(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    Button(onClick = { onAction(GameAction.AcceptRematch) }) {
+                    Button(onClick = { onAction(GameBoardAction.OnRematchAcceptClick) }) {
                         Text("Accept")
                     }
-                    Button(onClick = { onAction(GameAction.DeclineRematch) }) {
+                    Button(onClick = { onAction(GameBoardAction.OnRematchDeclineClick) }) {
                         Text("Decline")
                     }
                 }

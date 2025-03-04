@@ -1,4 +1,4 @@
-package pw.checkers.ui.screens
+package pw.checkers.game.presentation.loginScreen.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -15,15 +15,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import pw.checkers.data.domain.User
-import pw.checkers.data.message.Message
-import pw.checkers.ui.util.messageCollectionDisposableEffect
-import pw.checkers.ui.windowSize.WindowSize
-import pw.checkers.ui.windowSize.rememberWindowSize
-import pw.checkers.viewModel.loginScreen.*
+import pw.checkers.game.domain.GameEvent
+import pw.checkers.game.domain.model.User
+import pw.checkers.game.presentation.loginScreen.LoginScreenAction
+import pw.checkers.game.presentation.loginScreen.LoginScreenState
+import pw.checkers.game.presentation.loginScreen.LoginViewModel
+import pw.checkers.game.presentation.loginScreen.UserNameValidation
+import pw.checkers.game.util.messageCollectionDisposableEffect
+import pw.checkers.core.presentation.windowSize.WindowSize
+import pw.checkers.core.presentation.windowSize.rememberWindowSize
+import pw.checkers.core.util.DoNothing
 
 @Composable
-fun LoginScreen(loginViewModel: LoginViewModel, onPlayClick: (Message, User) -> Unit) {
+fun LoginScreen(
+    loginViewModel: LoginViewModel,
+    toWaiting: (GameEvent.JoinedQueue, User) -> Unit,
+    toGame: (GameEvent.GameCreated, User) -> Unit
+) {
 
     val state by loginViewModel.state.collectAsState()
     val userNameValidation by loginViewModel.usernameValidation.collectAsState()
@@ -34,9 +42,9 @@ fun LoginScreen(loginViewModel: LoginViewModel, onPlayClick: (Message, User) -> 
     LaunchedEffect(Unit) {
         loginViewModel.events.collect { event ->
             when (event) {
-                is LoginScreenEvent.JoinQueue -> {
-                    onPlayClick(event.message, event.userInfo)
-                }
+                is GameEvent.GameCreated -> toGame(event, loginViewModel.getUser())
+                is GameEvent.JoinedQueue -> toWaiting(event, loginViewModel.getUser())
+                else -> DoNothing
             }
         }
     }

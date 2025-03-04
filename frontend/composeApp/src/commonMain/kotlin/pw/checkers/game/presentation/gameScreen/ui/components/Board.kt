@@ -1,4 +1,4 @@
-package pw.checkers.ui
+package pw.checkers.game.presentation.gameScreen.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.LocalIndication
@@ -13,24 +13,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.times
-import pw.checkers.data.domain.Cell
-import pw.checkers.data.domain.PieceType
-import pw.checkers.ui.icons.Pawns
-import pw.checkers.ui.icons.pawns.BlackPawn
-import pw.checkers.ui.icons.pawns.BlackQueen
-import pw.checkers.ui.icons.pawns.WhitePawn
-import pw.checkers.ui.icons.pawns.WhiteQueen
-import pw.checkers.data.domain.PlayerColor
-import pw.checkers.models.Board
-import pw.checkers.viewModel.gameScreen.GameAction
-import pw.checkers.viewModel.gameScreen.GameState
+import pw.checkers.game.domain.model.Board
+import pw.checkers.game.domain.model.Cell
+import pw.checkers.game.domain.model.PieceType
+import pw.checkers.game.domain.model.PlayerColor
+import pw.checkers.game.presentation.gameScreen.GameBoardAction
+import pw.checkers.game.presentation.gameScreen.GameState
+import pw.checkers.game.presentation.gameScreen.ui.components.icons.Pawns
+import pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns.BlackPawn
+import pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns.BlackQueen
+import pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns.WhitePawn
+import pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns.WhiteQueen
 
 @Composable
 fun Board(
     board: Board,
     uiState: GameState,
     cellSize: Dp,
-    onAction: (GameAction) -> Unit,
+    onAction: (GameBoardAction) -> Unit,
 ) {
 
     Column {
@@ -42,9 +42,9 @@ fun Board(
                         cell,
                         cellSize,
                         isHighlighted,
-                        onPieceClick = { row, col -> onAction(GameAction.GetPossibleMoves(row, col)) },
-                        onHighlightedClick = { row, col -> onAction(GameAction.MakeMove(row, col)) },
-                        onEmptyClick = { row, col -> onAction(GameAction.UnselectPiece(row, col)) },
+                        onPieceClick = { row, col -> onAction(GameBoardAction.OnPieceClick(row, col)) },
+                        onHighlightedClick = { row, col -> onAction(GameBoardAction.OnHighLightedClick(row, col)) },
+                        onEmptyClick = { _, _ -> onAction(GameBoardAction.OnEmptyClick) },
                     )
                 }
             }
