@@ -1,4 +1,4 @@
-package pw.checkers.ui.windowSize
+package pw.checkers.core.presentation.windowSize
 
 import androidx.compose.runtime.*
 import kotlinx.browser.window
