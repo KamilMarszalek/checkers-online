@@ -18,14 +18,14 @@ import lombok.*;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = GameEnd.class, name = "gameEnd"),
-        @JsonSubTypes.Type(value = QueueMessage.class, name = "joinQueue"),
-        @JsonSubTypes.Type(value = QueueMessage.class, name = "leaveQueue"),
+        @JsonSubTypes.Type(value = JoinQueueMessage.class, name = "joinQueue"),
+        @JsonSubTypes.Type(value = LeaveQueueMessage.class, name = "leaveQueue"),
         @JsonSubTypes.Type(value = MoveInput.class, name = "move"),
         @JsonSubTypes.Type(value = PossibilitiesInput.class, name = "possibilities"),
-        @JsonSubTypes.Type(value = GameIdMessage.class, name = "rematchRequest"),
-        @JsonSubTypes.Type(value = GameIdMessage.class, name = "acceptRematch"),
-        @JsonSubTypes.Type(value = GameIdMessage.class, name = "declineRematch"),
-        @JsonSubTypes.Type(value = GameIdMessage.class, name = "leave"),
+        @JsonSubTypes.Type(value = RematchRequestMessage.class, name = "rematchRequest"),
+        @JsonSubTypes.Type(value = AcceptRematchMessage.class, name = "acceptRematch"),
+        @JsonSubTypes.Type(value = DeclineRematchMessage.class, name = "declineRematch"),
+        @JsonSubTypes.Type(value = LeaveMessage.class, name = "leave"),
         @JsonSubTypes.Type(value = PromptMessage.class, name = "info"),
         @JsonSubTypes.Type(value = PromptMessage.class, name = "error"),
 })
