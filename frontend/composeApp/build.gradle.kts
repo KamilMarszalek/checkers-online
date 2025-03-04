@@ -41,14 +41,10 @@ kotlin {
             implementation(libs.compose.navigation)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
-            implementation(libs.ktor.client.websockets)
-            implementation(libs.ktor.serialization)
             implementation(libs.kotlinx.serialization)
             implementation(project.dependencies.platform(libs.koin.bom))
-            implementation(libs.koin.core)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
-            implementation(libs.koin.compose.viewmodel.navigation)
+            implementation(libs.bundles.koin)
+            implementation(libs.bundles.ktor)
         }
     }
 }
