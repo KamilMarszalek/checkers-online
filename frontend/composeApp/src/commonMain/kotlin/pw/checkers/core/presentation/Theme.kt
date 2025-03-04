@@ -1,4 +1,4 @@
-package pw.checkers.ui.theme
+package pw.checkers.core.presentation
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

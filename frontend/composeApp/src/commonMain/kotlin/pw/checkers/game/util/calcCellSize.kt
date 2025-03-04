@@ -1,4 +1,4 @@
-package pw.checkers.util
+package pw.checkers.game.util
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp

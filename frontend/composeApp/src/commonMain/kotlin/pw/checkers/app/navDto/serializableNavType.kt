@@ -1,4 +1,4 @@
-package pw.checkers.navigation
+package pw.checkers.app.navDto
 
 import androidx.core.bundle.Bundle
 import androidx.core.uri.UriUtils

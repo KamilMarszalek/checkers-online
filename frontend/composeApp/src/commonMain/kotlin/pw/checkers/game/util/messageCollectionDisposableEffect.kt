@@ -1,8 +1,8 @@
-package pw.checkers.ui.util
+package pw.checkers.game.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import pw.checkers.viewModel.BaseViewModel
+import pw.checkers.game.presentation.BaseViewModel
 
 @Composable
 fun messageCollectionDisposableEffect(viewModel: BaseViewModel) {

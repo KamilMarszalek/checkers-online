@@ -1,4 +1,4 @@
-package pw.checkers.ui.windowSize
+package pw.checkers.core.presentation.windowSize
 
 data class WindowSize(
     val width: Int,
