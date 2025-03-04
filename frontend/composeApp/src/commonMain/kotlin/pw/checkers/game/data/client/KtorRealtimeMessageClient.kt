@@ -1,4 +1,4 @@
-package pw.checkers.client
+package pw.checkers.game.data.client
 
 import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
@@ -10,16 +10,24 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import pw.checkers.data.message.Message
-import pw.checkers.util.Constants
+import pw.checkers.game.data.dto.message.Incoming
+import pw.checkers.game.data.dto.message.Outgoing
+import pw.checkers.core.util.Constants
+
 
 class KtorRealtimeMessageClient(private val httpClient: HttpClient) : RealtimeMessageClient {
 
     private var session: WebSocketSession? = null
 
-    private val _messageFlow = MutableSharedFlow<Message>(replay = 1)
+    private val json = Json {
+        ignoreUnknownKeys = true
+        classDiscriminator = "type"
+        prettyPrint = true
+    }
 
-    override suspend fun getMessageStream(): Flow<Message> = _messageFlow.asSharedFlow()
+    private val _messageFlow = MutableSharedFlow<Incoming>(replay = 1)
+
+    override suspend fun getMessageStream() = _messageFlow.asSharedFlow()
 
     private var collectorJob: Job? = null
 
@@ -35,14 +43,14 @@ class KtorRealtimeMessageClient(private val httpClient: HttpClient) : RealtimeMe
                 .incoming
                 .consumeAsFlow()
                 .filterIsInstance<Frame.Text>()
-                .mapNotNull { Json.decodeFromString<Message>(it.readText()) }
+                .mapNotNull { println(it.readText()) ; json.decodeFromString<Incoming>(it.readText()) }
                 .collect { message ->
                     _messageFlow.emit(message)
                 }
         }
     }
 
-    override suspend fun sendMessage(message: Message) {
+    override suspend fun sendMessage(message: Outgoing) {
         session?.outgoing?.send(Frame.Text(Json.encodeToString(message)))
     }
 
