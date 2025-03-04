@@ -11,7 +11,7 @@ active_sessions = {}
 """
     To run app go to backend directory
     and type in the terminal:
-        uvicorn server:app
+        uvicorn bot.server:app
 """
 
 
