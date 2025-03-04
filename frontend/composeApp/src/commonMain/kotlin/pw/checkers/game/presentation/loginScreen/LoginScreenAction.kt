@@ -1,4 +1,4 @@
-package pw.checkers.viewModel.loginScreen
+package pw.checkers.game.presentation.loginScreen
 
 interface LoginScreenAction {
     data object StartGame : LoginScreenAction
