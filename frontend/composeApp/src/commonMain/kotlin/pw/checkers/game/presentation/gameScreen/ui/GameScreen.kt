@@ -28,6 +28,7 @@ import pw.checkers.game.util.messageCollectionDisposableEffect
 
 // TODO: make popups responsive, stack buttons in column when screen to narrow
 // TODO: make better system for scaling board and user panels
+// TODO: fix user panels not filling space between board and screen edge on some screens
 
 @Composable
 fun GameScreen(
