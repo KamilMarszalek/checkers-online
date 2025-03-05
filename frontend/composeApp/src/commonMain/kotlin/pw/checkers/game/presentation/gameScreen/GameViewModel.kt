@@ -13,9 +13,9 @@ class GameViewModel(
     gameInfo: GameEvent.GameCreated, val user: User, gameRepository: GameRepository
 ) : BaseViewModel(gameRepository) {
 
-    private val color = gameInfo.color
+    val color = gameInfo.color
     private val gameId = gameInfo.gameId
-    private val opponent = gameInfo.opponent
+    val opponent = gameInfo.opponent
     private var selected = Cell(-1, -1)
     private var multiMove: Boolean = false
 
