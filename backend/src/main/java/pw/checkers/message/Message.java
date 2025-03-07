@@ -28,6 +28,7 @@ import lombok.*;
         @JsonSubTypes.Type(value = LeaveMessage.class, name = "leave"),
         @JsonSubTypes.Type(value = PromptMessage.class, name = "info"),
         @JsonSubTypes.Type(value = PromptMessage.class, name = "error"),
+        @JsonSubTypes.Type(value = ResignMessage.class, name = "resign"),
 })
 public abstract class Message {
     @JsonProperty(access = JsonProperty.Access.READ_WRITE)
