@@ -155,8 +155,7 @@ public class GameManagerTest {
         ResignMessage message = new ResignMessage();
         message.setGameId(gameId);
         message.setType("resign");
-        gameManager.setGameEnd(message, "white");
-        GameState updatedState = gameManager.getGame(gameId);
+        GameState updatedState = gameManager.setGameEnd(message, "white");
         assertEquals(gameId, updatedState.getGameId());
         assertTrue(updatedState.isFinished());
         assertEquals(Color.WHITE, updatedState.getWinner());
