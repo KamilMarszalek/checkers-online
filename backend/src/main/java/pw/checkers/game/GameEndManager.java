@@ -15,6 +15,7 @@ public class GameEndManager {
 
     public void setDraw(GameState gameState) {
         gameState.setFinished(true);
+        setGameEndReason(gameState, false);
     }
 
     public void setWinner(GameState gameState) {
@@ -24,15 +25,18 @@ public class GameEndManager {
         if (gameState.getWhitePiecesLeft() == 0) {
             gameState.setWinner(Color.BLACK);
             gameState.setFinished(true);
+            setGameEndReason(gameState, false);
             return;
         } else if (gameState.getBlackPiecesLeft() == 0) {
             gameState.setWinner(Color.WHITE);
             gameState.setFinished(true);
+            setGameEndReason(gameState, false);
             return;
         }
         if (!gameRules.playerHasMoves(gameState, otherPlayer) && gameRules.playerHasMoves(gameState, currentPlayer)) {
             gameState.setWinner(currentPlayer);
             gameState.setFinished(true);
+            setGameEndReason(gameState, false);
         }
     }
 
