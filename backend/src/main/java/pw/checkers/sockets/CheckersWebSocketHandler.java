@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 import pw.checkers.utils.WaitingPlayer;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static pw.checkers.data.enums.MessageType.*;
 
@@ -38,7 +40,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         logger.debug("Connection established: {}", session.getId());
     }
 
@@ -169,7 +171,12 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
     }
 
     private void handleResign(WebSocketSession session, ResignMessage resignMessage) throws IOException {
-
+        Map<WebSocketSession, String> colorsBySession = sessionManager.getColorAssignments(resignMessage.getGameId());
+        String assignedColor = sessionManager.getAssignedColorByGameIdAndSession(resignMessage.getGameId(), session);
+        String opponentColor = assignedColor.equals("white") ? "black" : "white";
+        Set<WebSocketSession> sessions = sessionManager.getSessionsByGameId(resignMessage.getGameId());
+        GameState updatedState = gameManager.setGameEnd(resignMessage, opponentColor);
+        messageSender.broadcastGameEnd(sessions, updatedState, colorsBySession);
     }
 
     @Override
