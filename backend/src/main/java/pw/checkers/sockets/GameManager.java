@@ -51,11 +51,12 @@ public class GameManager {
         );
     }
 
-    public void setGameEnd(GameIdMessage gameIdMessage, String winner) {
+    public GameState setGameEnd(GameIdMessage gameIdMessage, String winner) {
         String gameId = gameIdMessage.getGameId();
         GameState gameState = getGame(gameId);
         gameState.setFinished(true);
         Color player = winner.equals("white") ? Color.WHITE : Color.BLACK;
         gameState.setWinner(player);
+        return gameState;
     }
 }
