@@ -39,6 +39,7 @@ public class GameEndManagerTest {
         state.setCurrentPlayer(Color.WHITE);
         state.setWhitePiecesLeft(12);
         state.setBlackPiecesLeft(12);
+        state.setNumberOfPositions(new HashMap<>());
         state.setFinished(false);
         state.setWinner(null);
         return state;
@@ -166,7 +167,6 @@ public class GameEndManagerTest {
     @Test
     public void testSetGameEndReason3FoldRepetition() {
         GameState state = createGameState();
-        state.setNumberOfPositions(new HashMap<>());
         state.getNumberOfPositions().put("aaa", 3);
         gameEndManager.setGameEndReason(state, false);
         assertEquals(GameEndReason.THREEFOLD_REPETITION, state.getGameEndReason(), "Game end reason should be THREEFOLD_REPETITION.");
