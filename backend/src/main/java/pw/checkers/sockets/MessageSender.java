@@ -53,11 +53,13 @@ public class MessageSender {
         for (WebSocketSession ws : sessions) {
             if (ws.isOpen()) {
                 String wsColor = colorByPlayer.get(ws);
-                Message gameEndMsg;
+                GameEnd gameEndMsg;
                 if (updatedState.getWinner() == null) {
                     gameEndMsg = new GameEnd("draw");
+                    gameEndMsg.setDetails(updatedState.getGameEndReason().getValue());
                 } else {
                     gameEndMsg = new GameEnd(updatedState.getWinner().toString().toLowerCase());
+                    gameEndMsg.setDetails(updatedState.getGameEndReason().getValue());
                 }
                 sendMessage(ws, wsColor, gameEndMsg);
             }
