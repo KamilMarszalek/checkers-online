@@ -14,4 +14,5 @@ public interface MessageVisitor {
     void visit(AcceptRematchMessage message, WebSocketSession session) throws IOException;
     void visit(DeclineRematchMessage message, WebSocketSession session) throws IOException;
     void visit(LeaveMessage message, WebSocketSession session) throws IOException;
+    void visit(ResignMessage message, WebSocketSession session) throws IOException;
 }
