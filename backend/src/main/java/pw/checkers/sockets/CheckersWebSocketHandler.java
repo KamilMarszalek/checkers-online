@@ -127,6 +127,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
         messageSender.broadcastToGame(sessionManager.getSessionsByGameId(gameId), moveOutput, sessionManager.getColorAssignments(gameId));
 
         if (updatedState.isFinished()) {
+            gameManager.setGameEndReason(gameId, false);
             messageSender.broadcastGameEnd(sessionManager.getSessionsByGameId(gameId), updatedState, sessionManager.getColorAssignments(gameId));
         }
 
