@@ -136,4 +136,15 @@ public class CheckersWebSocketHandlerTest {
         assertEquals("error", sentMessage.getType().toLowerCase());
         assertEquals("Unknown message type", ((PromptMessage) sentMessage).getMessage());
     }
+
+    @Test
+    public void testHandleResignMessage() throws Exception {
+        String gameId = "game123";
+        String jsonPayload = "{\"type\":\"resign\",\"gameId\":\"" + gameId + "\"}";
+        handler.handleTextMessage(session, new TextMessage(jsonPayload));
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        verify(messageSender, times(1)).sendMessage(eq(session), captor.capture());
+        Message sentMessage = captor.getValue();
+        assertEquals("gameend", sentMessage.getType().toLowerCase());
+    }
 }
