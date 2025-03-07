@@ -168,6 +168,10 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
         proposeRematch(session, rematchRequestMessage);
     }
 
+    private void handleResign(WebSocketSession session, ResignMessage resignMessage) throws IOException {
+
+    }
+
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
@@ -213,5 +217,10 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
     @Override
     public void visit(RematchRequestMessage message, WebSocketSession session) throws IOException {
         handleRematchRequest(session, message);
+    }
+
+    @Override
+    public void visit(ResignMessage message, WebSocketSession session) throws IOException {
+        handleResign(session, message);
     }
 }
