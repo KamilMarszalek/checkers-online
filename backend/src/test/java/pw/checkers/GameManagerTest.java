@@ -14,12 +14,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.socket.WebSocketSession;
 
 import pw.checkers.data.GameState;
+import pw.checkers.data.enums.Color;
 import pw.checkers.game.GameService;
-import pw.checkers.message.GameIdMessage;
-import pw.checkers.message.Move;
-import pw.checkers.message.MoveOutput;
-import pw.checkers.message.PossibilitiesInput;
-import pw.checkers.message.PossibilitiesOutput;
+import pw.checkers.message.*;
 import pw.checkers.sockets.GameManager;
 import pw.checkers.sockets.SessionManager;
 
@@ -143,5 +140,25 @@ public class GameManagerTest {
 
         // Then
         assertEquals(expectedMoves, result);
+    }
+
+    @Test
+    public void testSetGameEnd() throws IOException {
+        String gameId = "game123";
+        GameState dummyGame = new GameState();
+        dummyGame.setGameId(gameId);
+        when(gameService.createGame()).thenReturn(dummyGame);
+
+        when(gameService.getGame(gameId)).thenReturn(dummyGame);
+
+        gameManager.createGame();
+        ResignMessage message = new ResignMessage();
+        message.setGameId(gameId);
+        message.setType("resign");
+        gameManager.setGameEnd(message, "white");
+        GameState updatedState = gameManager.getGame(gameId);
+        assertEquals(gameId, updatedState.getGameId());
+        assertTrue(updatedState.isFinished());
+        assertEquals(Color.WHITE, updatedState.getWinner());
     }
 }
