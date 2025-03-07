@@ -15,6 +15,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import pw.checkers.data.GameState;
 import pw.checkers.data.enums.Color;
+import pw.checkers.game.GameEndManager;
 import pw.checkers.game.GameService;
 import pw.checkers.message.*;
 import pw.checkers.sockets.GameManager;
@@ -30,13 +31,16 @@ public class GameManagerTest {
     private SessionManager sessionManager;
 
     @Mock
+    private GameEndManager gameEndManager;
+
+    @Mock
     private WebSocketSession session;
 
     private GameManager gameManager;
 
     @BeforeEach
     public void setUp() {
-        gameManager = new GameManager(gameService, sessionManager);
+        gameManager = new GameManager(gameService, sessionManager, gameEndManager);
     }
 
     @Test
