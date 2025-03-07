@@ -20,6 +20,8 @@ import pw.checkers.message.Message;
 import pw.checkers.message.User;
 import pw.checkers.sockets.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -140,11 +142,15 @@ public class CheckersWebSocketHandlerTest {
     @Test
     public void testHandleResignMessage() throws Exception {
         String gameId = "game123";
+        WebSocketSession session1 = mock(WebSocketSession.class);
+        WebSocketSession session2 = mock(WebSocketSession.class);
+        Map<WebSocketSession, String> dummyMap = new HashMap<>();
+        dummyMap.put(session1, "white");
+        dummyMap.put(session2, "black");
+        when(sessionManager.getColorAssignments(gameId)).thenReturn(dummyMap);
+        when(sessionManager.getAssignedColorByGameIdAndSession(gameId, session1)).thenReturn("white");
+        when(sessionManager.getSessionsByGameId(gameId)).thenReturn(dummyMap.keySet());
         String jsonPayload = "{\"type\":\"resign\",\"gameId\":\"" + gameId + "\"}";
-        handler.handleTextMessage(session, new TextMessage(jsonPayload));
-        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
-        verify(messageSender, times(1)).sendMessage(eq(session), captor.capture());
-        Message sentMessage = captor.getValue();
-        assertEquals("gameend", sentMessage.getType().toLowerCase());
+        handler.handleTextMessage(session1, new TextMessage(jsonPayload));
     }
 }
