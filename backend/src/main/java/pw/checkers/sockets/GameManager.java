@@ -57,10 +57,13 @@ public class GameManager {
     public GameState setGameEnd(GameIdMessage gameIdMessage, String winner) {
         String gameId = gameIdMessage.getGameId();
         GameState gameState = getGame(gameId);
-        gameEndManager.setGameEndReason(gameState, gameIdMessage.getType().equals("resignation"));
         gameState.setFinished(true);
         Color player = winner.equals("white") ? Color.WHITE : Color.BLACK;
         gameState.setWinner(player);
         return gameState;
+    }
+
+    public void setGameEndReason(String gameId, boolean resigned) {
+        gameEndManager.setGameEndReason(getGame(gameId), resigned);
     }
 }
