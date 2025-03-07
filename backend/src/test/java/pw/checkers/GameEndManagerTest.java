@@ -1,14 +1,18 @@
 package pw.checkers;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pw.checkers.data.GameState;
 import pw.checkers.data.Piece;
 import pw.checkers.data.enums.Color;
+import pw.checkers.data.enums.GameEndReason;
 import pw.checkers.game.GameEndManager;
 import pw.checkers.game.GameRules;
+
+import java.util.HashMap;
 
 public class GameEndManagerTest {
 
@@ -120,5 +124,52 @@ public class GameEndManagerTest {
 
         assertFalse(state.isFinished(), "Game should not be finished if no win/draw condition is met.");
         assertNull(state.getWinner(), "Winner should remain null if no win/draw condition is met.");
+    }
+
+    @Test
+    public void testSetGameEndReasonResignation() {
+        GameState state = createGameState();
+        gameEndManager.setGameEndReason(state, true);
+        assertEquals(GameEndReason.RESIGNATION, state.getGameEndReason(), "Game end reason should be RESIGNATION.");
+    }
+
+    @Test
+    public void testSetGameEndReasonNoPieces() {
+        GameState state = createGameState();
+        state.setWhitePiecesLeft(0);
+        gameEndManager.setGameEndReason(state, false);
+        assertEquals(GameEndReason.NO_PIECES, state.getGameEndReason(), "Game end reason should be NO_PIECES.");
+    }
+
+    @Test
+    public void testSetGameEndReasonNoMoves() {
+        GameState state = createGameState();
+        fakeGameRules = new GameRules() {
+            @Override
+            public boolean playerHasMoves(GameState gameState, Color player) {
+                // Simulate: white (current player) has moves, black (opponent) has none.
+                return player == Color.WHITE;
+            }
+        };
+        gameEndManager = new GameEndManager(fakeGameRules);
+        gameEndManager.setGameEndReason(state, false);
+        assertEquals(GameEndReason.NO_MOVES, state.getGameEndReason(), "Game end reason should be NO_MOVES.");
+    }
+
+    @Test
+    public void testSetGameEndReason50Moves() {
+        GameState state = createGameState();
+        state.setNoCapturesCounter(50);
+        gameEndManager.setGameEndReason(state, false);
+        assertEquals(GameEndReason.FIFTY_MOVES, state.getGameEndReason(), "Game end reason should be FIFTY_MOVES.");
+    }
+
+    @Test
+    public void testSetGameEndReason3FoldRepetition() {
+        GameState state = createGameState();
+        state.setNumberOfPositions(new HashMap<>());
+        state.getNumberOfPositions().put("aaa", 3);
+        gameEndManager.setGameEndReason(state, false);
+        assertEquals(GameEndReason.THREEFOLD_REPETITION, state.getGameEndReason(), "Game end reason should be THREEFOLD_REPETITION.");
     }
 }
