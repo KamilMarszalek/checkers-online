@@ -35,4 +35,8 @@ public class GameEndManager {
             gameState.setFinished(true);
         }
     }
+
+    public void setGameEndReason(GameState gameState, boolean resigned) {
+
+    }
 }
