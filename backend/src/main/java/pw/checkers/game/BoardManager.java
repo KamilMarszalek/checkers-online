@@ -42,15 +42,14 @@ public class BoardManager {
         Piece[][] board = gameState.getBoard();
         if (isCaptureMove(move)) {
             Piece capturedPiece = getCapturedPiece(move, board);
-            int[] capturedPieceCoordinates = getCapturedPieceCoordinates(move, board);
+            int[] capturedPieceCoordinates = getCapturedPieceCoordinates(move);
             updateCounters(gameState, capturedPiece);
             board[capturedPieceCoordinates[0]][capturedPieceCoordinates[1]] = null;
-            moveOutput.setCapturedPiece(new MoveHelper(capturedPieceCoordinates[0], capturedPieceCoordinates[1]));
-            moveOutput.setCaptured(true);
+            setMoveOutput(moveOutput, capturedPieceCoordinates[0], capturedPieceCoordinates[1]);
         }
     }
 
-    private int[] getCapturedPieceCoordinates(Move move, Piece[][] board) {
+    private int[] getCapturedPieceCoordinates(Move move) {
         int opponentRow = (move.getToRow() +move.getFromRow()) / 2;
         int opponentCol = (move.getToCol() + move.getFromCol()) / 2;
         return new int[]{opponentRow, opponentCol};
@@ -66,12 +65,13 @@ public class BoardManager {
     }
 
     private Piece getCapturedPiece(Move move, Piece[][] board) {
-        int[] pieceCoordinates = getCapturedPieceCoordinates(move, board);
+        int[] pieceCoordinates = getCapturedPieceCoordinates(move);
         return board[pieceCoordinates[0]][pieceCoordinates[1]];
     }
 
     private void setMoveOutput(MoveOutput moveOutput, int row, int col) {
         moveOutput.setCapturedPiece(new MoveHelper(row, col));
+        moveOutput.setCaptured(true);
     }
 
     private boolean isCaptureMove(Move move) {
@@ -83,7 +83,6 @@ public class BoardManager {
             pawn.setType(PieceType.KING);
         }
     }
-
 
     public MoveOutput makeMove(GameState gameState, MoveOutput response) {
         Move move = response.getMove();
