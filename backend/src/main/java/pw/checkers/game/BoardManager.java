@@ -137,7 +137,6 @@ public class BoardManager {
         }
     }
 
-
     public MoveOutput makeMove(GameState gameState, MoveOutput response) {
         Move move = response.getMove();
         movePiece(gameState, move);
