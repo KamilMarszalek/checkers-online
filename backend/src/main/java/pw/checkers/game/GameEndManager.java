@@ -39,19 +39,29 @@ public class GameEndManager {
         setGameEndReason(gameState, false);
     }
 
-    public void setGameEndReason(GameState gameState, boolean resigned) {
+    private GameEndReason determineGameEndReason(GameState gameState, boolean resigned) {
         if (resigned) {
-            gameState.setGameEndReason(GameEndReason.RESIGNATION);
-            return;
+            return GameEndReason.RESIGNATION;
         }
         if (gameState.getWhitePiecesLeft() == 0 || gameState.getBlackPiecesLeft() == 0) {
-            gameState.setGameEndReason(GameEndReason.NO_PIECES);
-        } else if (!gameRules.playerHasMoves(gameState, Color.BLACK) || !gameRules.playerHasMoves(gameState, Color.WHITE)) {
-            gameState.setGameEndReason(GameEndReason.NO_MOVES);
-        } else if (gameState.getNoCapturesCounter() >= 50) {
-            gameState.setGameEndReason(GameEndReason.FIFTY_MOVES);
-        } else if (gameState.getNumberOfPositions().containsValue(3)) {
-            gameState.setGameEndReason(GameEndReason.THREEFOLD_REPETITION);
+            return GameEndReason.NO_PIECES;
+        }
+        if (!gameRules.playerHasMoves(gameState, Color.BLACK) || !gameRules.playerHasMoves(gameState, Color.WHITE)) {
+            return GameEndReason.NO_MOVES;
+        }
+        if (gameState.getNoCapturesCounter() >= 50) {
+            return GameEndReason.FIFTY_MOVES;
+        }
+        if (gameState.getNumberOfPositions().containsValue(3)) {
+            return GameEndReason.THREEFOLD_REPETITION;
+        }
+        return null;
+    }
+
+    public void setGameEndReason(GameState gameState, boolean resigned) {
+        GameEndReason reason = determineGameEndReason(gameState, resigned);
+        if (reason != null) {
+            gameState.setGameEndReason(reason);
         }
     }
 }
