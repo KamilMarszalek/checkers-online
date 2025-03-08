@@ -43,7 +43,7 @@ public class BoardManager {
         if (isCaptureMove(move)) {
             Piece capturedPiece = getCapturedPiece(move, board);
             int[] capturedPieceCoordinates = getCapturedPieceCoordinates(move);
-            updateCounters(gameState, capturedPiece);
+            updateCountersAfterCapture(gameState, capturedPiece);
             board[capturedPieceCoordinates[0]][capturedPieceCoordinates[1]] = null;
             setMoveOutput(moveOutput, capturedPieceCoordinates[0], capturedPieceCoordinates[1]);
         }
@@ -55,7 +55,7 @@ public class BoardManager {
         return new int[]{opponentRow, opponentCol};
     }
 
-    private void updateCounters(GameState gameState, Piece capturedPiece) {
+    private void updateCountersAfterCapture(GameState gameState, Piece capturedPiece) {
         if (capturedPiece.getColor().equals(Color.BLACK)) {
             gameState.setBlackPiecesLeft(gameState.getBlackPiecesLeft() - 1);
         } else if (capturedPiece.getColor().equals(Color.WHITE)) {
