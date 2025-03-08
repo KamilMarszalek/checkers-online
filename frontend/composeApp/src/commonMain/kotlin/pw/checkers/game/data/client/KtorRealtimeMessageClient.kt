@@ -12,10 +12,10 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import pw.checkers.game.data.dto.message.Incoming
 import pw.checkers.game.data.dto.message.Outgoing
-import pw.checkers.core.util.Constants
 
 
-class KtorRealtimeMessageClient(private val httpClient: HttpClient) : RealtimeMessageClient {
+class KtorRealtimeMessageClient(private val httpClient: HttpClient, override val serverAddress: String) :
+    RealtimeMessageClient {
 
     private var session: WebSocketSession? = null
 
@@ -33,9 +33,10 @@ class KtorRealtimeMessageClient(private val httpClient: HttpClient) : RealtimeMe
 
     override fun connected(): Boolean = session != null
 
-    override suspend fun connect(serverAddress: String) {
+    override suspend fun connect() {
         session = httpClient.webSocketSession {
-            url(Constants.SERVER_ADDRESS)
+            println("ws://$serverAddress/ws")
+            url("ws://$serverAddress/ws")
         }
 
         collectorJob = CoroutineScope(Dispatchers.Default).launch {
@@ -43,7 +44,7 @@ class KtorRealtimeMessageClient(private val httpClient: HttpClient) : RealtimeMe
                 .incoming
                 .consumeAsFlow()
                 .filterIsInstance<Frame.Text>()
-                .mapNotNull { println(it.readText()) ; json.decodeFromString<Incoming>(it.readText()) }
+                .mapNotNull { println(it.readText()); json.decodeFromString<Incoming>(it.readText()) }
                 .collect { message ->
                     _messageFlow.emit(message)
                 }
