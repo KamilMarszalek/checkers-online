@@ -165,6 +165,10 @@ class GameViewModel(
         sendAction(GameAction.JoinQueue(user))
     }
 
+    private fun leaveGame() {
+        sendAction(GameAction.LeaveGame(gameId))
+    }
+
     private fun acceptRematch() {
         sendAction(GameAction.AcceptRematch(gameId))
     }
@@ -221,7 +225,7 @@ class GameViewModel(
             is GameBoardAction.OnHighLightedClick -> makeMove(action.row, action.col)
             GameBoardAction.OnEmptyClick -> unselectPiece()
 
-            GameBoardAction.OnMainMenuClick -> {}
+            GameBoardAction.OnMainMenuClick -> leaveGame()
             GameBoardAction.OnNextGameClick -> playNextGame()
             GameBoardAction.OnRematchRequestClick -> requestRematch()
             GameBoardAction.OnRematchAcceptClick -> acceptRematch()

@@ -13,6 +13,7 @@ fun GameAction.toDto(): Outgoing = when(this) {
     is GameAction.RequestRematch -> Outgoing.RequestRematch(gameId)
     is GameAction.AcceptRematch -> Outgoing.AcceptRematch(gameId)
     is GameAction.DeclineRematch -> Outgoing.DeclineRematch(gameId)
+    is GameAction.LeaveGame -> Outgoing.LeaveGame(gameId)
 }
 
 fun Outgoing.toDomain(): GameAction  = when(this) {
@@ -23,4 +24,5 @@ fun Outgoing.toDomain(): GameAction  = when(this) {
     is Outgoing.RequestRematch -> GameAction.RequestRematch(gameId)
     is Outgoing.AcceptRematch -> GameAction.AcceptRematch(gameId)
     is Outgoing.DeclineRematch -> GameAction.DeclineRematch(gameId)
+    is Outgoing.LeaveGame -> GameAction.LeaveGame(gameId)
 }
