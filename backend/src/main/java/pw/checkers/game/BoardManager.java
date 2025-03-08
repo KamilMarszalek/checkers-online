@@ -84,34 +84,48 @@ public class BoardManager {
         }
     }
 
-    public MoveOutput makeMove(GameState gameState, MoveOutput response) {
-        Move move = response.getMove();
+    private void movePiece(GameState gameState, Move move) {
         Piece[][] board = gameState.getBoard();
-        Piece pawn = board[move.getFromRow()][move.getFromCol()];
-        board[move.getToRow()][move.getToCol()] = pawn;
+        Piece piece = board[move.getFromRow()][move.getFromCol()];
+        board[move.getToRow()][move.getToCol()] = piece;
         board[move.getFromRow()][move.getFromCol()] = null;
+    }
+
+    private void incrementNoCapturesCounter(GameState gameState) {
         gameState.setNoCapturesCounter(gameState.getNoCapturesCounter() + 1);
-        promotePiece(pawn, move, gameState);
-        doTake(gameState, response);
-        int posCounter = gameState.getNumberOfPositions().get(gameState.boardToString()) == null ? 0 : gameState.getNumberOfPositions().get(gameState.boardToString());
-        gameState.getNumberOfPositions().put(gameState.boardToString(), posCounter + 1);
+    }
+
+    private void updatePositionsCounter(GameState gameState) {
+        String boardString = gameState.boardToString();
+        int posCounter = gameState.getNumberOfPositions().getOrDefault(boardString, 0);
+        gameState.getNumberOfPositions().put(boardString, posCounter + 1);
+    }
+
+    private boolean handleAdditionalTakes(GameState gameState, Move move, MoveOutput response) {
         if (gameRules.hasMoreTakes(gameState, move)) {
             response.setHasMoreTakes(true);
-            response.setCurrentTurn(gameState.getCurrentPlayer().toString().toLowerCase());
-            response.setPreviousTurn(gameState.getCurrentPlayer().toString().toLowerCase());
+            String currentPlayer = gameState.getCurrentPlayer().toString().toLowerCase();
+            response.setCurrentTurn(currentPlayer);
+            response.setPreviousTurn(currentPlayer);
             gameState.setLastCaptureCol(move.getToCol());
             gameState.setLastCaptureRow(move.getToRow());
-            return response;
+            return true;
         } else {
             gameState.setLastCaptureCol(null);
             gameState.setLastCaptureRow(null);
+            return false;
         }
+    }
+
+    private void handleGameEnd(GameState gameState) {
         if (gameRules.hasSomebodyWon(gameState)) {
             gameEndManager.setWinner(gameState);
         } else if (gameRules.isDraw(gameState)) {
             gameEndManager.setDraw(gameState);
         }
+    }
 
+    private void switchPlayer(GameState gameState, MoveOutput response) {
         if (gameState.getCurrentPlayer().equals(Color.WHITE)) {
             gameState.setCurrentPlayer(Color.BLACK);
             response.setCurrentTurn(Color.BLACK.getValue());
@@ -121,6 +135,20 @@ public class BoardManager {
             response.setCurrentTurn(Color.WHITE.getValue());
             response.setPreviousTurn(Color.BLACK.getValue());
         }
+    }
+
+
+    public MoveOutput makeMove(GameState gameState, MoveOutput response) {
+        Move move = response.getMove();
+        movePiece(gameState, move);
+        incrementNoCapturesCounter(gameState);
+        Piece pawn = gameState.getBoard()[move.getToRow()][move.getToCol()];
+        promotePiece(pawn, move, gameState);
+        doTake(gameState, response);
+        updatePositionsCounter(gameState);
+        if (handleAdditionalTakes(gameState, move, response)) return response;
+        handleGameEnd(gameState);
+        switchPlayer(gameState, response);
         return response;
     }
 }
