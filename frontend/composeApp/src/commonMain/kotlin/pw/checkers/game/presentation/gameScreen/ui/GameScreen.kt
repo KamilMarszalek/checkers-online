@@ -5,14 +5,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import pw.checkers.core.presentation.windowSize.WindowSize
-import pw.checkers.core.presentation.windowSize.rememberWindowSize
 import pw.checkers.core.util.DoNothing
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.Board
@@ -23,12 +20,10 @@ import pw.checkers.game.presentation.gameScreen.GameState
 import pw.checkers.game.presentation.gameScreen.GameViewModel
 import pw.checkers.game.presentation.gameScreen.ui.components.Board
 import pw.checkers.game.presentation.gameScreen.ui.components.UserPanel
-import pw.checkers.game.util.calcCellSize
 import pw.checkers.game.util.messageCollectionDisposableEffect
 
 // TODO: make popups responsive, stack buttons in column when screen to narrow
-// TODO: make better system for scaling board and user panels
-// TODO: fix user panels not filling space between board and screen edge on some screens
+// TODO: fix user panels not filling space between board and screen edge sometimes
 
 @Composable
 fun GameScreen(
@@ -47,7 +42,6 @@ fun GameScreen(
         }
     }
 
-    val windowSize = rememberWindowSize()
     val board by gameViewModel.board.collectAsStateWithLifecycle()
     val state by gameViewModel.state.collectAsStateWithLifecycle()
 
@@ -55,7 +49,6 @@ fun GameScreen(
         board = board,
         state = state,
         onAction = gameViewModel::onAction,
-        windowSize = windowSize,
         gameViewModel.user,
         gameViewModel.opponent,
         gameViewModel.color
@@ -70,31 +63,44 @@ private fun Game(
     board: Board,
     state: GameState,
     onAction: (GameBoardAction) -> Unit,
-    windowSize: WindowSize,
     user: User,
     opponent: User,
     assignedColor: PlayerColor
 ) {
-    val cellSize = remember { calcCellSize(windowSize.width, windowSize.height) }
 
-    Column(
+    BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        contentAlignment = Alignment.Center,
     ) {
-        Box(modifier = Modifier.weight(1f).width(cellSize * 8)) {
-            UserPanel(modifier = Modifier.fillMaxSize(), opponent, assignedColor != state.currentPlayer)
+        val cellSize = if (maxHeight <= maxWidth) {
+            maxHeight / (board.size + 2)
+        } else {
+            maxWidth / board.size
         }
-        Box(modifier = Modifier.size(width = cellSize * 8, height = cellSize * 8)) {
-            Board(
-                board = board,
-                uiState = state,
-                cellSize = cellSize,
-                modifier = Modifier.fillMaxSize(),
-                onAction = { action -> onAction(action) },
-            )
-        }
-        Box(modifier = Modifier.weight(1f).width(cellSize * 8)) {
-            UserPanel(modifier = Modifier.fillMaxSize(), user, assignedColor == state.currentPlayer)
+
+        Column(
+            modifier = Modifier.width(cellSize * board.size),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(modifier = Modifier.fillMaxWidth().height(cellSize)) {
+                UserPanel(user = opponent, isCurrentTurn = assignedColor != state.currentPlayer, modifier = Modifier.fillMaxSize())
+            }
+
+            Box(
+                modifier = Modifier.size(cellSize * board.size),
+            ) {
+                Board(
+                    board = board,
+                    uiState = state,
+                    cellSize = cellSize,
+                    modifier = Modifier.fillMaxSize(),
+                    onAction = { action -> onAction(action) },
+                )
+            }
+
+            Box(modifier = Modifier.fillMaxWidth().height(cellSize)) {
+                UserPanel(user = user, isCurrentTurn = assignedColor == state.currentPlayer, modifier = Modifier.fillMaxSize())
+            }
         }
     }
 }
