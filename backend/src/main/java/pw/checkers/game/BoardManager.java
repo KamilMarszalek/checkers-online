@@ -41,19 +41,37 @@ public class BoardManager {
         Move move = moveOutput.getMove();
         Piece[][] board = gameState.getBoard();
         if (isCaptureMove(move)) {
-            int opponentRow = (move.getToRow() +move.getFromRow()) / 2;
-            int opponentCol = (move.getToCol() + move.getFromCol()) / 2;
-            Piece capturedPiece = board[opponentRow][opponentCol];
-            if (capturedPiece.getColor().equals(Color.BLACK)) {
-                gameState.setBlackPiecesLeft(gameState.getBlackPiecesLeft() - 1);
-            } else if (capturedPiece.getColor().equals(Color.WHITE)) {
-                gameState.setWhitePiecesLeft(gameState.getWhitePiecesLeft() - 1);
-            }
-            board[opponentRow][opponentCol] = null;
-            moveOutput.setCapturedPiece(new MoveHelper(opponentRow, opponentCol));
+            Piece capturedPiece = getCapturedPiece(move, board);
+            int[] capturedPieceCoordinates = getCapturedPieceCoordinates(move, board);
+            updateCounters(gameState, capturedPiece);
+            board[capturedPieceCoordinates[0]][capturedPieceCoordinates[1]] = null;
+            moveOutput.setCapturedPiece(new MoveHelper(capturedPieceCoordinates[0], capturedPieceCoordinates[1]));
             moveOutput.setCaptured(true);
-            gameState.setNoCapturesCounter(0);
         }
+    }
+
+    private int[] getCapturedPieceCoordinates(Move move, Piece[][] board) {
+        int opponentRow = (move.getToRow() +move.getFromRow()) / 2;
+        int opponentCol = (move.getToCol() + move.getFromCol()) / 2;
+        return new int[]{opponentRow, opponentCol};
+    }
+
+    private void updateCounters(GameState gameState, Piece capturedPiece) {
+        if (capturedPiece.getColor().equals(Color.BLACK)) {
+            gameState.setBlackPiecesLeft(gameState.getBlackPiecesLeft() - 1);
+        } else if (capturedPiece.getColor().equals(Color.WHITE)) {
+            gameState.setWhitePiecesLeft(gameState.getWhitePiecesLeft() - 1);
+        }
+        gameState.setNoCapturesCounter(0);
+    }
+
+    private Piece getCapturedPiece(Move move, Piece[][] board) {
+        int[] pieceCoordinates = getCapturedPieceCoordinates(move, board);
+        return board[pieceCoordinates[0]][pieceCoordinates[1]];
+    }
+
+    private void setMoveOutput(MoveOutput moveOutput, int row, int col) {
+        moveOutput.setCapturedPiece(new MoveHelper(row, col));
     }
 
     private boolean isCaptureMove(Move move) {
