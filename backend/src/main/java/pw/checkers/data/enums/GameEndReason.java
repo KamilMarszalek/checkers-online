@@ -8,7 +8,7 @@ public enum GameEndReason {
     NO_MOVES("noMoves"),
     FIFTY_MOVES("fiftyMoves"),
     THREEFOLD_REPETITION("threefoldRepetition"),
-    RESIGNATION("Resignation");
+    RESIGNATION("resignation");
 
     private final String value;
 
