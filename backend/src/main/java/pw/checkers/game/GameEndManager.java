@@ -13,7 +13,6 @@ public class GameEndManager {
         this.gameRules = gameRules;
     }
 
-
     public void setDraw(GameState gameState) {
         gameState.setFinished(true);
         setGameEndReason(gameState, false);
