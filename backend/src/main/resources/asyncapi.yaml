@@ -331,6 +331,9 @@ components:
           result:
             type: string
             enum: ["draw", "white", "black"]
+          details:
+            type: string
+            enum: ["noPieces", "noMoves", "fiftyMoves", "threefoldRepetition", "resignation" ]
         required: [type, result]
         additionalProperties: false
 
