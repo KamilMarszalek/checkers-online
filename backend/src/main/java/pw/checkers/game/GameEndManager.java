@@ -20,18 +20,21 @@ public class GameEndManager {
 
     public void setWinner(GameState gameState) {
         Color currentPlayer = gameState.getCurrentPlayer();
-        Color otherPlayer = Color.WHITE.equals(currentPlayer) ? Color.BLACK : Color.WHITE;
         if (gameState.getWhitePiecesLeft() == 0) {
             updateGameState(gameState, Color.BLACK);
-            return;
         } else if (gameState.getBlackPiecesLeft() == 0) {
             updateGameState(gameState, Color.WHITE);
-            return;
-        }
-        if (!gameRules.playerHasMoves(gameState, otherPlayer) && gameRules.playerHasMoves(gameState, currentPlayer)) {
+        } else if (opponentCannotMove(gameState, currentPlayer)) {
             updateGameState(gameState, currentPlayer);
         }
     }
+
+
+    private boolean opponentCannotMove(GameState gameState, Color currentPlayer) {
+        Color otherPlayer = Color.WHITE.equals(currentPlayer) ? Color.BLACK : Color.WHITE;
+        return !gameRules.playerHasMoves(gameState, otherPlayer) && gameRules.playerHasMoves(gameState, currentPlayer);
+    }
+
 
     private void updateGameState(GameState gameState, Color winner) {
         gameState.setWinner(winner);
