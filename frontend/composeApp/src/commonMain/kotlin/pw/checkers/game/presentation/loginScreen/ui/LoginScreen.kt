@@ -22,8 +22,6 @@ import pw.checkers.game.presentation.loginScreen.LoginScreenState
 import pw.checkers.game.presentation.loginScreen.LoginViewModel
 import pw.checkers.game.presentation.loginScreen.UserNameValidation
 import pw.checkers.game.util.messageCollectionDisposableEffect
-import pw.checkers.core.presentation.windowSize.WindowSize
-import pw.checkers.core.presentation.windowSize.rememberWindowSize
 import pw.checkers.core.util.DoNothing
 
 @Composable
@@ -35,7 +33,6 @@ fun LoginScreen(
 
     val state by loginViewModel.state.collectAsState()
     val userNameValidation by loginViewModel.usernameValidation.collectAsState()
-    val windowSize = rememberWindowSize()
 
     messageCollectionDisposableEffect(loginViewModel)
 
@@ -49,19 +46,19 @@ fun LoginScreen(
         }
     }
 
-    LoginInputScreen(
-        state = state,
-        userNameValidation = userNameValidation,
-        windowSize = windowSize,
-        loginViewModel::onAction
-    )
+    Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
+        LoginInputScreen(
+            state = state,
+            userNameValidation = userNameValidation,
+            loginViewModel::onAction
+        )
+    }
 }
 
 @Composable
 private fun LoginInputScreen(
     state: LoginScreenState,
     userNameValidation: UserNameValidation,
-    windowSize: WindowSize,
     onAction: (LoginScreenAction) -> Unit,
 ) {
 
@@ -70,7 +67,6 @@ private fun LoginInputScreen(
             value = state.username,
             onValueChange = { onAction(LoginScreenAction.UsernameChanged(it)) },
             label = { Text(text = "Username") },
-            modifier = Modifier.width((windowSize.width / 3).dp),
             singleLine = true,
             isError = !userNameValidation.errorMessage.isNullOrBlank(),
             supportingText = userNameValidation.errorMessage?.let { message ->
