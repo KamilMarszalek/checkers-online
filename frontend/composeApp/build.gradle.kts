@@ -1,8 +1,8 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import java.util.*
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -14,14 +14,12 @@ plugins {
 
 kotlin {
     androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+        @OptIn(ExperimentalKotlinGradlePluginApi::class) compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
         }
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
+    @OptIn(ExperimentalWasmDsl::class) wasmJs {
         moduleName = "composeApp"
         browser {
             val rootDirPath = project.rootDir.path
@@ -40,12 +38,13 @@ kotlin {
         }
         binaries.executable()
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.ktor.client.okhttp)
         }
-        
+
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -59,9 +58,20 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.bundles.koin)
             implementation(libs.bundles.ktor)
+            implementation(libs.autosize.text)
         }
     }
 }
+
+// used for extracting server address for android device from local.properties
+
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+val serverAddress: String = localProperties.getProperty("serverAddress", "localhost:8080")
 
 android {
     namespace = "pw.checkers"
@@ -72,7 +82,13 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1"
+
+        buildConfigField(
+            "String",
+            "serverAddress",
+            "\"$serverAddress\""
+        )
     }
     packaging {
         resources {
@@ -81,8 +97,11 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -93,4 +112,3 @@ android {
 dependencies {
     debugImplementation(compose.uiTooling)
 }
-
