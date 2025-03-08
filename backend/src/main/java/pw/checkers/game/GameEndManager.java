@@ -22,23 +22,22 @@ public class GameEndManager {
     public void setWinner(GameState gameState) {
         Color currentPlayer = gameState.getCurrentPlayer();
         Color otherPlayer = Color.WHITE.equals(currentPlayer) ? Color.BLACK : Color.WHITE;
-
         if (gameState.getWhitePiecesLeft() == 0) {
-            gameState.setWinner(Color.BLACK);
-            gameState.setFinished(true);
-            setGameEndReason(gameState, false);
+            updateGameState(gameState, Color.BLACK);
             return;
         } else if (gameState.getBlackPiecesLeft() == 0) {
-            gameState.setWinner(Color.WHITE);
-            gameState.setFinished(true);
-            setGameEndReason(gameState, false);
+            updateGameState(gameState, Color.WHITE);
             return;
         }
         if (!gameRules.playerHasMoves(gameState, otherPlayer) && gameRules.playerHasMoves(gameState, currentPlayer)) {
-            gameState.setWinner(currentPlayer);
-            gameState.setFinished(true);
-            setGameEndReason(gameState, false);
+            updateGameState(gameState, currentPlayer);
         }
+    }
+
+    private void updateGameState(GameState gameState, Color winner) {
+        gameState.setWinner(winner);
+        gameState.setFinished(true);
+        setGameEndReason(gameState, false);
     }
 
     public void setGameEndReason(GameState gameState, boolean resigned) {
