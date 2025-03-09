@@ -1,12 +1,15 @@
 package pw.checkers.game.presentation.gameScreen.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,13 +25,12 @@ import pw.checkers.game.presentation.gameScreen.ui.components.Board
 import pw.checkers.game.presentation.gameScreen.ui.components.UserPanel
 import pw.checkers.game.util.messageCollectionDisposableEffect
 
-// TODO: make popups responsive, stack buttons in column when screen to narrow
-// TODO: fix user panels not filling space between board and screen edge sometimes
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun GameScreen(
     gameViewModel: GameViewModel,
-    onMainMenuClick: () -> Unit,
+    backToMain: () -> Unit,
     nextGame: (GameEvent, User) -> Unit,
 ) {
     messageCollectionDisposableEffect(gameViewModel)
@@ -40,6 +42,28 @@ fun GameScreen(
                 else -> DoNothing
             }
         }
+    }
+
+    var showLeaveGameDialog by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = true) {
+        showLeaveGameDialog = true
+    }
+
+    if (showLeaveGameDialog) {
+        ConfirmDialog(
+            onDismissRequest = { showLeaveGameDialog = false },
+            onDismiss = { showLeaveGameDialog = false },
+            onConfirm = {
+                gameViewModel.ignoreGameEndPopup()
+                gameViewModel.onAction(GameBoardAction.OnResignClick)
+                gameViewModel.onAction(GameBoardAction.OnMainMenuClick)
+                backToMain()
+            },
+            title = "Leave Game",
+            text = "Are you sure you want to leave the game?",
+            icon = Icons.Default.Warning,
+        )
     }
 
     val board by gameViewModel.board.collectAsStateWithLifecycle()
@@ -54,7 +78,7 @@ fun GameScreen(
         gameViewModel.color
     )
 
-    if (state.gameEnded) EndGamePopupFromState(state, gameViewModel, onMainMenuClick)
+    if (state.gameEnded && !state.ignorePopup) EndGamePopupFromState(state, gameViewModel, backToMain)
 }
 
 
@@ -67,6 +91,7 @@ private fun Game(
     opponent: User,
     assignedColor: PlayerColor
 ) {
+    var showResignPopup by remember { mutableStateOf(false) }
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
@@ -83,7 +108,11 @@ private fun Game(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(modifier = Modifier.fillMaxWidth().height(cellSize)) {
-                UserPanel(user = opponent, isCurrentTurn = assignedColor != state.currentPlayer, modifier = Modifier.fillMaxSize())
+                UserPanel(
+                    user = opponent,
+                    isCurrentTurn = assignedColor != state.currentPlayer,
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
 
             Box(
@@ -99,10 +128,84 @@ private fun Game(
             }
 
             Box(modifier = Modifier.fillMaxWidth().height(cellSize)) {
-                UserPanel(user = user, isCurrentTurn = assignedColor == state.currentPlayer, modifier = Modifier.fillMaxSize())
+                UserPanel(
+                    user = user,
+                    isCurrentTurn = assignedColor == state.currentPlayer,
+                    modifier = Modifier.fillMaxSize(),
+                )
+
+                Button(
+                    onClick = { showResignPopup = true },
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    ),
+                    modifier = Modifier.padding(8.dp).align(Alignment.CenterEnd),
+                ) {
+                    Text("Resign")
+                }
             }
         }
     }
+
+    if (showResignPopup) {
+        ConfirmDialog(
+            onDismissRequest = { showResignPopup = false },
+            onDismiss = { showResignPopup = false },
+            onConfirm = {
+                showResignPopup = false
+                onAction(GameBoardAction.OnResignClick)
+            },
+            title = "Resign game",
+            text = "Are you sure you want to resign?",
+        )
+    }
+}
+
+@Composable
+private fun ConfirmDialog(
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    confirmButtonText: String = "Yes",
+    dismissButtonText: String = "No",
+    title: String? = null,
+    text: String? = null,
+    icon: ImageVector? = null
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+            ) {
+                Text(confirmButtonText)
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+            ) {
+                Text(dismissButtonText)
+            }
+        },
+        title = {
+            if (title != null) {
+                Text(title)
+            }
+        },
+        text = {
+            if (text != null) {
+                Text(text)
+            }
+        },
+        icon = {
+            if (icon != null) {
+                Icon(icon, contentDescription = null)
+            }
+        }
+    )
 }
 
 @Composable
@@ -174,20 +277,23 @@ private fun GameEndPopup(
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                 )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+                Button(
+                    onClick = { onAction(GameBoardAction.OnMainMenuClick) },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(onClick = { onAction(GameBoardAction.OnMainMenuClick) }) {
-                        Text("Main menu")
-                    }
-                    Button(onClick = { onAction(GameBoardAction.OnNextGameClick) }) {
-                        Text("Next game")
-                    }
-                    Button(onClick = { onAction(GameBoardAction.OnRematchRequestClick) }) {
-                        Text("Rematch")
-                    }
+                    Text("Main menu")
+                }
+                Button(
+                    onClick = { onAction(GameBoardAction.OnNextGameClick) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Next game")
+                }
+                Button(
+                    onClick = { onAction(GameBoardAction.OnRematchRequestClick) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Rematch")
                 }
             }
         }
@@ -242,17 +348,17 @@ private fun GameEndPopupNoRematch(
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                 )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+                Button(
+                    onClick = { onAction(GameBoardAction.OnMainMenuClick) },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(onClick = { onAction(GameBoardAction.OnMainMenuClick) }) {
-                        Text("Main menu")
-                    }
-                    Button(onClick = { onAction(GameBoardAction.OnNextGameClick) }) {
-                        Text("Next game")
-                    }
+                    Text("Main menu")
+                }
+                Button(
+                    onClick = { onAction(GameBoardAction.OnNextGameClick) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Next game")
                 }
             }
         }
@@ -264,36 +370,13 @@ private fun RematchRequestPopup(
     message: String,
     onAction: (GameBoardAction) -> Unit
 ) {
-    Dialog(
-        onDismissRequest = {}
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 8.dp,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
-                    Button(onClick = { onAction(GameBoardAction.OnRematchAcceptClick) }) {
-                        Text("Accept")
-                    }
-                    Button(onClick = { onAction(GameBoardAction.OnRematchDeclineClick) }) {
-                        Text("Decline")
-                    }
-                }
-            }
-        }
-    }
+    ConfirmDialog(
+        onDismissRequest = {},
+        onDismiss = { onAction(GameBoardAction.OnRematchDeclineClick) },
+        onConfirm = { onAction(GameBoardAction.OnRematchAcceptClick) },
+        confirmButtonText = "Accept",
+        dismissButtonText = "Decline",
+        title = "Rematch request",
+        text = message,
+    )
 }
