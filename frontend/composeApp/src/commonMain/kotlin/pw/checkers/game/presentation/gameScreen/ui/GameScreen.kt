@@ -9,9 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pw.checkers.core.util.DoNothing
 import pw.checkers.game.domain.GameEvent
@@ -23,6 +21,11 @@ import pw.checkers.game.presentation.gameScreen.GameState
 import pw.checkers.game.presentation.gameScreen.GameViewModel
 import pw.checkers.game.presentation.gameScreen.ui.components.Board
 import pw.checkers.game.presentation.gameScreen.ui.components.UserPanel
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.*
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.ConfirmDialog
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.GameEndDialog
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.GameEndDialogNoRematch
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.RematchRequestDialog
 import pw.checkers.game.util.messageCollectionDisposableEffect
 
 
@@ -78,7 +81,7 @@ fun GameScreen(
         gameViewModel.color
     )
 
-    if (state.gameEnded && !state.ignorePopup) EndGamePopupFromState(state, gameViewModel, backToMain)
+    if (state.gameEnded && !state.ignorePopup) EndGameDialogFromState(state, gameViewModel, backToMain)
 }
 
 
@@ -164,52 +167,7 @@ private fun Game(
 }
 
 @Composable
-private fun ConfirmDialog(
-    onDismissRequest: () -> Unit,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-    confirmButtonText: String = "Yes",
-    dismissButtonText: String = "No",
-    title: String? = null,
-    text: String? = null,
-    icon: ImageVector? = null
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-            ) {
-                Text(confirmButtonText)
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-            ) {
-                Text(dismissButtonText)
-            }
-        },
-        title = {
-            if (title != null) {
-                Text(title)
-            }
-        },
-        text = {
-            if (text != null) {
-                Text(text)
-            }
-        },
-        icon = {
-            if (icon != null) {
-                Icon(icon, contentDescription = null)
-            }
-        }
-    )
-}
-
-@Composable
-private fun EndGamePopupFromState(
+private fun EndGameDialogFromState(
     state: GameState,
     gameViewModel: GameViewModel,
     onMainMenuClick: () -> Unit
@@ -223,160 +181,33 @@ private fun EndGamePopupFromState(
     }
 
     when {
-        state.rematchPending -> RematchPendingPopup()
+        state.rematchPending -> RematchPendingDialog()
         state.rematchRequested -> {
-            RematchRequestPopup(
+            RematchRequestDialog(
                 message = gameViewModel.getRematchRequestMessage(),
                 onAction = handleAction
             )
         }
 
         state.rematchRequestRejected -> {
-            GameEndPopupNoRematch(
+            GameEndDialogNoRematch(
                 message = "Game over",
                 onAction = handleAction
             )
         }
 
         state.rematchPropositionRejected -> {
-            GameEndPopupNoRematch(
+            GameEndDialogNoRematch(
                 message = "Rematch request declined",
                 onAction = handleAction
             )
         }
 
         else -> {
-            GameEndPopup(
+            GameEndDialog(
                 message = gameViewModel.getEndGameText(),
                 onAction = handleAction
             )
         }
     }
-}
-
-
-@Composable
-private fun GameEndPopup(
-    message: String,
-    onAction: (GameBoardAction) -> Unit
-) {
-    Dialog(
-        onDismissRequest = {}
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 8.dp,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-                )
-                Button(
-                    onClick = { onAction(GameBoardAction.OnMainMenuClick) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Main menu")
-                }
-                Button(
-                    onClick = { onAction(GameBoardAction.OnNextGameClick) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Next game")
-                }
-                Button(
-                    onClick = { onAction(GameBoardAction.OnRematchRequestClick) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Rematch")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RematchPendingPopup() {
-    Dialog(
-        onDismissRequest = {}
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 8.dp,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Waiting for response",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-                )
-
-                CircularProgressIndicator()
-            }
-        }
-    }
-}
-
-@Composable
-private fun GameEndPopupNoRematch(
-    message: String,
-    onAction: (GameBoardAction) -> Unit
-) {
-    Dialog(
-        onDismissRequest = {}
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 8.dp,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-                )
-                Button(
-                    onClick = { onAction(GameBoardAction.OnMainMenuClick) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Main menu")
-                }
-                Button(
-                    onClick = { onAction(GameBoardAction.OnNextGameClick) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Next game")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RematchRequestPopup(
-    message: String,
-    onAction: (GameBoardAction) -> Unit
-) {
-    ConfirmDialog(
-        onDismissRequest = {},
-        onDismiss = { onAction(GameBoardAction.OnRematchDeclineClick) },
-        onConfirm = { onAction(GameBoardAction.OnRematchAcceptClick) },
-        confirmButtonText = "Accept",
-        dismissButtonText = "Decline",
-        title = "Rematch request",
-        text = message,
-    )
 }
