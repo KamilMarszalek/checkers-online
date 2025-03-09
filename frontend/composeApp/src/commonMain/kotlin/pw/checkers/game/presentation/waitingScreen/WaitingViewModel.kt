@@ -8,6 +8,7 @@ import pw.checkers.game.domain.model.User
 import pw.checkers.game.domain.repository.GameRepository
 import pw.checkers.game.presentation.BaseViewModel
 import pw.checkers.core.util.DoNothing
+import pw.checkers.game.domain.GameAction
 
 class WaitingViewModel(
     joinedQueue: GameEvent.JoinedQueue,
@@ -45,6 +46,16 @@ class WaitingViewModel(
         }
         _state.update {
             it.copy(message = "Opponent found", waiting = false)
+        }
+    }
+
+    private fun leaveQueue() {
+        sendAction(GameAction.LeaveQueue(user))
+    }
+
+    fun onAction(action: WaitingScreenAction) {
+        when (action) {
+            is WaitingScreenAction.OnBackClick -> leaveQueue()
         }
     }
 }
