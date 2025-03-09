@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import androidx.navigation.toRoute
 import org.koin.compose.viewmodel.koinViewModel
@@ -23,7 +22,7 @@ import pw.checkers.core.util.DoNothing
 import kotlin.reflect.typeOf
 
 @Composable
-fun Checkers(navController: NavHostController = rememberNavController()) {
+fun Checkers(navController: NavHostController) {
 
     NavHost(
         navController = navController,
@@ -64,7 +63,7 @@ fun Checkers(navController: NavHostController = rememberNavController()) {
             val route = backStackEntry.toRoute<Route.GameScreen>()
             GameScreen(
                 gameViewModel = koinViewModel { parametersOf(route.gameInfo.toDomain(), route.user.toDomain()) },
-                onMainMenuClick = {
+                backToMain = {
                     navController.navigate(
                         route = Route.LoginScreen, navOptions = navOptions {
                             popUpTo<Route.LoginScreen> { saveState = false }
