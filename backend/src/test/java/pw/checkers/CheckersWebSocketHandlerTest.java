@@ -161,7 +161,7 @@ public class CheckersWebSocketHandlerTest {
 
     @Test
     public void testHandleResignMessage() throws Exception {
-        // Simulate a resign JSON message.
+        // Simulate a resignation JSON message.
         String gameId = "game123";
         String jsonPayload = "{\"type\":\"resign\",\"gameId\":\"" + gameId + "\"}";
         ResignMessage resignMessage = new ResignMessage();
