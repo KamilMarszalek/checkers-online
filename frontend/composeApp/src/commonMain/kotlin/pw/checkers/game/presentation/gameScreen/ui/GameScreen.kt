@@ -142,13 +142,6 @@ private fun EndGamePopupFromState(
             )
         }
 
-        state.rematchRequested -> {
-            RematchRequestPopup(
-                message = gameViewModel.getRematchRequestMessage(),
-                onAction = handleAction
-            )
-        }
-
         else -> {
             GameEndPopup(
                 message = gameViewModel.getEndGameText(),
