@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.message.*;
-import pw.checkers.sockets.CheckersWebSocketHandler;
 import pw.checkers.sockets.SessionManager;
 import pw.checkers.sockets.handlers.*;
 
@@ -186,9 +185,7 @@ public class CheckersWebSocketHandlerTest {
                 .thenThrow(new IllegalArgumentException("Unknown message type"));
 
         // Verify that an exception is thrown.
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            handler.handleTextMessage(session, new TextMessage(jsonPayload));
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> handler.handleTextMessage(session, new TextMessage(jsonPayload)));
         assertEquals("Unknown message type", exception.getMessage());
     }
 }
