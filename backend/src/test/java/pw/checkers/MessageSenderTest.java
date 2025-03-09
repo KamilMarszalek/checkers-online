@@ -11,6 +11,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
 import pw.checkers.data.enums.Color;
+import pw.checkers.data.enums.GameEndReason;
 import pw.checkers.message.GameEnd;
 import pw.checkers.message.Message;
 import pw.checkers.message.PromptMessage;
@@ -132,6 +133,7 @@ class MessageSenderTest {
         // Create a GameState with no winner (draw).
         GameState state = new GameState();
         state.setWinner(null);
+        state.setGameEndReason(GameEndReason.FIFTY_MOVES);
 
         Map<WebSocketSession, String> colorByPlayer = new HashMap<>();
         colorByPlayer.put(session1, "red");
@@ -146,6 +148,8 @@ class MessageSenderTest {
         Message received = objectMapper.readValue(json, Message.class);
         assertEquals("gameEnd", received.getType());
         assertEquals("draw", ((GameEnd) received).getResult());
+        assertEquals("draw", ((GameEnd) received).getResult());
+        assertEquals("fiftyMoves", ((GameEnd) received).getDetails());
     }
 
     @Test
@@ -160,6 +164,7 @@ class MessageSenderTest {
         // Create a GameState with a winner.
         GameState state = new GameState();
         state.setWinner(Color.WHITE);
+        state.setGameEndReason(GameEndReason.NO_PIECES);
 
         Map<WebSocketSession, String> colorByPlayer = new HashMap<>();
         colorByPlayer.put(session1, "red");

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
 import pw.checkers.data.enums.Color;
+import pw.checkers.game.GameEndManager;
 import pw.checkers.game.GameService;
 import pw.checkers.message.*;
 
@@ -14,10 +15,12 @@ import java.util.Optional;
 public class GameManager {
     private final GameService gameService;
     private final SessionManager sessionManager;
+    private final GameEndManager gameEndManager;
 
-    public GameManager(GameService gameService, SessionManager sessionManager) {
+    public GameManager(GameService gameService, SessionManager sessionManager, GameEndManager gameEndManager) {
         this.gameService = gameService;
         this.sessionManager = sessionManager;
+        this.gameEndManager = gameEndManager;
     }
 
     public void cleanGameHistory(GameIdMessage gameIdMessage){
@@ -58,5 +61,9 @@ public class GameManager {
         Color player = winner.equals("white") ? Color.WHITE : Color.BLACK;
         gameState.setWinner(player);
         return gameState;
+    }
+
+    public void setGameEndReason(String gameId, boolean resigned) {
+        gameEndManager.setGameEndReason(getGame(gameId), resigned);
     }
 }

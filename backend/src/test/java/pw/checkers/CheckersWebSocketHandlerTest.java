@@ -7,22 +7,13 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import pw.checkers.message.PossibilitiesInput;
-import pw.checkers.message.PossibilitiesOutput;
-import pw.checkers.message.PromptMessage;
-import pw.checkers.message.GameIdMessage;
-import pw.checkers.message.Message;
-import pw.checkers.message.User;
-import pw.checkers.sockets.*;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import pw.checkers.message.*;
+import pw.checkers.sockets.SessionManager;
+import pw.checkers.sockets.handlers.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CheckersWebSocketHandlerTest {
@@ -30,11 +21,25 @@ public class CheckersWebSocketHandlerTest {
     @Mock
     private SessionManager sessionManager;
     @Mock
-    private RematchService rematchService;
+    private JoinQueueHandler joinQueueHandler;
     @Mock
-    private MessageSender messageSender;
+    private LeaveQueueHandler leaveQueueHandler;
     @Mock
-    private GameManager gameManager;
+    private MoveHandler moveHandler;
+    @Mock
+    private PossibilitiesHandler possibilitiesHandler;
+    @Mock
+    private AcceptRematchHandler acceptRematchHandler;
+    @Mock
+    private LeaveHandler leaveHandler;
+    @Mock
+    private DeclineRematchHandler declineRematchHandler;
+    @Mock
+    private RematchRequestHandler rematchRequestHandler;
+    @Mock
+    private ResignHandler resignHandler;
+    @Mock
+    private MessageMapper messageMapper;
     @Mock
     private WebSocketSession session;
 
@@ -42,115 +47,145 @@ public class CheckersWebSocketHandlerTest {
 
     @BeforeEach
     public void setUp() {
-        handler = new TestableCheckersWebSocketHandler(sessionManager, rematchService, messageSender, gameManager);
-        // Lenient stubbing for session ID to avoid unnecessary stubbing warnings.
+        handler = new TestableCheckersWebSocketHandler(
+                sessionManager,
+                joinQueueHandler,
+                leaveQueueHandler,
+                moveHandler,
+                possibilitiesHandler,
+                acceptRematchHandler,
+                leaveHandler,
+                declineRematchHandler,
+                rematchRequestHandler,
+                resignHandler,
+                messageMapper
+        );
+        // Lenient stubbing for session ID
         lenient().when(session.getId()).thenReturn("session1");
     }
 
     @Test
     public void testHandleJoinQueue_NoWaitingPlayer() throws Exception {
-        // Simulate a joinQueue message with a fake user.
+        // Simulate a joinQueue JSON message.
         String jsonPayload = "{\"type\":\"joinQueue\",\"user\":{\"username\":\"Alice\"}}";
-        // Stub pollFromPlayerQueue to return null.
-        when(sessionManager.pollFromPlayerQueue()).thenReturn(null);
+        User user = new User();
+        user.setUsername("Alice");
+
+        // Create a JoinQueueMessage corresponding to the payload.
+        JoinQueueMessage joinQueueMessage = new JoinQueueMessage();
+        joinQueueMessage.setUser(user);
+        // Stub the mapper to return our message.
+        when(messageMapper.toMessageAccept(eq(session), any(TextMessage.class)))
+                .thenReturn(joinQueueMessage);
 
         handler.handleTextMessage(session, new TextMessage(jsonPayload));
 
-        // Verify that addPlayerToQueue is called.
-        verify(sessionManager, times(1)).addPlayerToQueue(eq(session), any(User.class));
-
-        // Verify that a waiting message (type "waiting") is sent to session.
-        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
-        verify(messageSender, times(1)).sendMessage(eq(session), captor.capture());
-        Message sentMessage = captor.getValue();
-        assertEquals("waiting", sentMessage.getType().toLowerCase());
-        assertTrue(((PromptMessage) sentMessage).getMessage().contains("Waiting for an opponent"));
+        // Verify that the joinQueueHandler is invoked.
+        verify(joinQueueHandler, times(1)).handleJoinQueue(session, user);
     }
 
     @Test
     public void testHandleMove_NoAssignedColor() throws Exception {
-        // Simulate a move message with a given gameId.
+        // Simulate a move JSON message.
         String gameId = "game123";
-        String jsonPayload = "{\"type\":\"move\",\"gameId\":\"" + gameId + "\",\"move\":{\"fromRow\":5,\"fromCol\":2,\"toRow\":4,\"toCol\":3}}";        // Stub getAssignedColor to return empty.
-        lenient().when(sessionManager.getAssignedColor(eq(gameId), eq(session))).thenReturn(Optional.empty());
+        String jsonPayload = "{\"type\":\"move\",\"gameId\":\"" + gameId + "\","
+                + "\"move\":{\"fromRow\":5,\"fromCol\":2,\"toRow\":4,\"toCol\":3}}";
+        // Create a MoveInput message.
+        MoveInput moveInput = new MoveInput();
+        moveInput.setGameId(gameId);
+        // (Assume you have setters or a nested move object for move details.)
+
+        when(messageMapper.toMessageAccept(eq(session), any(TextMessage.class)))
+                .thenReturn(moveInput);
 
         handler.handleTextMessage(session, new TextMessage(jsonPayload));
 
-        // When assigned color is empty, nothing further should happen.
-        // For example, verify that messageSender.sendMessage is never called with a possibility message.
-        verify(messageSender, never()).sendMessage(eq(session), any(String.class), any(Message.class));
+        // Verify that moveHandler.handleMove is called.
+        verify(moveHandler, times(1)).handleMove(session, moveInput);
     }
 
     @Test
     public void testHandlePossibilities_Valid() throws Exception {
-        // Simulate a possibilities message.
+        // Simulate a possibilities JSON message.
         String gameId = "game123";
-        String jsonPayload = "{\"type\":\"possibilities\",\"gameId\":\"" + gameId + "\",\"row\":2,\"col\":3}";
-        // Stub getAssignedColor to return "white".
-        when(sessionManager.getAssignedColor(eq(gameId), eq(session))).thenReturn(Optional.of("white"));
-        // Stub gameManager.getPossibleMoves to return a fake PossibleMoves.
-        PossibilitiesOutput dummyMoves = new PossibilitiesOutput();
-        dummyMoves.setMoves(new java.util.ArrayList<>());
-        when(gameManager.getPossibleMoves(any(PossibilitiesInput.class), eq(session))).thenReturn(dummyMoves);
+        String jsonPayload = "{\"type\":\"possibilities\",\"gameId\":\"" + gameId + "\","
+                + "\"row\":2,\"col\":3}";
+        PossibilitiesInput possibilitiesInput = new PossibilitiesInput();
+        possibilitiesInput.setGameId(gameId);
+        possibilitiesInput.setRow(2);
+        possibilitiesInput.setCol(3);
+
+        when(messageMapper.toMessageAccept(eq(session), any(TextMessage.class)))
+                .thenReturn(possibilitiesInput);
 
         handler.handleTextMessage(session, new TextMessage(jsonPayload));
 
-        // Verify that sendMessage is called with a possibility message.
-        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
-        verify(messageSender, times(1)).sendMessage(eq(session), eq("white"), captor.capture());
-        Message sentMessage = captor.getValue();
-        assertEquals("possibilities", sentMessage.getType().toLowerCase());
+        // Verify that possibilitiesHandler.handlePossibilities is called.
+        verify(possibilitiesHandler, times(1)).handlePossibilities(session, possibilitiesInput);
     }
 
     @Test
     public void testHandleLeaveQueue() throws Exception {
-        // Simulate a leaveQueue message.
+        // Simulate a leaveQueue JSON message.
         String jsonPayload = "{\"type\":\"leaveQueue\",\"user\":{\"username\":\"Alice\"}}";
+        User user = new User();
+        user.setUsername("Alice");
+        LeaveQueueMessage leaveQueueMessage = new LeaveQueueMessage();
+        leaveQueueMessage.setUser(user);
+
+        when(messageMapper.toMessageAccept(eq(session), any(TextMessage.class)))
+                .thenReturn(leaveQueueMessage);
+
         handler.handleTextMessage(session, new TextMessage(jsonPayload));
-        // Verify that removeWaitingPlayerFromQueue is called.
-        verify(sessionManager, times(1)).removeWaitingPlayerFromQueue(eq(session), any(User.class));
+
+        // Verify that leaveQueueHandler.handleLeaveQueue is called.
+        verify(leaveQueueHandler, times(1)).handleLeaveQueue(session, user);
     }
 
     @Test
     public void testHandleRematchDecline() throws Exception {
-        // Simulate a decline rematch message.
+        // Simulate a decline rematch JSON message.
         String gameId = "game123";
         String jsonPayload = "{\"type\":\"declineRematch\",\"gameId\":\"" + gameId + "\"}";
-        handler.handleTextMessage(session, new TextMessage(jsonPayload));
-        // Verify that gameManager.cleanGameHistory is called.
-        verify(gameManager, times(1)).cleanGameHistory(any(GameIdMessage.class));
-        // Verify that removeFromRematchRequests is called.
-        verify(rematchService, times(1)).removeFromRematchRequests(eq(gameId));
-        // Verify that removeUsersBySessionEntry is called.
-        verify(sessionManager, times(1)).removeUsersBySessionEntry(eq(session));
-    }
+        DeclineRematchMessage declineRematchMessage = new DeclineRematchMessage();
+        declineRematchMessage.setGameId(gameId);
 
-    @Test
-    public void testHandleUnknownMessageType() throws Exception {
-        // Simulate an unknown message type.
-        String jsonPayload = "{\"type\":\"unknownType\"}";
+        when(messageMapper.toMessageAccept(eq(session), any(TextMessage.class)))
+                .thenReturn(declineRematchMessage);
+
         handler.handleTextMessage(session, new TextMessage(jsonPayload));
 
-        // Verify that messageSender.sendMessage is called with an error message.
-        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
-        verify(messageSender, times(1)).sendMessage(eq(session), captor.capture());
-        Message sentMessage = captor.getValue();
-        assertEquals("error", sentMessage.getType().toLowerCase());
-        assertEquals("Unknown message type", ((PromptMessage) sentMessage).getMessage());
+        // Verify that declineRematchHandler.handleDeclineRematch is invoked.
+        verify(declineRematchHandler, times(1)).handleDeclineRematch(session, declineRematchMessage);
     }
 
     @Test
     public void testHandleResignMessage() throws Exception {
+        // Simulate a resignation JSON message.
         String gameId = "game123";
-        WebSocketSession session1 = mock(WebSocketSession.class);
-        WebSocketSession session2 = mock(WebSocketSession.class);
-        Map<WebSocketSession, String> dummyMap = new HashMap<>();
-        dummyMap.put(session1, "white");
-        dummyMap.put(session2, "black");
-        when(sessionManager.getColorAssignments(gameId)).thenReturn(dummyMap);
-        when(sessionManager.getAssignedColorByGameIdAndSession(gameId, session1)).thenReturn("white");
-        when(sessionManager.getSessionsByGameId(gameId)).thenReturn(dummyMap.keySet());
         String jsonPayload = "{\"type\":\"resign\",\"gameId\":\"" + gameId + "\"}";
-        handler.handleTextMessage(session1, new TextMessage(jsonPayload));
+        ResignMessage resignMessage = new ResignMessage();
+        resignMessage.setGameId(gameId);
+
+        when(messageMapper.toMessageAccept(eq(session), any(TextMessage.class)))
+                .thenReturn(resignMessage);
+
+        handler.handleTextMessage(session, new TextMessage(jsonPayload));
+
+        // Verify that resignHandler.handleResign is called.
+        verify(resignHandler, times(1)).handleResign(session, resignMessage);
+    }
+
+    @Test
+    public void testHandleUnknownMessageType() throws Exception {
+        // Simulate an unknown JSON message type.
+        String jsonPayload = "{\"type\":\"unknownType\"}";
+        // Let the mapper throw an exception for an unknown type.
+        when(messageMapper.toMessageAccept(eq(session), any(TextMessage.class)))
+                .thenThrow(new IllegalArgumentException("Unknown message type"));
+
+        // Verify that an exception is thrown.
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> handler.handleTextMessage(session, new TextMessage(jsonPayload)));
+        assertEquals("Unknown message type", exception.getMessage());
     }
 }

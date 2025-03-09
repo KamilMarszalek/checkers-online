@@ -10,6 +10,7 @@ import pw.checkers.data.enums.MessageType;
 @NoArgsConstructor
 public class GameEnd extends Message {
     private String result;
+    private String details;
 
     public GameEnd(String result) {
         super(MessageType.GAME_END.getValue());

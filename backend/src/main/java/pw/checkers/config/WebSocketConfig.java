@@ -3,25 +3,52 @@ package pw.checkers.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
 import pw.checkers.sockets.*;
+import pw.checkers.sockets.handlers.*;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
-    private final MessageSender messageSender;
     private final SessionManager sessionManager;
-    private final RematchService rematchService;
-    private final GameManager gameManager;
+    private final AcceptRematchHandler acceptRematchHandler;
+    private final DeclineRematchHandler declineRematchHandler;
+    private final JoinQueueHandler joinQueueHandler;
+    private final LeaveHandler leaveHandler;
+    private final LeaveQueueHandler leaveQueueHandler;
+    private final MessageMapper messageMapper;
+    private final MoveHandler moveHandler;
+    private final PossibilitiesHandler possibilitiesHandler;
+    private final RematchRequestHandler rematchRequestHandler;
+    private final ResignHandler resignHandler;
 
-    public WebSocketConfig(MessageSender messageSender, SessionManager sessionManager, RematchService rematchService, GameManager gameManager) {
-        this.messageSender = messageSender;
+    public WebSocketConfig(SessionManager sessionManager, AcceptRematchHandler acceptRematchHandler, DeclineRematchHandler declineRematchHandler, JoinQueueHandler joinQueueHandler, LeaveHandler leaveHandler, LeaveQueueHandler leaveQueueHandler, MessageMapper messageMapper, MoveHandler moveHandler, PossibilitiesHandler possibilitiesHandler, RematchRequestHandler rematchRequestHandler, ResignHandler resignHandler) {
+        this.acceptRematchHandler = acceptRematchHandler;
+        this.declineRematchHandler = declineRematchHandler;
+        this.joinQueueHandler = joinQueueHandler;
+        this.leaveHandler = leaveHandler;
+        this.leaveQueueHandler = leaveQueueHandler;
+        this.messageMapper = messageMapper;
+        this.moveHandler = moveHandler;
+        this.possibilitiesHandler = possibilitiesHandler;
+        this.rematchRequestHandler = rematchRequestHandler;
+        this.resignHandler = resignHandler;
         this.sessionManager = sessionManager;
-        this.rematchService = rematchService;
-        this.gameManager = gameManager;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new CheckersWebSocketHandler(sessionManager, rematchService, messageSender, gameManager), "/ws")
+        registry.addHandler(new CheckersWebSocketHandler(
+                sessionManager,
+                joinQueueHandler,
+                leaveQueueHandler,
+                moveHandler,
+                possibilitiesHandler,
+                acceptRematchHandler,
+                leaveHandler,
+                declineRematchHandler,
+                rematchRequestHandler,
+                resignHandler,
+                messageMapper
+                ), "/ws")
                 .setAllowedOrigins("*");
     }
 }

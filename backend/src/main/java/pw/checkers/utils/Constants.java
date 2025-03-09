@@ -9,5 +9,7 @@ public class Constants {
     public static final List<int[]> DIRECTIONS_PAWN_WHITE = Arrays.asList(new int[]{-1, 1}, new int[]{-1, -1});
     public static final List<int[]> DIRECTIONS_PAWN_BLACK = Arrays.asList(new int[]{1, 1}, new int[]{1, -1});
     public static final List<int[]> DIRECTIONS_KING = Arrays.asList(new int[]{1, 1}, new int[]{1, -1}, new int[]{-1, 1}, new int[]{-1, -1});
-
+    public static final String OPPONENT_LEFT = "Opponent has already left the game";
+    public static final String OPPONENT_REJECTED = "Your opponent reject your rematch request";
+    public static final String WAITING_MESSAGE = "Waiting for an opponent...";
 }
