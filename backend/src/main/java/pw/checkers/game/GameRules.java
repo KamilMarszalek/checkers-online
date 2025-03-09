@@ -105,7 +105,9 @@ public class GameRules {
         int middleCol = col + deltaCol;
         int landingRow = row + 2 * deltaRow;
         int landingCol = col + 2 * deltaCol;
-        if (!isWithinBounds(landingRow, landingCol)) return;
+        if (!isWithinBounds(landingRow, landingCol)) {
+            return;
+        }
         if (isTakeValid(board, middleRow, middleCol, landingRow, landingCol, opponentColor)) {
             possibilitiesOutput.getMoves().add(new MoveHelper(landingRow, landingCol));
         }
