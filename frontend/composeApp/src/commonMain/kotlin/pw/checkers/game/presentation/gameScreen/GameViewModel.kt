@@ -57,6 +57,8 @@ class GameViewModel(
     }
 
     private fun makeMove(row: Int, col: Int) {
+        if (_state.value.gameEnded) return
+
         _state.update { it.copy(highlightedCells = emptyList()) }
         val move = Move(selected.row, selected.col, row, col)
         sendAction(GameAction.MakeMove(gameId, move))
@@ -96,7 +98,13 @@ class GameViewModel(
     }
 
     private fun checkSkipClick(row: Int, col: Int): Boolean {
-        return ((row == selected.row && col == selected.col) || _board.value[row][col].piece!!.color != color || _state.value.currentPlayer != color || multiMove)
+        return (
+            (row == selected.row && col == selected.col) ||
+            _board.value[row][col].piece!!.color != color ||
+            _state.value.currentPlayer != color ||
+            multiMove ||
+            _state.value.gameEnded
+        )
     }
 
     private fun checkIfUpgrade(pieceCell: Cell): Boolean {
@@ -169,6 +177,11 @@ class GameViewModel(
         sendAction(GameAction.LeaveGame(gameId))
     }
 
+    private fun resignGame() {
+        _state.update { it.copy(gameEnded = true) }
+        sendAction(GameAction.Resign(gameId))
+    }
+
     private fun acceptRematch() {
         sendAction(GameAction.AcceptRematch(gameId))
     }
@@ -230,6 +243,11 @@ class GameViewModel(
             GameBoardAction.OnRematchRequestClick -> requestRematch()
             GameBoardAction.OnRematchAcceptClick -> acceptRematch()
             GameBoardAction.OnRematchDeclineClick -> declineRematch()
+            GameBoardAction.OnResignClick -> resignGame()
         }
+    }
+
+    fun ignoreGameEndPopup() {
+        _state.update { it.copy(ignorePopup = true) }
     }
 }

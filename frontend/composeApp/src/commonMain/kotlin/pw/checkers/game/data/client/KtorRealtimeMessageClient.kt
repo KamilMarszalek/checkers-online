@@ -35,7 +35,6 @@ class KtorRealtimeMessageClient(private val httpClient: HttpClient, override val
 
     override suspend fun connect() {
         session = httpClient.webSocketSession {
-            println("ws://$serverAddress/ws")
             url("ws://$serverAddress/ws")
         }
 

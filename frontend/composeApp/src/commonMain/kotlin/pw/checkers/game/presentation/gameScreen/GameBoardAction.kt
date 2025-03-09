@@ -10,4 +10,5 @@ sealed interface GameBoardAction {
     data object OnRematchRequestClick : GameBoardAction
     data object OnRematchAcceptClick : GameBoardAction
     data object OnRematchDeclineClick : GameBoardAction
+    data object OnResignClick : GameBoardAction
 }

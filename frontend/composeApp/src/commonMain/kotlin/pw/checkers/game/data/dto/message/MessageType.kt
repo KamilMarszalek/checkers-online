@@ -20,5 +20,6 @@ object MessageType {
         const val ACCEPT_REMATCH = "acceptRematch"
         const val DECLINE_REMATCH = "declineRematch"
         const val LEAVE = "leave"
+        const val RESIGN = "resign"
     }
 }

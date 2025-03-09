@@ -25,6 +25,10 @@ sealed interface Outgoing {
     data class GetPossibilities(val gameId: String, val row: Int, val col: Int) : Outgoing
 
     @Serializable
+    @SerialName(MessageType.Outgoing.RESIGN)
+    data class Resign(val gameId: String) : Outgoing
+
+    @Serializable
     @SerialName(MessageType.Outgoing.LEAVE)
     data class LeaveGame(val gameId: String) : Outgoing
 

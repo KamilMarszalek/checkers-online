@@ -14,4 +14,5 @@ data class GameState(
     val rematchRequested: Boolean = false,
     val rematchRequestRejected: Boolean = false,
     val rematchPropositionRejected: Boolean = false,
+    val ignorePopup: Boolean = false,
 )
