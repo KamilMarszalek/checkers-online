@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static pw.checkers.data.enums.MessageType.*;
+import static pw.checkers.utils.Constants.*;
 
 public class CheckersWebSocketHandler extends TextWebSocketHandler implements MessageVisitor {
 
@@ -68,13 +69,15 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
         Optional<WebSocketSession> opponent = sessionManager.getOpponent(gameId, session);
 
         if (opponent.isPresent()) {
-            Message message = new PromptMessage(REJECTION.getValue(), "Your opponent reject your rematch request");
-            messageSender.sendMessage(opponent.get(), message);
+            sendRejectionHelper(session, OPPONENT_REJECTED);
         } else {
-            Message message = new PromptMessage(REJECTION.getValue(), "Opponent has already left the game");
-            messageSender.sendMessage(session, message);
+            sendRejectionHelper(session, OPPONENT_LEFT);
         }
+    }
 
+    private void sendRejectionHelper(WebSocketSession session, String status) throws IOException {
+        Message message = new PromptMessage(REJECTION.getValue(), status);
+        messageSender.sendMessage(session, message);
     }
 
     private void proposeRematch(WebSocketSession session, GameIdMessage gameIdMessage) throws IOException {
@@ -97,7 +100,7 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
 
     private void addPlayerToQueue(WebSocketSession session, User user) throws IOException {
         sessionManager.addPlayerToQueue(session, user);
-        Message waitingMessage = new PromptMessage(WAITING.getValue(), "Waiting for an opponent...");
+        Message waitingMessage = new PromptMessage(WAITING.getValue(), WAITING_MESSAGE);
         messageSender.sendMessage(session, waitingMessage);
     }
 
@@ -105,15 +108,20 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
         WebSocketSession waitingSession = waitingPlayer.session();
         String newGameId = gameManager.createGame();
 
-        sessionManager.addToSessionsByGame(newGameId, waitingSession, session);
-        sessionManager.addToColorAssignments(newGameId, waitingSession, session);
-        sessionManager.addToUserBySessions(waitingSession, waitingPlayer.user(), session, user);
+        updateSessionManager(waitingPlayer, session, user, newGameId);
 
         Message waitingPlayerResponse = new JoinMessage(newGameId, Color.WHITE.getValue(), new User(user.getUsername()));
         Message sessionPlayerResponse = new JoinMessage(newGameId, Color.BLACK.getValue(), new User(waitingPlayer.user().getUsername()));
 
         messageSender.sendMessage(waitingSession, Color.WHITE.getValue(), waitingPlayerResponse);
         messageSender.sendMessage(session, Color.BLACK.getValue(), sessionPlayerResponse);
+    }
+
+    private void updateSessionManager(WaitingPlayer waitingPlayer, WebSocketSession session, User user, String newGameId) {
+        WebSocketSession waitingSession = waitingPlayer.session();
+        sessionManager.addToSessionsByGame(newGameId, waitingSession, session);
+        sessionManager.addToColorAssignments(newGameId, waitingSession, session);
+        sessionManager.addToUserBySessions(waitingSession, waitingPlayer.user(), session, user);
     }
 
     private void handleMove(WebSocketSession session, MoveInput moveInput) throws IOException {
@@ -127,19 +135,28 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
         messageSender.broadcastToGame(sessionManager.getSessionsByGameId(gameId), moveOutput, sessionManager.getColorAssignments(gameId));
 
         if (updatedState.isFinished()) {
-            gameManager.setGameEndReason(gameId, false);
-            messageSender.broadcastGameEnd(sessionManager.getSessionsByGameId(gameId), updatedState, sessionManager.getColorAssignments(gameId));
+            handleGameEnd(gameId, updatedState);
         }
 
         if (moveOutput != null && moveOutput.isHasMoreTakes()) {
-            PossibilitiesOutput moves = gameManager.getPossibleMoves(
-                    new PossibilitiesInput(gameId,
-                            moveOutput.getMove().getToRow(),
-                            moveOutput.getMove().getToCol()),
-                    session
-            );
-            messageSender.sendMessage(session, assignedColor, moves);
+            handleMoreTakes(gameId, moveOutput, session, assignedColor);
         }
+    }
+
+    private void handleGameEnd(String gameId, GameState gameState) throws IOException {
+        gameManager.setGameEndReason(gameId, false);
+        messageSender.broadcastGameEnd(sessionManager.getSessionsByGameId(gameId),
+                gameState, sessionManager.getColorAssignments(gameId));
+    }
+
+    private void handleMoreTakes(String gameId, MoveOutput moveOutput, WebSocketSession session, String assignedColor) throws IOException {
+        PossibilitiesOutput moves = gameManager.getPossibleMoves(
+                new PossibilitiesInput(gameId,
+                        moveOutput.getMove().getToRow(),
+                        moveOutput.getMove().getToCol()),
+                session
+        );
+        messageSender.sendMessage(session, assignedColor, moves);
     }
 
     private void handlePossibilities(WebSocketSession session, PossibilitiesInput possibilitiesInput) throws IOException {
