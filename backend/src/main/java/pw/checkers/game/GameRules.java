@@ -9,7 +9,6 @@ import pw.checkers.message.Move;
 import pw.checkers.message.MoveHelper;
 import pw.checkers.message.PossibilitiesOutput;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Math.abs;
@@ -19,10 +18,8 @@ import static pw.checkers.utils.Constants.BOARD_SIZE;
 @Service
 public class GameRules {
     public PossibilitiesOutput getPossibleMoves(GameState gameState, int row, int col) {
-        if (gameState.getLastCaptureCol() != null && gameState.getLastCaptureRow() != null) {
-            if (row != gameState.getLastCaptureRow() || col != gameState.getLastCaptureCol()) {
-                return new PossibilitiesOutput();
-            }
+        if (isForcedMove(gameState, row, col)) {
+            return new PossibilitiesOutput();
         }
         Piece[][] board = gameState.getBoard();
         Piece pawn = board[row][col];
@@ -37,7 +34,6 @@ public class GameRules {
 
     private PossibilitiesOutput getPossibleMovesHelper(GameState gameState, int row, int col, boolean isKing) {
         PossibilitiesOutput possibilitiesOutput = new PossibilitiesOutput();
-        possibilitiesOutput.setMoves(new ArrayList<>());
         Piece[][] board = gameState.getBoard();
         Piece piece = board[row][col];
         if (piece == null) {
@@ -62,7 +58,6 @@ public class GameRules {
                 if (p != null && p.getColor() == color) {
                     boolean isKing = (p.getType() == PieceType.KING);
                     PossibilitiesOutput temp = new PossibilitiesOutput();
-                    temp.setMoves(new ArrayList<>());
                     if (findTakes(temp, board, row, col, isKing)) {
                         if (!temp.getMoves().isEmpty()) {
                             return true;
@@ -74,68 +69,75 @@ public class GameRules {
         return false;
     }
 
+    private boolean isWithinBounds(int row, int col) {
+        return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
+    }
+
+    private List<int[]> getMoveDirections(Piece piece, boolean isKing) {
+        if (isKing) {
+            return DIRECTIONS_KING;
+        }
+        return piece.getColor() == Color.BLACK ? DIRECTIONS_PAWN_BLACK : DIRECTIONS_PAWN_WHITE;
+    }
+
+    private boolean isForcedMove(GameState gameState, int row, int col) {
+        return gameState.getLastCaptureRow() != null && gameState.getLastCaptureCol() != null
+                && (row != gameState.getLastCaptureRow() || col != gameState.getLastCaptureCol());
+    }
+
     private boolean findTakes(PossibilitiesOutput possibilitiesOutput, Piece[][] board, int row, int col, boolean isKing) {
         Piece pawn = board[row][col];
         Color color = pawn.getColor();
-
         Color opponentColor = (color == Color.BLACK) ? Color.WHITE : Color.BLACK;
-        List<int[]> directions = (color == Color.BLACK)
-                ? DIRECTIONS_PAWN_BLACK
-                : DIRECTIONS_PAWN_WHITE;
-        if (isKing) {
-            directions = DIRECTIONS_KING;
-        }
+        List<int[]> directions = getMoveDirections(pawn, isKing);
 
         for (int[] direction : directions) {
             int deltaRow = direction[0];
             int deltaCol = direction[1];
-
-            int middleRow = row + deltaRow;
-            int middleCol = col + deltaCol;
-
-            int landingRow = row + 2 * deltaRow;
-            int landingCol = col + 2 * deltaCol;
-
-            if (landingRow < 0 || landingRow >= BOARD_SIZE
-                    || landingCol < 0 || landingCol >= BOARD_SIZE) {
-                continue;
-            }
-
-            if (board[middleRow][middleCol] != null
-                    && board[middleRow][middleCol].getColor() == opponentColor
-                    && board[landingRow][landingCol] == null) {
-                possibilitiesOutput.getMoves().add(new MoveHelper(landingRow, landingCol));
-            }
+            tryAddTake(possibilitiesOutput, board, row, col, deltaRow, deltaCol, opponentColor);
         }
-
         return !possibilitiesOutput.getMoves().isEmpty();
+    }
+
+    private void tryAddTake(PossibilitiesOutput possibilitiesOutput, Piece[][] board, int row, int col,
+                            int deltaRow, int deltaCol, Color opponentColor) {
+        int middleRow = row + deltaRow;
+        int middleCol = col + deltaCol;
+        int landingRow = row + 2 * deltaRow;
+        int landingCol = col + 2 * deltaCol;
+        if (!isWithinBounds(landingRow, landingCol)) return;
+        if (isTakeValid(board, middleRow, middleCol, landingRow, landingCol, opponentColor)) {
+            possibilitiesOutput.getMoves().add(new MoveHelper(landingRow, landingCol));
+        }
+    }
+
+    private boolean isTakeValid(Piece[][] board, int middleRow, int middleCol, int landingRow, int landingCol, Color opponentColor) {
+        return board[middleRow][middleCol] != null
+                && board[middleRow][middleCol].getColor() == opponentColor
+                && board[landingRow][landingCol] == null;
     }
 
     private void findOtherMoves(PossibilitiesOutput possibilitiesOutput, Piece[][] board, int row, int col, boolean isKing) {
         Piece pawn = board[row][col];
-        Color color = pawn.getColor();
-        List<int[]> directions = (color == Color.BLACK)
-                ? DIRECTIONS_PAWN_BLACK
-                : DIRECTIONS_PAWN_WHITE;
-        if (isKing) {
-            directions = DIRECTIONS_KING;
-        }
+        List<int[]> directions = getMoveDirections(pawn, isKing);
         for (int[] direction : directions) {
             int deltaRow = direction[0];
             int deltaCol = direction[1];
-
-            int landingRow = row + deltaRow;
-            int landingCol = col + deltaCol;
-
-            if (landingRow < 0 || landingRow >= BOARD_SIZE
-                    || landingCol < 0 || landingCol >= BOARD_SIZE) {
-                continue;
-            }
-
-            if (board[landingRow][landingCol] == null) {
-                possibilitiesOutput.getMoves().add(new MoveHelper(landingRow, landingCol));
-            }
+            tryAddMove(possibilitiesOutput, board, row, col, deltaRow, deltaCol);
         }
+    }
+
+    private void tryAddMove(PossibilitiesOutput possibilitiesOutput, Piece[][] board, int row, int col, int deltaRow, int deltaCol) {
+        int landingRow = row + deltaRow;
+        int landingCol = col + deltaCol;
+
+        if (isMoveValid(board, landingRow, landingCol)) {
+            possibilitiesOutput.getMoves().add(new MoveHelper(landingRow, landingCol));
+        }
+    }
+
+    private boolean isMoveValid(Piece[][] board, int landingRow, int landingCol) {
+        return isWithinBounds(landingRow, landingCol) && board[landingRow][landingCol] == null;
     }
 
     private boolean isPositionRepeatedThreeTimes(GameState gameState) {
