@@ -40,7 +40,7 @@ class WaitingViewModel(
 
     private fun processWaitingMessage() {
         _state.update {
-            it.copy(message = UiText(Res.string.waiting_for_opponent))
+            it.copy(message = UiText.StringResourceId(Res.string.waiting_for_opponent))
         }
     }
 
@@ -49,7 +49,7 @@ class WaitingViewModel(
             _events.emit(gameCreated)
         }
         _state.update {
-            it.copy(message = UiText(Res.string.opponent_found), waiting = false)
+            it.copy(message = UiText.StringResourceId(Res.string.opponent_found), waiting = false)
         }
     }
 

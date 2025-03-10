@@ -16,8 +16,8 @@ internal fun ConfirmDialog(
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    confirmButtonText: UiText = UiText(Res.string.yes_button),
-    dismissButtonText: UiText = UiText(Res.string.no_button),
+    confirmButtonText: UiText = UiText.StringResourceId(Res.string.yes_button),
+    dismissButtonText: UiText = UiText.StringResourceId(Res.string.no_button),
     title: UiText? = null,
     text: UiText? = null,
     icon: ImageVector? = null

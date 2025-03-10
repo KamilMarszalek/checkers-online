@@ -30,12 +30,12 @@ class LoginViewModel(
                 !state.hasUserInteracted -> UserNameValidation(false)
                 state.username.isBlank() -> UserNameValidation(
                     false,
-                    UiText(Res.string.error_username_empty)
+                    UiText.StringResourceId(Res.string.error_username_empty)
                 )
 
                 state.username.length > 20 -> UserNameValidation(
                     false,
-                    UiText(Res.string.error_username_too_long)
+                    UiText.StringResourceId(Res.string.error_username_too_long)
                 )
 
                 else -> UserNameValidation(true)

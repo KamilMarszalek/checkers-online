@@ -162,18 +162,15 @@ class GameViewModel(
     fun getEndGameText(): UiText {
         val result = _state.value.result
         return when {
-            result == color.toResult() -> "You won"
-            result != Result.DRAW -> "${opponent.username} won"
-            else -> "Draw"
-            result == color.toResult() -> UiText(Res.string.game_player_win_title)
-            result != Result.DRAW -> UiText(Res.string.game_opponent_win_title, arrayOf(opponent.username))
-            else -> UiText(Res.string.game_draw_title)
+            result == color.toResult() -> StringResourceId(Res.string.game_player_win_title)
+            result != Result.DRAW -> StringResourceId(Res.string.game_opponent_win_title, arrayOf(opponent.username))
+            else -> StringResourceId(Res.string.game_draw_title)
         }
     }
         }
     }
 
-    fun getRematchRequestMessage() = "${opponent.username} requested a rematch"
+    fun getRematchRequestMessage() = StringResourceId(Res.string.rematch_requested_text, arrayOf(opponent.username))
 
     private fun playNextGame() {
         sendAction(GameAction.JoinQueue(user))

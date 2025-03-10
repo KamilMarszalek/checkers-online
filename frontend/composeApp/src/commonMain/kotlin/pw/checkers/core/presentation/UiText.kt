@@ -4,10 +4,19 @@ import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-class UiText(
-    private val resource: StringResource,
-    private val args: Array<Any> = emptyArray()
-) {
+sealed interface  UiText {
+    data class DynamicString(val value: String) : UiText
+
+    class StringResourceId(
+        val resource: StringResource,
+        val args: Array<Any> = emptyArray()
+    ) : UiText
+
     @Composable
-    fun asString() = stringResource(resource, formatArgs = args)
+    fun asString(): String {
+        return when(this) {
+            is DynamicString -> value
+            is StringResourceId -> stringResource(resource, formatArgs = args)
+        }
+    }
 }

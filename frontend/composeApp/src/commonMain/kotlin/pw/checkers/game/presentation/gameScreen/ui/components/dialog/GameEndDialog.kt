@@ -14,6 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import checkers.composeapp.generated.resources.Res
+import checkers.composeapp.generated.resources.main_menu_button
+import checkers.composeapp.generated.resources.next_game_button
+import checkers.composeapp.generated.resources.rematch_button
+import org.jetbrains.compose.resources.stringResource
+import pw.checkers.core.presentation.UiText
 import pw.checkers.game.presentation.gameScreen.GameBoardAction
 
 @Composable
@@ -66,7 +72,6 @@ internal fun GameEndDialogNoRematch(
 
 @Composable
 internal fun GameEndDialog(
-    message: String,
     message: UiText,
     onAction: (GameBoardAction) -> Unit
 ) {

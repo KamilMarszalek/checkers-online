@@ -65,8 +65,8 @@ fun GameScreen(
                 gameViewModel.onAction(GameBoardAction.OnMainMenuClick)
                 backToMain()
             },
-            title = UiText(Res.string.leave_game_title),
-            text = UiText(Res.string.leave_game_text),
+            title = UiText.StringResourceId(Res.string.leave_game_title),
+            text = UiText.StringResourceId(Res.string.leave_game_text),
             icon = Icons.Default.Warning,
         )
     }
@@ -162,8 +162,8 @@ private fun Game(
                 showResignPopup = false
                 onAction(GameBoardAction.OnResignClick)
             },
-            title = UiText(Res.string.resign_game_title),
-            text = UiText(Res.string.resign_game_text),
+            title = UiText.StringResourceId(Res.string.resign_game_title),
+            text = UiText.StringResourceId(Res.string.resign_game_text),
         )
     }
 }
@@ -193,14 +193,14 @@ private fun EndGameDialogFromState(
 
         state.rematchRequestRejected -> {
             GameEndDialogNoRematch(
-                message = UiText(Res.string.game_over),
+                message = UiText.StringResourceId(Res.string.game_over),
                 onAction = handleAction
             )
         }
 
         state.rematchPropositionRejected -> {
             GameEndDialogNoRematch(
-                message = UiText(Res.string.rematch_request_declined),
+                message = UiText.StringResourceId(Res.string.rematch_request_declined),
                 onAction = handleAction
             )
         }

@@ -17,9 +17,9 @@ internal fun RematchRequestDialog(
         onDismissRequest = {},
         onDismiss = { onAction(GameBoardAction.OnRematchDeclineClick) },
         onConfirm = { onAction(GameBoardAction.OnRematchAcceptClick) },
-        confirmButtonText = UiText(Res.string.accept_button),
-        dismissButtonText = UiText(Res.string.decline_button),
-        title = UiText(Res.string.rematch_requested_title),
+        confirmButtonText = UiText.StringResourceId(Res.string.accept_button),
+        dismissButtonText = UiText.StringResourceId(Res.string.decline_button),
+        title = UiText.StringResourceId(Res.string.rematch_requested_title),
         text = message,
     )
 }
