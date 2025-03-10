@@ -15,6 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import checkers.composeapp.generated.resources.Res
+import checkers.composeapp.generated.resources.play_button
+import checkers.composeapp.generated.resources.username_hint
+import org.jetbrains.compose.resources.stringResource
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.User
 import pw.checkers.game.presentation.loginScreen.LoginScreenAction
@@ -22,8 +26,6 @@ import pw.checkers.game.presentation.loginScreen.LoginScreenState
 import pw.checkers.game.presentation.loginScreen.LoginViewModel
 import pw.checkers.game.presentation.loginScreen.UserNameValidation
 import pw.checkers.game.util.messageCollectionDisposableEffect
-import pw.checkers.core.presentation.windowSize.WindowSize
-import pw.checkers.core.presentation.windowSize.rememberWindowSize
 import pw.checkers.core.util.DoNothing
 
 @Composable
@@ -35,7 +37,6 @@ fun LoginScreen(
 
     val state by loginViewModel.state.collectAsState()
     val userNameValidation by loginViewModel.usernameValidation.collectAsState()
-    val windowSize = rememberWindowSize()
 
     messageCollectionDisposableEffect(loginViewModel)
 
@@ -49,19 +50,19 @@ fun LoginScreen(
         }
     }
 
-    LoginInputScreen(
-        state = state,
-        userNameValidation = userNameValidation,
-        windowSize = windowSize,
-        loginViewModel::onAction
-    )
+    Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
+        LoginInputScreen(
+            state = state,
+            userNameValidation = userNameValidation,
+            loginViewModel::onAction
+        )
+    }
 }
 
 @Composable
 private fun LoginInputScreen(
     state: LoginScreenState,
     userNameValidation: UserNameValidation,
-    windowSize: WindowSize,
     onAction: (LoginScreenAction) -> Unit,
 ) {
 
@@ -69,14 +70,13 @@ private fun LoginInputScreen(
         OutlinedTextField(
             value = state.username,
             onValueChange = { onAction(LoginScreenAction.UsernameChanged(it)) },
-            label = { Text(text = "Username") },
-            modifier = Modifier.width((windowSize.width / 3).dp),
+            label = { Text(stringResource(Res.string.username_hint)) },
             singleLine = true,
-            isError = !userNameValidation.errorMessage.isNullOrBlank(),
-            supportingText = userNameValidation.errorMessage?.let { message ->
+            isError = userNameValidation.error != null,
+            supportingText = userNameValidation.error?.let { error ->
                 {
                     Text(
-                        text = message,
+                        text = error.asString(),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 4.dp)
@@ -88,7 +88,7 @@ private fun LoginInputScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = { onAction(LoginScreenAction.StartGame) }, enabled = userNameValidation.isValid) {
-            Text(text = "Play")
+            Text(stringResource(Res.string.play_button))
         }
     }
 }

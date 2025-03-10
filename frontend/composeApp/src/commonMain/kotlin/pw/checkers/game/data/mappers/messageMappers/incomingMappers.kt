@@ -18,7 +18,7 @@ fun GameEvent.toDto(): Incoming = when (this) {
     )
 
     is GameEvent.PossibleMoves -> Incoming.PossibleMoves(moves.map { it.toDto() })
-    is GameEvent.GameEnd -> Incoming.GameEnd(result.toDto())
+    is GameEvent.GameEnd -> Incoming.GameEnd(result.toDto(), details.toDto())
     is GameEvent.RematchRejected -> Incoming.RematchRejected(message)
     is GameEvent.RematchRequest -> Incoming.RematchRequest(gameId)
 }
@@ -36,7 +36,7 @@ fun Incoming.toDomain(): GameEvent = when(this) {
     )
 
     is Incoming.PossibleMoves -> GameEvent.PossibleMoves(moves.map { it.toDomain() })
-    is Incoming.GameEnd -> GameEvent.GameEnd(result.toDomain())
+    is Incoming.GameEnd -> GameEvent.GameEnd(result.toDomain(), details.toDomain())
     is Incoming.RematchRejected -> GameEvent.RematchRejected(message)
     is Incoming.RematchRequest -> GameEvent.RematchRequest(gameId)
 }

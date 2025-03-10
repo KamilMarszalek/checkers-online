@@ -1,14 +1,18 @@
 package pw.checkers.game.presentation.loginScreen
 
 import androidx.lifecycle.viewModelScope
+import checkers.composeapp.generated.resources.Res
+import checkers.composeapp.generated.resources.error_username_empty
+import checkers.composeapp.generated.resources.error_username_too_long
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import pw.checkers.core.presentation.UiText
+import pw.checkers.core.util.DoNothing
 import pw.checkers.game.domain.GameAction
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.User
 import pw.checkers.game.domain.repository.GameRepository
 import pw.checkers.game.presentation.BaseViewModel
-import pw.checkers.core.util.DoNothing
 
 class LoginViewModel(
     gameRepository: GameRepository
@@ -24,8 +28,16 @@ class LoginViewModel(
         .map { state ->
             when {
                 !state.hasUserInteracted -> UserNameValidation(false)
-                state.username.isBlank() -> UserNameValidation(false, "Username cannot be empty")
-                state.username.length > 20 -> UserNameValidation(false, "Username must be under 20 characters")
+                state.username.isBlank() -> UserNameValidation(
+                    false,
+                    UiText.StringResourceId(Res.string.error_username_empty)
+                )
+
+                state.username.length > 20 -> UserNameValidation(
+                    false,
+                    UiText.StringResourceId(Res.string.error_username_too_long)
+                )
+
                 else -> UserNameValidation(true)
             }
         }

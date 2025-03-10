@@ -36,7 +36,7 @@ sealed interface Incoming : Message {
 
     @Serializable
     @SerialName(MessageType.Incoming.GAME_ENDING)
-    data class GameEnd(val result: ResultDto) : Incoming
+    data class GameEnd(val result: ResultDto, val details: ResultDetailsDto) : Incoming
 
     @Serializable
     @SerialName(MessageType.Incoming.REMATCH_REQUEST)

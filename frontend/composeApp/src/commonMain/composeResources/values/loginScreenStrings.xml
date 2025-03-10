@@ -1,0 +1,6 @@
+<resources>
+    <string name="username_hint">Username</string>
+    <string name="play_button">Play</string>
+    <string name="error_username_empty">Username cannot be empty</string>
+    <string name="error_username_too_long">Username must be under 20 characters</string>
+</resources>

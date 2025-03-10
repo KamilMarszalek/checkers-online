@@ -1,18 +1,18 @@
 package pw.checkers.game.presentation.gameScreen.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import pw.checkers.core.presentation.windowSize.WindowSize
-import pw.checkers.core.presentation.windowSize.rememberWindowSize
+import checkers.composeapp.generated.resources.*
+import pw.checkers.core.presentation.UiText
 import pw.checkers.core.util.DoNothing
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.Board
@@ -23,17 +23,19 @@ import pw.checkers.game.presentation.gameScreen.GameState
 import pw.checkers.game.presentation.gameScreen.GameViewModel
 import pw.checkers.game.presentation.gameScreen.ui.components.Board
 import pw.checkers.game.presentation.gameScreen.ui.components.UserPanel
-import pw.checkers.game.util.calcCellSize
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.*
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.ConfirmDialog
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.GameEndDialog
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.GameEndDialogNoRematch
+import pw.checkers.game.presentation.gameScreen.ui.components.dialog.RematchRequestDialog
 import pw.checkers.game.util.messageCollectionDisposableEffect
 
-// TODO: make popups responsive, stack buttons in column when screen to narrow
-// TODO: make better system for scaling board and user panels
-// TODO: fix user panels not filling space between board and screen edge on some screens
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun GameScreen(
     gameViewModel: GameViewModel,
-    onMainMenuClick: () -> Unit,
+    backToMain: () -> Unit,
     nextGame: (GameEvent, User) -> Unit,
 ) {
     messageCollectionDisposableEffect(gameViewModel)
@@ -47,7 +49,28 @@ fun GameScreen(
         }
     }
 
-    val windowSize = rememberWindowSize()
+    var showLeaveGameDialog by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = true) {
+        showLeaveGameDialog = true
+    }
+
+    if (showLeaveGameDialog) {
+        ConfirmDialog(
+            onDismissRequest = { showLeaveGameDialog = false },
+            onDismiss = { showLeaveGameDialog = false },
+            onConfirm = {
+                gameViewModel.ignoreGameEndPopup()
+                gameViewModel.onAction(GameBoardAction.OnResignClick)
+                gameViewModel.onAction(GameBoardAction.OnMainMenuClick)
+                backToMain()
+            },
+            title = UiText.StringResourceId(Res.string.leave_game_title),
+            text = UiText.StringResourceId(Res.string.leave_game_text),
+            icon = Icons.Default.Warning,
+        )
+    }
+
     val board by gameViewModel.board.collectAsStateWithLifecycle()
     val state by gameViewModel.state.collectAsStateWithLifecycle()
 
@@ -55,13 +78,12 @@ fun GameScreen(
         board = board,
         state = state,
         onAction = gameViewModel::onAction,
-        windowSize = windowSize,
         gameViewModel.user,
         gameViewModel.opponent,
         gameViewModel.color
     )
 
-    if (state.gameEnded) EndGamePopupFromState(state, gameViewModel, onMainMenuClick)
+    if (state.gameEnded && !state.ignorePopup) EndGameDialogFromState(state, gameViewModel, backToMain)
 }
 
 
@@ -70,37 +92,84 @@ private fun Game(
     board: Board,
     state: GameState,
     onAction: (GameBoardAction) -> Unit,
-    windowSize: WindowSize,
     user: User,
     opponent: User,
     assignedColor: PlayerColor
 ) {
-    val cellSize = remember { calcCellSize(windowSize.width, windowSize.height) }
+    var showResignPopup by remember { mutableStateOf(false) }
 
-    Column(
+    BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        contentAlignment = Alignment.Center,
     ) {
-        Box(modifier = Modifier.weight(1f).width(cellSize * 8)) {
-            UserPanel(modifier = Modifier.fillMaxSize(), opponent, assignedColor != state.currentPlayer)
+        val cellSize = if (maxHeight <= maxWidth) {
+            maxHeight / (board.size + 2)
+        } else {
+            maxWidth / board.size
         }
-        Box(modifier = Modifier.size(width = cellSize * 8, height = cellSize * 8)) {
-            Board(
-                board = board,
-                uiState = state,
-                cellSize = cellSize,
-                modifier = Modifier.fillMaxSize(),
-                onAction = { action -> onAction(action) },
-            )
+
+        Column(
+            modifier = Modifier.width(cellSize * board.size),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(modifier = Modifier.fillMaxWidth().height(cellSize)) {
+                UserPanel(
+                    user = opponent,
+                    isCurrentTurn = assignedColor != state.currentPlayer,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            Box(
+                modifier = Modifier.size(cellSize * board.size),
+            ) {
+                Board(
+                    board = board,
+                    uiState = state,
+                    cellSize = cellSize,
+                    modifier = Modifier.fillMaxSize(),
+                    onAction = { action -> onAction(action) },
+                )
+            }
+
+            Box(modifier = Modifier.fillMaxWidth().height(cellSize)) {
+                UserPanel(
+                    user = user,
+                    isCurrentTurn = assignedColor == state.currentPlayer,
+                    modifier = Modifier.fillMaxSize(),
+                )
+
+                Button(
+                    onClick = { showResignPopup = true },
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    ),
+                    modifier = Modifier.padding(8.dp).align(Alignment.CenterEnd),
+                ) {
+                    Text("Resign")
+                }
+            }
         }
-        Box(modifier = Modifier.weight(1f).width(cellSize * 8)) {
-            UserPanel(modifier = Modifier.fillMaxSize(), user, assignedColor == state.currentPlayer)
-        }
+    }
+
+    if (showResignPopup) {
+        ConfirmDialog(
+            onDismissRequest = { showResignPopup = false },
+            onDismiss = { showResignPopup = false },
+            onConfirm = {
+                showResignPopup = false
+                onAction(GameBoardAction.OnResignClick)
+            },
+            title = UiText.StringResourceId(Res.string.resign_game_title),
+            text = UiText.StringResourceId(Res.string.resign_game_text),
+        )
     }
 }
 
 @Composable
-private fun EndGamePopupFromState(
+private fun EndGameDialogFromState(
     state: GameState,
     gameViewModel: GameViewModel,
     onMainMenuClick: () -> Unit
@@ -114,187 +183,34 @@ private fun EndGamePopupFromState(
     }
 
     when {
-        state.rematchPending -> RematchPendingPopup()
+        state.rematchPending -> RematchPendingDialog()
         state.rematchRequested -> {
-            RematchRequestPopup(
+            RematchRequestDialog(
                 message = gameViewModel.getRematchRequestMessage(),
                 onAction = handleAction
             )
         }
 
         state.rematchRequestRejected -> {
-            GameEndPopupNoRematch(
-                message = "Game over",
+            GameEndDialogNoRematch(
+                message = UiText.StringResourceId(Res.string.game_over),
                 onAction = handleAction
             )
         }
 
         state.rematchPropositionRejected -> {
-            GameEndPopupNoRematch(
-                message = "Rematch request declined",
-                onAction = handleAction
-            )
-        }
-
-        state.rematchRequested -> {
-            RematchRequestPopup(
-                message = gameViewModel.getRematchRequestMessage(),
+            GameEndDialogNoRematch(
+                message = UiText.StringResourceId(Res.string.rematch_request_declined),
                 onAction = handleAction
             )
         }
 
         else -> {
-            GameEndPopup(
+            GameEndDialog(
                 message = gameViewModel.getEndGameText(),
+                details = gameViewModel.getResultDetailsText(),
                 onAction = handleAction
             )
-        }
-    }
-}
-
-
-@Composable
-private fun GameEndPopup(
-    message: String,
-    onAction: (GameBoardAction) -> Unit
-) {
-    Dialog(
-        onDismissRequest = {}
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 8.dp,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
-                    Button(onClick = { onAction(GameBoardAction.OnMainMenuClick) }) {
-                        Text("Main menu")
-                    }
-                    Button(onClick = { onAction(GameBoardAction.OnNextGameClick) }) {
-                        Text("Next game")
-                    }
-                    Button(onClick = { onAction(GameBoardAction.OnRematchRequestClick) }) {
-                        Text("Rematch")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RematchPendingPopup() {
-    Dialog(
-        onDismissRequest = {}
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 8.dp,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Waiting for response",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-                )
-
-                CircularProgressIndicator()
-            }
-        }
-    }
-}
-
-@Composable
-private fun GameEndPopupNoRematch(
-    message: String,
-    onAction: (GameBoardAction) -> Unit
-) {
-    Dialog(
-        onDismissRequest = {}
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 8.dp,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
-                    Button(onClick = { onAction(GameBoardAction.OnMainMenuClick) }) {
-                        Text("Main menu")
-                    }
-                    Button(onClick = { onAction(GameBoardAction.OnNextGameClick) }) {
-                        Text("Next game")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RematchRequestPopup(
-    message: String,
-    onAction: (GameBoardAction) -> Unit
-) {
-    Dialog(
-        onDismissRequest = {}
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 8.dp,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
-                    Button(onClick = { onAction(GameBoardAction.OnRematchAcceptClick) }) {
-                        Text("Accept")
-                    }
-                    Button(onClick = { onAction(GameBoardAction.OnRematchDeclineClick) }) {
-                        Text("Decline")
-                    }
-                }
-            }
         }
     }
 }

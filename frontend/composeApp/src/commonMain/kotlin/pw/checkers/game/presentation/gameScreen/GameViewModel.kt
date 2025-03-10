@@ -1,8 +1,11 @@
 package pw.checkers.game.presentation.gameScreen
 
 import androidx.lifecycle.viewModelScope
+import checkers.composeapp.generated.resources.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import pw.checkers.core.presentation.UiText
+import pw.checkers.core.presentation.UiText.StringResourceId
 import pw.checkers.game.domain.GameAction
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.*
@@ -57,6 +60,8 @@ class GameViewModel(
     }
 
     private fun makeMove(row: Int, col: Int) {
+        if (_state.value.gameEnded) return
+
         _state.update { it.copy(highlightedCells = emptyList()) }
         val move = Move(selected.row, selected.col, row, col)
         sendAction(GameAction.MakeMove(gameId, move))
@@ -96,7 +101,13 @@ class GameViewModel(
     }
 
     private fun checkSkipClick(row: Int, col: Int): Boolean {
-        return ((row == selected.row && col == selected.col) || _board.value[row][col].piece!!.color != color || _state.value.currentPlayer != color || multiMove)
+        return (
+            (row == selected.row && col == selected.col) ||
+            _board.value[row][col].piece!!.color != color ||
+            _state.value.currentPlayer != color ||
+            multiMove ||
+            _state.value.gameEnded
+        )
     }
 
     private fun checkIfUpgrade(pieceCell: Cell): Boolean {
@@ -109,8 +120,7 @@ class GameViewModel(
     }
 
     override fun handleGameEvent(event: GameEvent) {
-        println("Received: $event")
-        when (event) {
+            when (event) {
             is GameEvent.MoveResult -> processMove(event)
             is GameEvent.PossibleMoves -> processPossibilities(event)
             is GameEvent.JoinedQueue, is GameEvent.GameCreated -> processNextGameMessages(event)
@@ -139,7 +149,7 @@ class GameViewModel(
 
     private fun processGameEnd(gameEnd: GameEvent.GameEnd) {
         _state.update {
-            it.copy(gameEnded = true, result = gameEnd.result)
+            it.copy(gameEnded = true, result = gameEnd.result, resultDetails = gameEnd.details)
         }
     }
 
@@ -150,19 +160,44 @@ class GameViewModel(
         }
     }
 
-    fun getEndGameText(): String {
+    fun getEndGameText(): UiText {
         val result = _state.value.result
         return when {
-            result == color.toResult() -> "You won"
-            result != Result.DRAW -> "${opponent.username} won"
-            else -> "Draw"
+            result == color.toResult() -> StringResourceId(Res.string.game_player_win_title)
+            result != Result.DRAW -> StringResourceId(Res.string.game_opponent_win_title, arrayOf(opponent.username))
+            else -> StringResourceId(Res.string.game_draw_title)
         }
     }
 
-    fun getRematchRequestMessage() = "${opponent.username} requested a rematch"
+    fun getResultDetailsText(): UiText {
+        val resultDetails = _state.value.resultDetails
+        return when(resultDetails) {
+            ResultDetails.NO_PIECES -> StringResourceId(Res.string.result_details_no_pieces)
+            ResultDetails.NO_MOVES -> StringResourceId(Res.string.result_details_no_moves)
+            ResultDetails.FIFTY_MOVE -> StringResourceId(Res.string.result_details_fifty_move)
+            ResultDetails.THREEFOLD_REPETITION -> StringResourceId(Res.string.result_details_threefold)
+            ResultDetails.RESIGN -> {
+                val result = _state.value.result
+                val loser = if (result == color.toResult()) opponent.username else user.username
+                StringResourceId(Res.string.result_details_resign, arrayOf(loser))
+            }
+            null -> UiText.DynamicString("")
+        }
+    }
+
+    fun getRematchRequestMessage() = StringResourceId(Res.string.rematch_requested_text, arrayOf(opponent.username))
 
     private fun playNextGame() {
         sendAction(GameAction.JoinQueue(user))
+    }
+
+    private fun leaveGame() {
+        sendAction(GameAction.LeaveGame(gameId))
+    }
+
+    private fun resignGame() {
+        _state.update { it.copy(gameEnded = true) }
+        sendAction(GameAction.Resign(gameId))
     }
 
     private fun acceptRematch() {
@@ -221,11 +256,16 @@ class GameViewModel(
             is GameBoardAction.OnHighLightedClick -> makeMove(action.row, action.col)
             GameBoardAction.OnEmptyClick -> unselectPiece()
 
-            GameBoardAction.OnMainMenuClick -> {}
+            GameBoardAction.OnMainMenuClick -> leaveGame()
             GameBoardAction.OnNextGameClick -> playNextGame()
             GameBoardAction.OnRematchRequestClick -> requestRematch()
             GameBoardAction.OnRematchAcceptClick -> acceptRematch()
             GameBoardAction.OnRematchDeclineClick -> declineRematch()
+            GameBoardAction.OnResignClick -> resignGame()
         }
+    }
+
+    fun ignoreGameEndPopup() {
+        _state.update { it.copy(ignorePopup = true) }
     }
 }

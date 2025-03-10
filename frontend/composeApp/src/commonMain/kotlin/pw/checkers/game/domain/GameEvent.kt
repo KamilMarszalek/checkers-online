@@ -17,7 +17,7 @@ sealed interface GameEvent {
 
     data class PossibleMoves(val moves: List<Cell>) : GameEvent
 
-    data class GameEnd(val result: Result) : GameEvent
+    data class GameEnd(val result: Result, val details: ResultDetails) : GameEvent
 
     data class RematchRequest(val gameId: String) : GameEvent
     data class RematchRejected(val message: String) : GameEvent

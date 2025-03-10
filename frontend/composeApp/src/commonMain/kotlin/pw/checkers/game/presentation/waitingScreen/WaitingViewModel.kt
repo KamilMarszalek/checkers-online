@@ -1,13 +1,18 @@
 package pw.checkers.game.presentation.waitingScreen
 
 import androidx.lifecycle.viewModelScope
+import checkers.composeapp.generated.resources.Res
+import checkers.composeapp.generated.resources.opponent_found
+import checkers.composeapp.generated.resources.waiting_for_opponent
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import pw.checkers.core.presentation.UiText
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.User
 import pw.checkers.game.domain.repository.GameRepository
 import pw.checkers.game.presentation.BaseViewModel
 import pw.checkers.core.util.DoNothing
+import pw.checkers.game.domain.GameAction
 
 class WaitingViewModel(
     joinedQueue: GameEvent.JoinedQueue,
@@ -35,7 +40,7 @@ class WaitingViewModel(
 
     private fun processWaitingMessage() {
         _state.update {
-            it.copy(message = "Waiting for an opponent")
+            it.copy(message = UiText.StringResourceId(Res.string.waiting_for_opponent))
         }
     }
 
@@ -44,7 +49,17 @@ class WaitingViewModel(
             _events.emit(gameCreated)
         }
         _state.update {
-            it.copy(message = "Opponent found", waiting = false)
+            it.copy(message = UiText.StringResourceId(Res.string.opponent_found), waiting = false)
+        }
+    }
+
+    private fun leaveQueue() {
+        sendAction(GameAction.LeaveQueue(user))
+    }
+
+    fun onAction(action: WaitingScreenAction) {
+        when (action) {
+            is WaitingScreenAction.OnBackClick -> leaveQueue()
         }
     }
 }

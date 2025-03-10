@@ -10,6 +10,8 @@ sealed interface GameAction {
     data class MakeMove(val gameId: String, val move: Move) : GameAction
     data class GetPossibilities(val gameId: String, val row: Int, val col: Int) : GameAction
 
+    data class LeaveGame(val gameId: String) : GameAction
+    data class Resign(val gameId: String) : GameAction
     data class RequestRematch(val gameId: String) : GameAction
     data class AcceptRematch(val gameId: String) : GameAction
     data class DeclineRematch(val gameId: String) : GameAction

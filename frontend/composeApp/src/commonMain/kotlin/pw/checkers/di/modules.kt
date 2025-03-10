@@ -13,11 +13,14 @@ import pw.checkers.game.presentation.gameScreen.GameViewModel
 import pw.checkers.game.presentation.loginScreen.LoginViewModel
 import pw.checkers.game.presentation.waitingScreen.WaitingViewModel
 
-
 val gameModule = module {
     single { HttpClient { install(WebSockets) } }
 
-    single { KtorRealtimeMessageClient(get()) }.bind<RealtimeMessageClient>()
+    single {
+        KtorRealtimeMessageClient(
+            get(), serverAddress = getProperty("serverAddress")
+        )
+    }.bind<RealtimeMessageClient>()
 
     single { GameRepositoryImpl(get()) }.bind<GameRepository>()
 

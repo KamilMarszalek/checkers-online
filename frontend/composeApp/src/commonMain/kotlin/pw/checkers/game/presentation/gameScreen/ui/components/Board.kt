@@ -19,11 +19,11 @@ import pw.checkers.game.domain.model.PieceType
 import pw.checkers.game.domain.model.PlayerColor
 import pw.checkers.game.presentation.gameScreen.GameBoardAction
 import pw.checkers.game.presentation.gameScreen.GameState
-import pw.checkers.game.presentation.gameScreen.ui.components.icons.Pawns
-import pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns.BlackPawn
-import pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns.BlackQueen
-import pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns.WhitePawn
-import pw.checkers.game.presentation.gameScreen.ui.components.icons.pawns.WhiteQueen
+import pw.checkers.game.presentation.gameScreen.ui.components.icon.Pawns
+import pw.checkers.game.presentation.gameScreen.ui.components.icon.pawns.BlackPawn
+import pw.checkers.game.presentation.gameScreen.ui.components.icon.pawns.BlackQueen
+import pw.checkers.game.presentation.gameScreen.ui.components.icon.pawns.WhitePawn
+import pw.checkers.game.presentation.gameScreen.ui.components.icon.pawns.WhiteQueen
 
 @Composable
 fun Board(

@@ -1,5 +1,7 @@
 package pw.checkers.game.presentation.loginScreen
 
+import pw.checkers.core.presentation.UiText
+
 
 data class LoginScreenState(
     val username: String = "",
@@ -8,5 +10,5 @@ data class LoginScreenState(
 
 data class UserNameValidation(
     val isValid: Boolean,
-    val errorMessage: String? = null,
+    val error: UiText? = null,
 )
