@@ -8,7 +8,7 @@ import pw.checkers.data.Piece;
 import pw.checkers.data.enums.Color;
 import pw.checkers.message.Move;
 import pw.checkers.message.MoveHelper;
-import pw.checkers.message.PossibilitiesOutput;
+import pw.checkers.message.PossibilitiesOutputMessage;
 
 @Getter
 @Setter
@@ -45,8 +45,8 @@ public class MoveValidator {
         if (brokenMultipleCaptureSequence(move, gameState)) {
             return false;
         }
-        PossibilitiesOutput possibilitiesOutput = gameRules.getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
-        return possibilitiesOutput.getMoves().contains(new MoveHelper(move.getToRow(), move.getToCol()));
+        PossibilitiesOutputMessage possibilitiesOutputMessage = gameRules.getPossibleMoves(gameState, move.getFromRow(), move.getFromCol());
+        return possibilitiesOutputMessage.getMoves().contains(new MoveHelper(move.getToRow(), move.getToCol()));
 
     }
 

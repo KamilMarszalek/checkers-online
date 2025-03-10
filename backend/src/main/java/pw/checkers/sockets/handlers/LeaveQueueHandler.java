@@ -3,7 +3,7 @@ package pw.checkers.sockets.handlers;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.message.User;
-import pw.checkers.sockets.SessionManager;
+import pw.checkers.sockets.services.SessionManager;
 
 @Service
 public class LeaveQueueHandler {

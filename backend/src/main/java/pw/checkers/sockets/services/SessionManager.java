@@ -1,4 +1,4 @@
-package pw.checkers.sockets;
+package pw.checkers.sockets.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;

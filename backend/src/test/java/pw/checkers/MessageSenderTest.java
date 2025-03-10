@@ -12,10 +12,10 @@ import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
 import pw.checkers.data.enums.Color;
 import pw.checkers.data.enums.GameEndReason;
-import pw.checkers.message.GameEnd;
+import pw.checkers.message.GameEndMessage;
 import pw.checkers.message.Message;
 import pw.checkers.message.PromptMessage;
-import pw.checkers.sockets.MessageSender;
+import pw.checkers.sockets.services.MessageSender;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -147,9 +147,9 @@ class MessageSenderTest {
         String json = captor.getValue().getPayload();
         Message received = objectMapper.readValue(json, Message.class);
         assertEquals("gameEnd", received.getType());
-        assertEquals("draw", ((GameEnd) received).getResult());
-        assertEquals("draw", ((GameEnd) received).getResult());
-        assertEquals("fiftyMoves", ((GameEnd) received).getDetails());
+        assertEquals("draw", ((GameEndMessage) received).getResult());
+        assertEquals("draw", ((GameEndMessage) received).getResult());
+        assertEquals("fiftyMoves", ((GameEndMessage) received).getDetails());
     }
 
     @Test
@@ -178,6 +178,6 @@ class MessageSenderTest {
         String json = captor.getValue().getPayload();
         Message received = objectMapper.readValue(json, Message.class);
         assertEquals("gameEnd", received.getType());
-        assertTrue(((GameEnd)received).getResult().equalsIgnoreCase("white"));
+        assertTrue(((GameEndMessage)received).getResult().equalsIgnoreCase("white"));
     }
 }

@@ -8,7 +8,7 @@ import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.message.Message;
 import pw.checkers.message.MessageAccept;
 import pw.checkers.message.PromptMessage;
-import pw.checkers.sockets.MessageSender;
+import pw.checkers.sockets.services.MessageSender;
 
 import java.io.IOException;
 

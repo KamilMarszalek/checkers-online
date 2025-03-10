@@ -7,7 +7,7 @@ import pw.checkers.data.enums.Color;
 import pw.checkers.data.enums.PieceType;
 import pw.checkers.message.Move;
 import pw.checkers.message.MoveHelper;
-import pw.checkers.message.MoveOutput;
+import pw.checkers.message.MoveOutputMessage;
 
 import static java.lang.Math.abs;
 import static pw.checkers.utils.Constants.*;
@@ -37,15 +37,15 @@ public class BoardManager {
         gameState.setBoard(board);
     }
 
-    private void doTake(GameState gameState, MoveOutput moveOutput) {
-        Move move = moveOutput.getMove();
+    private void doTake(GameState gameState, MoveOutputMessage moveOutputMessage) {
+        Move move = moveOutputMessage.getMove();
         Piece[][] board = gameState.getBoard();
         if (isCaptureMove(move)) {
             Piece capturedPiece = getCapturedPiece(move, board);
             int[] capturedPieceCoordinates = getCapturedPieceCoordinates(move);
             updateCountersAfterCapture(gameState, capturedPiece);
             board[capturedPieceCoordinates[0]][capturedPieceCoordinates[1]] = null;
-            setMoveOutput(moveOutput, capturedPieceCoordinates[0], capturedPieceCoordinates[1]);
+            setMoveOutput(moveOutputMessage, capturedPieceCoordinates[0], capturedPieceCoordinates[1]);
         }
     }
 
@@ -69,9 +69,9 @@ public class BoardManager {
         return board[pieceCoordinates[0]][pieceCoordinates[1]];
     }
 
-    private void setMoveOutput(MoveOutput moveOutput, int row, int col) {
-        moveOutput.setCapturedPiece(new MoveHelper(row, col));
-        moveOutput.setCaptured(true);
+    private void setMoveOutput(MoveOutputMessage moveOutputMessage, int row, int col) {
+        moveOutputMessage.setCapturedPiece(new MoveHelper(row, col));
+        moveOutputMessage.setCaptured(true);
     }
 
     private boolean isCaptureMove(Move move) {
@@ -101,7 +101,7 @@ public class BoardManager {
         gameState.getNumberOfPositions().put(boardString, posCounter + 1);
     }
 
-    private boolean handleAdditionalTakes(GameState gameState, Move move, MoveOutput response) {
+    private boolean handleAdditionalTakes(GameState gameState, Move move, MoveOutputMessage response) {
         if (gameRules.hasMoreTakes(gameState, move)) {
             response.setHasMoreTakes(true);
             String currentPlayer = gameState.getCurrentPlayer().toString().toLowerCase();
@@ -125,7 +125,7 @@ public class BoardManager {
         }
     }
 
-    private void switchPlayer(GameState gameState, MoveOutput response) {
+    private void switchPlayer(GameState gameState, MoveOutputMessage response) {
         if (gameState.getCurrentPlayer().equals(Color.WHITE)) {
             gameState.setCurrentPlayer(Color.BLACK);
             response.setCurrentTurn(Color.BLACK.getValue());
@@ -137,7 +137,7 @@ public class BoardManager {
         }
     }
 
-    public MoveOutput makeMove(GameState gameState, MoveOutput response) {
+    public MoveOutputMessage makeMove(GameState gameState, MoveOutputMessage response) {
         Move move = response.getMove();
         movePiece(gameState, move);
         incrementNoCapturesCounter(gameState);

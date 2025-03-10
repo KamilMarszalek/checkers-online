@@ -13,7 +13,7 @@ import pw.checkers.game.GameRules;
 
 import java.util.HashMap;
 
-public class GameEndManagerTest {
+public class GameEndMessageManagerTest {
 
     private GameEndManager gameEndManager;
     private GameRules fakeGameRules;

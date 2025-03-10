@@ -9,6 +9,7 @@ import pw.checkers.message.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pw.checkers.sockets.handlers.*;
+import pw.checkers.sockets.services.SessionManager;
 
 import java.io.IOException;
 
@@ -73,12 +74,12 @@ public class CheckersWebSocketHandler extends TextWebSocketHandler implements Me
     }
 
     @Override
-    public void visit(MoveInput message, WebSocketSession session) throws IOException {
+    public void visit(MoveInputMessage message, WebSocketSession session) throws IOException {
         moveHandler.handleMove(session, message);
     }
 
     @Override
-    public void visit(PossibilitiesInput message, WebSocketSession session) throws IOException {
+    public void visit(PossibilitiesInputMessage message, WebSocketSession session) throws IOException {
         possibilitiesHandler.handlePossibilities(session, message);
     }
 

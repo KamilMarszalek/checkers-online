@@ -19,7 +19,7 @@ import pw.checkers.game.BoardManager;
 import pw.checkers.game.GameEndManager;
 import pw.checkers.game.GameRules;
 import pw.checkers.message.Move;
-import pw.checkers.message.MoveOutput;
+import pw.checkers.message.MoveOutputMessage;
 
 @ExtendWith(MockitoExtension.class)
 public class BoardManagerTest {
@@ -98,7 +98,7 @@ public class BoardManagerTest {
         state.setLastCaptureCol(null);
         // Prepare a move from (5,2) to (4,3)
         Move move = new Move(5, 2, 4, 3);
-        MoveOutput output = new MoveOutput();
+        MoveOutputMessage output = new MoveOutputMessage();
         output.setMove(move);
 
         // Stub gameRules.hasMoreTakes to return false,
@@ -108,7 +108,7 @@ public class BoardManagerTest {
         when(gameRules.isDraw(state)).thenReturn(false);
 
         // Execute the move.
-        MoveOutput result = boardManager.makeMove(state, output);
+        MoveOutputMessage result = boardManager.makeMove(state, output);
 
         // Validate board update.
         assertNull(board[5][2], "Source cell should be cleared");
@@ -134,14 +134,14 @@ public class BoardManagerTest {
         state.setLastCaptureCol(null);
         // Create a move from (5,2) to (3,4) (a jump capture)
         Move move = new Move(5, 2, 3, 4);
-        MoveOutput output = new MoveOutput();
+        MoveOutputMessage output = new MoveOutputMessage();
         output.setMove(move);
 
         // Stub gameRules.hasMoreTakes to return true (so additional capture is available)
         when(gameRules.hasMoreTakes(state, move)).thenReturn(true);
 
         // Execute move.
-        MoveOutput result = boardManager.makeMove(state, output);
+        MoveOutputMessage result = boardManager.makeMove(state, output);
 
         // Verify that the black pawn is captured.
         assertNull(board[4][3], "Captured piece should be removed from the board");
@@ -174,7 +174,7 @@ public class BoardManagerTest {
 
         // Create a move from (1,2) to (0,3)
         Move move = new Move(1, 2, 0, 3);
-        MoveOutput output = new MoveOutput();
+        MoveOutputMessage output = new MoveOutputMessage();
         output.setMove(move);
 
         // Stub gameRules.hasMoreTakes to return false and no win/draw.
@@ -207,7 +207,7 @@ public class BoardManagerTest {
 
         // Create a normal move from (5,2) to (4,3)
         Move move = new Move(5, 2, 4, 3);
-        MoveOutput output = new MoveOutput();
+        MoveOutputMessage output = new MoveOutputMessage();
         output.setMove(move);
 
         // Stub gameRules: no more takes, and suppose somebody won.

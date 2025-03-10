@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
 import pw.checkers.sockets.*;
 import pw.checkers.sockets.handlers.*;
+import pw.checkers.sockets.services.SessionManager;
 
 @Configuration
 @EnableWebSocket

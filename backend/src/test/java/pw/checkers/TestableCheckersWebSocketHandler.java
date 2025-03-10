@@ -4,6 +4,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.sockets.*;
 import pw.checkers.sockets.handlers.*;
+import pw.checkers.sockets.services.SessionManager;
 
 public class TestableCheckersWebSocketHandler extends CheckersWebSocketHandler {
     public TestableCheckersWebSocketHandler(SessionManager sessionManager, JoinQueueHandler joinQueueHandler, LeaveQueueHandler leaveQueueHandler, MoveHandler moveHandler, PossibilitiesHandler possibilitiesHandler, AcceptRematchHandler acceptRematchHandler, LeaveHandler leaveHandler, DeclineRematchHandler declineRematchHandler, RematchRequestHandler rematchRequestHandler, ResignHandler resignHandler, MessageMapper messageMapper) {

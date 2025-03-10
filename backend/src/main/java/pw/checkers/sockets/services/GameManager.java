@@ -1,4 +1,4 @@
-package pw.checkers.sockets;
+package pw.checkers.sockets.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
@@ -34,7 +34,7 @@ public class GameManager {
         return newGame.getGameId();
     }
 
-    public MoveOutput makeMove(String gameId, Move move, String color) {
+    public MoveOutputMessage makeMove(String gameId, Move move, String color) {
         return gameService.makeMove(gameId, move, color);
     }
 
@@ -42,15 +42,15 @@ public class GameManager {
         return gameService.getGame(gameId);
     }
 
-    public PossibilitiesOutput getPossibleMoves(PossibilitiesInput possibilitiesInput, WebSocketSession session) throws IOException {
-        String gameId = possibilitiesInput.getGameId();
+    public PossibilitiesOutputMessage getPossibleMoves(PossibilitiesInputMessage possibilitiesInputMessage, WebSocketSession session) throws IOException {
+        String gameId = possibilitiesInputMessage.getGameId();
         Optional<String> maybeColor = sessionManager.getAssignedColor(gameId, session);
         if (maybeColor.isEmpty()) return null;
         GameState currentState = getGame(gameId);
         return gameService.getPossibleMoves(
                 currentState,
-                possibilitiesInput.getRow(),
-                possibilitiesInput.getCol()
+                possibilitiesInputMessage.getRow(),
+                possibilitiesInputMessage.getCol()
         );
     }
 

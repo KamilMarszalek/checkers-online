@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.message.AcceptRematchMessage;
 import pw.checkers.message.GameIdMessage;
-import pw.checkers.sockets.RematchService;
+import pw.checkers.sockets.services.RematchService;
 
 import java.io.IOException;
 

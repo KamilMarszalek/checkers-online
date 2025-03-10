@@ -7,9 +7,9 @@ import pw.checkers.message.JoinMessage;
 import pw.checkers.message.Message;
 import pw.checkers.message.PromptMessage;
 import pw.checkers.message.User;
-import pw.checkers.sockets.GameManager;
-import pw.checkers.sockets.MessageSender;
-import pw.checkers.sockets.SessionManager;
+import pw.checkers.sockets.services.GameManager;
+import pw.checkers.sockets.services.MessageSender;
+import pw.checkers.sockets.services.SessionManager;
 import pw.checkers.utils.WaitingPlayer;
 
 import java.io.IOException;

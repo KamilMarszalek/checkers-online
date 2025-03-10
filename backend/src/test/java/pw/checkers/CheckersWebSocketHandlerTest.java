@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.message.*;
-import pw.checkers.sockets.SessionManager;
+import pw.checkers.sockets.services.SessionManager;
 import pw.checkers.sockets.handlers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -91,17 +91,17 @@ public class CheckersWebSocketHandlerTest {
         String jsonPayload = "{\"type\":\"move\",\"gameId\":\"" + gameId + "\","
                 + "\"move\":{\"fromRow\":5,\"fromCol\":2,\"toRow\":4,\"toCol\":3}}";
         // Create a MoveInput message.
-        MoveInput moveInput = new MoveInput();
-        moveInput.setGameId(gameId);
+        MoveInputMessage moveInputMessage = new MoveInputMessage();
+        moveInputMessage.setGameId(gameId);
         // (Assume you have setters or a nested move object for move details.)
 
         when(messageMapper.toMessageAccept(eq(session), any(TextMessage.class)))
-                .thenReturn(moveInput);
+                .thenReturn(moveInputMessage);
 
         handler.handleTextMessage(session, new TextMessage(jsonPayload));
 
         // Verify that moveHandler.handleMove is called.
-        verify(moveHandler, times(1)).handleMove(session, moveInput);
+        verify(moveHandler, times(1)).handleMove(session, moveInputMessage);
     }
 
     @Test
@@ -110,18 +110,18 @@ public class CheckersWebSocketHandlerTest {
         String gameId = "game123";
         String jsonPayload = "{\"type\":\"possibilities\",\"gameId\":\"" + gameId + "\","
                 + "\"row\":2,\"col\":3}";
-        PossibilitiesInput possibilitiesInput = new PossibilitiesInput();
-        possibilitiesInput.setGameId(gameId);
-        possibilitiesInput.setRow(2);
-        possibilitiesInput.setCol(3);
+        PossibilitiesInputMessage possibilitiesInputMessage = new PossibilitiesInputMessage();
+        possibilitiesInputMessage.setGameId(gameId);
+        possibilitiesInputMessage.setRow(2);
+        possibilitiesInputMessage.setCol(3);
 
         when(messageMapper.toMessageAccept(eq(session), any(TextMessage.class)))
-                .thenReturn(possibilitiesInput);
+                .thenReturn(possibilitiesInputMessage);
 
         handler.handleTextMessage(session, new TextMessage(jsonPayload));
 
         // Verify that possibilitiesHandler.handlePossibilities is called.
-        verify(possibilitiesHandler, times(1)).handlePossibilities(session, possibilitiesInput);
+        verify(possibilitiesHandler, times(1)).handlePossibilities(session, possibilitiesInputMessage);
     }
 
     @Test

@@ -23,10 +23,10 @@ import pw.checkers.data.enums.Color;
 import pw.checkers.message.GameIdMessage;
 import pw.checkers.message.Message;
 import pw.checkers.message.PromptMessage;
-import pw.checkers.sockets.GameManager;
-import pw.checkers.sockets.MessageSender;
-import pw.checkers.sockets.RematchService;
-import pw.checkers.sockets.SessionManager;
+import pw.checkers.sockets.services.GameManager;
+import pw.checkers.sockets.services.MessageSender;
+import pw.checkers.sockets.services.RematchService;
+import pw.checkers.sockets.services.SessionManager;
 
 @ExtendWith(MockitoExtension.class)
 public class RematchServiceTest {

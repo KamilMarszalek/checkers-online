@@ -51,8 +51,8 @@ public class GameServiceImpl implements GameService{
     }
 
     @Override
-    public MoveOutput makeMove(String gameId, Move move, String currentTurn) {
-        MoveOutput response = new MoveOutput();
+    public MoveOutputMessage makeMove(String gameId, Move move, String currentTurn) {
+        MoveOutputMessage response = new MoveOutputMessage();
         response.setMove(move);
         GameState gameState = getGame(gameId);
         if (!moveValidator.validateMove(gameState, move)) {
@@ -62,7 +62,7 @@ public class GameServiceImpl implements GameService{
     }
 
     @Override
-    public PossibilitiesOutput getPossibleMoves(GameState gameState, int row, int col) {
+    public PossibilitiesOutputMessage getPossibleMoves(GameState gameState, int row, int col) {
         return gameRules.getPossibleMoves(gameState, row, col);
     }
 }

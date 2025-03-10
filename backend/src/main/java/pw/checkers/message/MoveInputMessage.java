@@ -9,7 +9,7 @@ import pw.checkers.sockets.MessageVisitor;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class MoveInput extends Message implements MessageAccept{
+public class MoveInputMessage extends Message implements MessageAccept{
     private String gameId;
     private Move move;
 

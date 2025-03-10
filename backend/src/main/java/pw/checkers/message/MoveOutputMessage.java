@@ -6,7 +6,7 @@ import pw.checkers.data.enums.MessageType;
 
 @Setter
 @Getter
-public class MoveOutput extends Message{
+public class MoveOutputMessage extends Message{
     private Move move;
     private boolean captured;
     private MoveHelper capturedPiece;
@@ -14,7 +14,7 @@ public class MoveOutput extends Message{
     private String currentTurn;
     private String previousTurn;
 
-    public MoveOutput() {
+    public MoveOutputMessage() {
         super(MessageType.MOVE.getValue());
     }
 }

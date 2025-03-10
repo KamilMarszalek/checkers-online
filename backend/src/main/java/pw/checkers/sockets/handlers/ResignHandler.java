@@ -5,9 +5,9 @@ import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
 import pw.checkers.data.enums.GameEndReason;
 import pw.checkers.message.ResignMessage;
-import pw.checkers.sockets.GameManager;
-import pw.checkers.sockets.MessageSender;
-import pw.checkers.sockets.SessionManager;
+import pw.checkers.sockets.services.GameManager;
+import pw.checkers.sockets.services.MessageSender;
+import pw.checkers.sockets.services.SessionManager;
 
 import java.io.IOException;
 import java.util.Map;

@@ -3,13 +3,13 @@ package pw.checkers.sockets.handlers;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
-import pw.checkers.message.MoveInput;
-import pw.checkers.message.MoveOutput;
-import pw.checkers.message.PossibilitiesInput;
-import pw.checkers.message.PossibilitiesOutput;
-import pw.checkers.sockets.GameManager;
-import pw.checkers.sockets.MessageSender;
-import pw.checkers.sockets.SessionManager;
+import pw.checkers.message.MoveInputMessage;
+import pw.checkers.message.MoveOutputMessage;
+import pw.checkers.message.PossibilitiesInputMessage;
+import pw.checkers.message.PossibilitiesOutputMessage;
+import pw.checkers.sockets.services.GameManager;
+import pw.checkers.sockets.services.MessageSender;
+import pw.checkers.sockets.services.SessionManager;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -26,22 +26,22 @@ public class MoveHandler {
         this.messageSender = messageSender;
     }
 
-    public void handleMove(WebSocketSession session, MoveInput moveInput) throws IOException {
-        String gameId = moveInput.getGameId();
+    public void handleMove(WebSocketSession session, MoveInputMessage moveInputMessage) throws IOException {
+        String gameId = moveInputMessage.getGameId();
         Optional<String> maybeColor = sessionManager.getAssignedColor(gameId, session);
         if (maybeColor.isEmpty()) return;
         String assignedColor = maybeColor.get();
-        MoveOutput moveOutput = gameManager.makeMove(gameId, moveInput.getMove(), assignedColor);
+        MoveOutputMessage moveOutputMessage = gameManager.makeMove(gameId, moveInputMessage.getMove(), assignedColor);
         GameState updatedState = gameManager.getGame(gameId);
 
-        messageSender.broadcastToGame(sessionManager.getSessionsByGameId(gameId), moveOutput, sessionManager.getColorAssignments(gameId));
+        messageSender.broadcastToGame(sessionManager.getSessionsByGameId(gameId), moveOutputMessage, sessionManager.getColorAssignments(gameId));
 
         if (updatedState.isFinished()) {
             handleGameEnd(gameId, updatedState);
         }
 
-        if (moveOutput != null && moveOutput.isHasMoreTakes()) {
-            handleMoreTakes(gameId, moveOutput, session, assignedColor);
+        if (moveOutputMessage != null && moveOutputMessage.isHasMoreTakes()) {
+            handleMoreTakes(gameId, moveOutputMessage, session, assignedColor);
         }
     }
 
@@ -51,11 +51,11 @@ public class MoveHandler {
                 gameState, sessionManager.getColorAssignments(gameId));
     }
 
-    private void handleMoreTakes(String gameId, MoveOutput moveOutput, WebSocketSession session, String assignedColor) throws IOException {
-        PossibilitiesOutput moves = gameManager.getPossibleMoves(
-                new PossibilitiesInput(gameId,
-                        moveOutput.getMove().getToRow(),
-                        moveOutput.getMove().getToCol()),
+    private void handleMoreTakes(String gameId, MoveOutputMessage moveOutputMessage, WebSocketSession session, String assignedColor) throws IOException {
+        PossibilitiesOutputMessage moves = gameManager.getPossibleMoves(
+                new PossibilitiesInputMessage(gameId,
+                        moveOutputMessage.getMove().getToRow(),
+                        moveOutputMessage.getMove().getToCol()),
                 session
         );
         messageSender.sendMessage(session, assignedColor, moves);

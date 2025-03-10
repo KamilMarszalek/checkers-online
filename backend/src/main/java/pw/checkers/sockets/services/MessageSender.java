@@ -1,4 +1,4 @@
-package pw.checkers.sockets;
+package pw.checkers.sockets.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
-import pw.checkers.message.GameEnd;
+import pw.checkers.message.GameEndMessage;
 import pw.checkers.message.Message;
 import pw.checkers.message.PromptMessage;
 
@@ -53,15 +53,15 @@ public class MessageSender {
         for (WebSocketSession ws : sessions) {
             if (ws.isOpen()) {
                 String wsColor = colorByPlayer.get(ws);
-                GameEnd gameEndMsg;
+                GameEndMessage gameEndMessageMsg;
                 if (updatedState.getWinner() == null) {
-                    gameEndMsg = new GameEnd("draw");
-                    gameEndMsg.setDetails(updatedState.getGameEndReason().getValue());
+                    gameEndMessageMsg = new GameEndMessage("draw");
+                    gameEndMessageMsg.setDetails(updatedState.getGameEndReason().getValue());
                 } else {
-                    gameEndMsg = new GameEnd(updatedState.getWinner().toString().toLowerCase());
-                    gameEndMsg.setDetails(updatedState.getGameEndReason().getValue());
+                    gameEndMessageMsg = new GameEndMessage(updatedState.getWinner().toString().toLowerCase());
+                    gameEndMessageMsg.setDetails(updatedState.getGameEndReason().getValue());
                 }
-                sendMessage(ws, wsColor, gameEndMsg);
+                sendMessage(ws, wsColor, gameEndMessageMsg);
             }
         }
     }

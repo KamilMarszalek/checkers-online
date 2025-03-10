@@ -18,8 +18,8 @@ import pw.checkers.data.enums.Color;
 import pw.checkers.game.GameEndManager;
 import pw.checkers.game.GameService;
 import pw.checkers.message.*;
-import pw.checkers.sockets.GameManager;
-import pw.checkers.sockets.SessionManager;
+import pw.checkers.sockets.services.GameManager;
+import pw.checkers.sockets.services.SessionManager;
 
 @ExtendWith(MockitoExtension.class)
 public class GameManagerTest {
@@ -78,12 +78,12 @@ public class GameManagerTest {
         String gameId = "game123";
         Move move = new Move(1, 2, 3, 4);
         String color = "white";
-        MoveOutput expectedOutput = new MoveOutput();
+        MoveOutputMessage expectedOutput = new MoveOutputMessage();
         expectedOutput.setMove(move);
         when(gameService.makeMove(gameId, move, color)).thenReturn(expectedOutput);
 
         // When
-        MoveOutput result = gameManager.makeMove(gameId, move, color);
+        MoveOutputMessage result = gameManager.makeMove(gameId, move, color);
 
         // Then
         assertEquals(expectedOutput, result);
@@ -109,12 +109,12 @@ public class GameManagerTest {
         // Given
         String gameId = "game123";
         // Create a PossibilitiesInput with fake values.
-        PossibilitiesInput input = new PossibilitiesInput(gameId, 2, 3);
+        PossibilitiesInputMessage input = new PossibilitiesInputMessage(gameId, 2, 3);
         // Stub SessionManager to return an empty Optional.
         when(sessionManager.getAssignedColor(gameId, session)).thenReturn(Optional.empty());
 
         // When
-        PossibilitiesOutput result = gameManager.getPossibleMoves(input, session);
+        PossibilitiesOutputMessage result = gameManager.getPossibleMoves(input, session);
 
         // Then
         assertNull(result, "When no color is assigned, getPossibleMoves should return null.");
@@ -126,7 +126,7 @@ public class GameManagerTest {
         String gameId = "game123";
         int row = 2;
         int col = 3;
-        PossibilitiesInput input = new PossibilitiesInput(gameId, row, col);
+        PossibilitiesInputMessage input = new PossibilitiesInputMessage(gameId, row, col);
         // Stub SessionManager to return an assigned color.
         when(sessionManager.getAssignedColor(gameId, session)).thenReturn(Optional.of("white"));
 
@@ -136,11 +136,11 @@ public class GameManagerTest {
         when(gameService.getGame(gameId)).thenReturn(dummyState);
 
         // Create fake PossibleMoves and stub gameService.getPossibleMoves
-        PossibilitiesOutput expectedMoves = new PossibilitiesOutput();
+        PossibilitiesOutputMessage expectedMoves = new PossibilitiesOutputMessage();
         when(gameService.getPossibleMoves(dummyState, row, col)).thenReturn(expectedMoves);
 
         // When
-        PossibilitiesOutput result = gameManager.getPossibleMoves(input, session);
+        PossibilitiesOutputMessage result = gameManager.getPossibleMoves(input, session);
 
         // Then
         assertEquals(expectedMoves, result);
