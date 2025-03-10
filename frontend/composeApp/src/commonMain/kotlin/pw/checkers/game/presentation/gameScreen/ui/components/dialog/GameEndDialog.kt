@@ -18,7 +18,7 @@ import pw.checkers.game.presentation.gameScreen.GameBoardAction
 
 @Composable
 private fun BaseGameEndDialog(
-    message: String,
+    message: UiText,
     buttonContent: @Composable ColumnScope.() -> Unit
 ) {
     Dialog(onDismissRequest = {}) {
@@ -32,7 +32,7 @@ private fun BaseGameEndDialog(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = message,
+                    text = message.asString(),
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
                     textAlign = TextAlign.Center
@@ -45,7 +45,7 @@ private fun BaseGameEndDialog(
 
 @Composable
 internal fun GameEndDialogNoRematch(
-    message: String,
+    message: UiText,
     onAction: (GameBoardAction) -> Unit
 ) {
     BaseGameEndDialog(message = message) {
@@ -53,13 +53,13 @@ internal fun GameEndDialogNoRematch(
             onClick = { onAction(GameBoardAction.OnMainMenuClick) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Main menu")
+            Text(stringResource(Res.string.main_menu_button))
         }
         Button(
             onClick = { onAction(GameBoardAction.OnNextGameClick) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Next game")
+            Text(stringResource(Res.string.next_game_button))
         }
     }
 }
@@ -67,6 +67,7 @@ internal fun GameEndDialogNoRematch(
 @Composable
 internal fun GameEndDialog(
     message: String,
+    message: UiText,
     onAction: (GameBoardAction) -> Unit
 ) {
     BaseGameEndDialog(message = message) {
@@ -74,19 +75,19 @@ internal fun GameEndDialog(
             onClick = { onAction(GameBoardAction.OnMainMenuClick) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Main menu")
+            Text(stringResource(Res.string.main_menu_button))
         }
         Button(
             onClick = { onAction(GameBoardAction.OnNextGameClick) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Next game")
+            Text(stringResource(Res.string.next_game_button))
         }
         Button(
             onClick = { onAction(GameBoardAction.OnRematchRequestClick) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Rematch")
+            Text(stringResource(Res.string.rematch_button))
         }
     }
 }

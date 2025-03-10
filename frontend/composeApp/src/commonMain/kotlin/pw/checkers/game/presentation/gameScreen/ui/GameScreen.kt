@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import checkers.composeapp.generated.resources.*
+import pw.checkers.core.presentation.UiText
 import pw.checkers.core.util.DoNothing
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.Board
@@ -63,8 +65,8 @@ fun GameScreen(
                 gameViewModel.onAction(GameBoardAction.OnMainMenuClick)
                 backToMain()
             },
-            title = "Leave Game",
-            text = "Are you sure you want to leave the game?",
+            title = UiText(Res.string.leave_game_title),
+            text = UiText(Res.string.leave_game_text),
             icon = Icons.Default.Warning,
         )
     }
@@ -160,8 +162,8 @@ private fun Game(
                 showResignPopup = false
                 onAction(GameBoardAction.OnResignClick)
             },
-            title = "Resign game",
-            text = "Are you sure you want to resign?",
+            title = UiText(Res.string.resign_game_title),
+            text = UiText(Res.string.resign_game_text),
         )
     }
 }
@@ -191,14 +193,14 @@ private fun EndGameDialogFromState(
 
         state.rematchRequestRejected -> {
             GameEndDialogNoRematch(
-                message = "Game over",
+                message = UiText(Res.string.game_over),
                 onAction = handleAction
             )
         }
 
         state.rematchPropositionRejected -> {
             GameEndDialogNoRematch(
-                message = "Rematch request declined",
+                message = UiText(Res.string.rematch_request_declined),
                 onAction = handleAction
             )
         }

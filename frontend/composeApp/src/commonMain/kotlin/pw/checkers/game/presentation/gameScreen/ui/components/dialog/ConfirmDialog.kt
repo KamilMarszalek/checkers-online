@@ -6,16 +6,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import checkers.composeapp.generated.resources.Res
+import checkers.composeapp.generated.resources.no_button
+import checkers.composeapp.generated.resources.yes_button
+import pw.checkers.core.presentation.UiText
 
 @Composable
 internal fun ConfirmDialog(
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    confirmButtonText: String = "Yes",
-    dismissButtonText: String = "No",
-    title: String? = null,
-    text: String? = null,
+    confirmButtonText: UiText = UiText(Res.string.yes_button),
+    dismissButtonText: UiText = UiText(Res.string.no_button),
+    title: UiText? = null,
+    text: UiText? = null,
     icon: ImageVector? = null
 ) {
     AlertDialog(
@@ -24,24 +28,24 @@ internal fun ConfirmDialog(
             TextButton(
                 onClick = onConfirm,
             ) {
-                Text(confirmButtonText)
+                Text(confirmButtonText.asString())
             }
         },
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
             ) {
-                Text(dismissButtonText)
+                Text(dismissButtonText.asString())
             }
         },
         title = {
             if (title != null) {
-                Text(title)
+                Text(title.asString())
             }
         },
         text = {
             if (text != null) {
-                Text(text)
+                Text(text.asString())
             }
         },
         icon = {

@@ -1,0 +1,33 @@
+<resources>
+    <string name="leave_game_title">Leave Game</string>
+    <string name="leave_game_text">Are you sure you want to leave the game?</string>
+
+    <string name="resign_button">Resign</string>
+    <string name="resign_game_title">Resign Game</string>
+    <string name="resign_game_text">Are you sure you want to resign?</string>
+
+    <string name="game_over">Game Over</string>
+    <string name="rematch_request_declined">Rematch request declined</string>
+    <string name="rematch_waiting_for_response">Waiting for response</string>
+    <string name="rematch_requested_title">Rematch requested</string>
+    <string name="rematch_requested_text">%1$s requested a rematch</string>
+
+    <string name="result_details_no_pieces">No pieces remaining</string>
+    <string name="result_details_no_moves">No available moves</string>
+    <string name="result_details_fifty_move">Fifty-move rule violation</string>
+    <string name="result_details_threefold">Threefold repetition</string>
+    <string name="result_details_resign">%1$s resigned</string>
+
+    <string name="yes_button">Yes</string>
+    <string name="no_button">No</string>
+    <string name="accept_button">Accept</string>
+    <string name="decline_button">Decline</string>
+
+    <string name="game_opponent_win_title">%1$s won</string>
+    <string name="game_player_win_title">You won</string>
+    <string name="game_draw_title">Draw</string>
+
+    <string name="main_menu_button">Main menu</string>
+    <string name="next_game_button">Next game</string>
+    <string name="rematch_button">Rematch</string>
+</resources>

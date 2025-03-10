@@ -15,6 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import checkers.composeapp.generated.resources.Res
+import checkers.composeapp.generated.resources.play_button
+import checkers.composeapp.generated.resources.username_hint
+import org.jetbrains.compose.resources.stringResource
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.User
 import pw.checkers.game.presentation.loginScreen.LoginScreenAction
@@ -66,13 +70,13 @@ private fun LoginInputScreen(
         OutlinedTextField(
             value = state.username,
             onValueChange = { onAction(LoginScreenAction.UsernameChanged(it)) },
-            label = { Text(text = "Username") },
+            label = { Text(stringResource(Res.string.username_hint)) },
             singleLine = true,
-            isError = !userNameValidation.errorMessage.isNullOrBlank(),
-            supportingText = userNameValidation.errorMessage?.let { message ->
+            isError = userNameValidation.error != null,
+            supportingText = userNameValidation.error?.let { error ->
                 {
                     Text(
-                        text = message,
+                        text = error.asString(),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 4.dp)
@@ -84,7 +88,7 @@ private fun LoginInputScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = { onAction(LoginScreenAction.StartGame) }, enabled = userNameValidation.isValid) {
-            Text(text = "Play")
+            Text(stringResource(Res.string.play_button))
         }
     }
 }

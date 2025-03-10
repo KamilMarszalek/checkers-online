@@ -11,6 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import checkers.composeapp.generated.resources.Res
+import checkers.composeapp.generated.resources.rematch_waiting_for_response
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun RematchPendingDialog() {
@@ -27,7 +30,7 @@ internal fun RematchPendingDialog() {
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Waiting for response",
+                    text = stringResource(Res.string.rematch_waiting_for_response),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                 )

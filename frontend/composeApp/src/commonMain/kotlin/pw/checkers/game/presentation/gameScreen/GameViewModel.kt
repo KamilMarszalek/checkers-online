@@ -1,8 +1,10 @@
 package pw.checkers.game.presentation.gameScreen
 
 import androidx.lifecycle.viewModelScope
+import checkers.composeapp.generated.resources.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import pw.checkers.core.presentation.UiText
 import pw.checkers.game.domain.GameAction
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.*
@@ -117,8 +119,7 @@ class GameViewModel(
     }
 
     override fun handleGameEvent(event: GameEvent) {
-        println("Received: $event")
-        when (event) {
+            when (event) {
             is GameEvent.MoveResult -> processMove(event)
             is GameEvent.PossibleMoves -> processPossibilities(event)
             is GameEvent.JoinedQueue, is GameEvent.GameCreated -> processNextGameMessages(event)
@@ -158,12 +159,17 @@ class GameViewModel(
         }
     }
 
-    fun getEndGameText(): String {
+    fun getEndGameText(): UiText {
         val result = _state.value.result
         return when {
             result == color.toResult() -> "You won"
             result != Result.DRAW -> "${opponent.username} won"
             else -> "Draw"
+            result == color.toResult() -> UiText(Res.string.game_player_win_title)
+            result != Result.DRAW -> UiText(Res.string.game_opponent_win_title, arrayOf(opponent.username))
+            else -> UiText(Res.string.game_draw_title)
+        }
+    }
         }
     }
 

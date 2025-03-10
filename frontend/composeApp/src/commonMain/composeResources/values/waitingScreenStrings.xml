@@ -1,0 +1,4 @@
+<resources>
+    <string name="waiting_for_opponent">Waiting for an opponent</string>
+    <string name="opponent_found">Opponent found</string>
+</resources>

@@ -43,8 +43,8 @@ fun WaitingScreen(
 
     Box(modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center) {
         when {
-            state.waiting -> AnimatedWaitingText(state.message)
-            else -> AnimatedWaitingText(state.message, maxDotCount = 0)
+            state.waiting -> AnimatedWaitingText(state.message?.asString())
+            else -> AnimatedWaitingText(state.message?.asString(), maxDotCount = 0)
         }
     }
 }
