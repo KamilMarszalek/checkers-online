@@ -73,9 +73,18 @@ internal fun GameEndDialogNoRematch(
 @Composable
 internal fun GameEndDialog(
     message: UiText,
+    details: UiText,
     onAction: (GameBoardAction) -> Unit
 ) {
     BaseGameEndDialog(message = message) {
+        Text(
+            text = details.asString(),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(
+                bottom = 24.dp
+            ), // negative top padding to account for padding from title text in BaseGameEndDialog
+            textAlign = TextAlign.Center
+        )
         Button(
             onClick = { onAction(GameBoardAction.OnMainMenuClick) },
             modifier = Modifier.fillMaxWidth()

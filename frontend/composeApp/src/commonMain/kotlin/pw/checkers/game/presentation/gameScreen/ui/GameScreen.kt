@@ -208,6 +208,7 @@ private fun EndGameDialogFromState(
         else -> {
             GameEndDialog(
                 message = gameViewModel.getEndGameText(),
+                details = gameViewModel.getResultDetailsText(),
                 onAction = handleAction
             )
         }

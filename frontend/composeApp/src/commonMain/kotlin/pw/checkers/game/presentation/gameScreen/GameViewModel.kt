@@ -5,6 +5,7 @@ import checkers.composeapp.generated.resources.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import pw.checkers.core.presentation.UiText
+import pw.checkers.core.presentation.UiText.StringResourceId
 import pw.checkers.game.domain.GameAction
 import pw.checkers.game.domain.GameEvent
 import pw.checkers.game.domain.model.*
@@ -148,7 +149,7 @@ class GameViewModel(
 
     private fun processGameEnd(gameEnd: GameEvent.GameEnd) {
         _state.update {
-            it.copy(gameEnded = true, result = gameEnd.result)
+            it.copy(gameEnded = true, result = gameEnd.result, resultDetails = gameEnd.details)
         }
     }
 
@@ -167,6 +168,20 @@ class GameViewModel(
             else -> StringResourceId(Res.string.game_draw_title)
         }
     }
+
+    fun getResultDetailsText(): UiText {
+        val resultDetails = _state.value.resultDetails
+        return when(resultDetails) {
+            ResultDetails.NO_PIECES -> StringResourceId(Res.string.result_details_no_pieces)
+            ResultDetails.NO_MOVES -> StringResourceId(Res.string.result_details_no_moves)
+            ResultDetails.FIFTY_MOVE -> StringResourceId(Res.string.result_details_fifty_move)
+            ResultDetails.THREEFOLD_REPETITION -> StringResourceId(Res.string.result_details_threefold)
+            ResultDetails.RESIGN -> {
+                val result = _state.value.result
+                val loser = if (result == color.toResult()) opponent.username else user.username
+                StringResourceId(Res.string.result_details_resign, arrayOf(loser))
+            }
+            null -> UiText.DynamicString("")
         }
     }
 
