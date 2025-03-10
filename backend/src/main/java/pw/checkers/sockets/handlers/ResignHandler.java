@@ -3,6 +3,7 @@ package pw.checkers.sockets.handlers;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
+import pw.checkers.data.enums.GameEndReason;
 import pw.checkers.message.ResignMessage;
 import pw.checkers.sockets.GameManager;
 import pw.checkers.sockets.MessageSender;
@@ -30,6 +31,7 @@ public class ResignHandler {
         String opponentColor = assignedColor.equals("white") ? "black" : "white";
         Set<WebSocketSession> sessions = sessionManager.getSessionsByGameId(resignMessage.getGameId());
         GameState updatedState = gameManager.setGameEnd(resignMessage, opponentColor);
+        updatedState.setGameEndReason(GameEndReason.RESIGNATION);
         messageSender.broadcastGameEnd(sessions, updatedState, colorsBySession);
     }
 }
