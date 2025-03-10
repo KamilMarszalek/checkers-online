@@ -30,8 +30,8 @@ public class JoinQueueHandler {
     }
 
     public void handleJoinQueue(WebSocketSession session, User user) throws IOException {
+        sessionManager.cleanJoinQueue(session, user);
         WaitingPlayer waitingPlayer = sessionManager.pollFromPlayerQueue();
-
         if (waitingPlayer == null) {
             addPlayerToQueue(session, user);
         } else {

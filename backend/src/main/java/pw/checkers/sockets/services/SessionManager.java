@@ -106,6 +106,21 @@ public class SessionManager {
         usersBySessions.remove(session);
     }
 
+    public void cleanJoinQueue(WebSocketSession session, User user) {
+        removeUsersBySessionEntry(session);
+        removeWaitingPlayerFromQueue(session, user);
+        Optional<String> gameId = findGameIdBySession(session);
+        gameId.ifPresent(this::removeGameFromMaps);
+    }
+
+    private Optional<String> findGameIdBySession(WebSocketSession session) {
+        return (sessionsByGame.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().contains(session))
+                .map(Map.Entry::getKey)
+                .findFirst());
+    }
+
     public Optional<String> getAssignedColor(String gameId, WebSocketSession session) throws IOException {
         if (gameId == null) {
             messageSender.sendError(session, "No game id specified");
