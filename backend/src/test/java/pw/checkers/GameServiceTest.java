@@ -132,7 +132,7 @@ public class GameServiceTest {
         String gameId = gameState.getGameId();
 
         Move invalidMove = new Move(0, 0, 1, 1);
-        MoveOutput result = gameService.makeMove(gameId, invalidMove, "white");
+        MoveOutputMessage result = gameService.makeMove(gameId, invalidMove, "white");
 
         assertNull(result);
     }
@@ -143,7 +143,7 @@ public class GameServiceTest {
         String gameId = gameState.getGameId();
 
         Move validMove = new Move(5, 2, 4, 3);
-        MoveOutput result = gameService.makeMove(gameId, validMove, "white");
+        MoveOutputMessage result = gameService.makeMove(gameId, validMove, "white");
 
         assertNotNull(result);
         assertFalse(result.isCaptured());
@@ -166,7 +166,7 @@ public class GameServiceTest {
         board[5][2] = new Piece(Color.WHITE, PieceType.PAWN);
 
         Move captureMove = new Move(5, 2, 3, 4);
-        MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
+        MoveOutputMessage result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
         assertEquals(result.getMove().getFromCol(), captureMove.getFromCol());
@@ -198,7 +198,7 @@ public class GameServiceTest {
         board[5][2] = new Piece(Color.WHITE, PieceType.PAWN);
 
         Move captureMove = new Move(5, 2, 3, 4);
-        MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
+        MoveOutputMessage result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
         assertEquals(result.getMove().getFromCol(), captureMove.getFromCol());
@@ -235,7 +235,7 @@ public class GameServiceTest {
         String gameId = gameState.getGameId();
 
         Move blackMove = new Move(2, 1, 3, 2);
-        MoveOutput result = gameService.makeMove(gameId, blackMove, "white");
+        MoveOutputMessage result = gameService.makeMove(gameId, blackMove, "white");
 
         assertNull(result);
     }
@@ -246,7 +246,7 @@ public class GameServiceTest {
         String gameId = gameState.getGameId();
 
         Move emptyFieldMove = new Move(4, 4, 3, 3);
-        MoveOutput result = gameService.makeMove(gameId, emptyFieldMove, "white");
+        MoveOutputMessage result = gameService.makeMove(gameId, emptyFieldMove, "white");
 
         assertNull(result);
     }
@@ -258,7 +258,7 @@ public class GameServiceTest {
         gameState.setFinished(true);
 
         Move anyMove = new Move(5, 2, 4, 3);
-        MoveOutput result = gameService.makeMove(gameId, anyMove, "white");
+        MoveOutputMessage result = gameService.makeMove(gameId, anyMove, "white");
 
         assertNull(result);
     }
@@ -275,7 +275,7 @@ public class GameServiceTest {
         board[5][2] = new Piece(Color.WHITE, PieceType.PAWN);
 
 
-        PossibilitiesOutput pm = gameService.getPossibleMoves(gameState, 5, 2);
+        PossibilitiesOutputMessage pm = gameService.getPossibleMoves(gameState, 5, 2);
 
         assertEquals(1, pm.getMoves().size());
         MoveHelper move = pm.getMoves().getFirst();
@@ -293,7 +293,7 @@ public class GameServiceTest {
         }
         board[4][4] = new Piece(Color.WHITE, PieceType.KING);
 
-        PossibilitiesOutput pm = gameService.getPossibleMoves(gameState, 4, 4);
+        PossibilitiesOutputMessage pm = gameService.getPossibleMoves(gameState, 4, 4);
 
         assertEquals(4, pm.getMoves().size(), "King in the middle should have 4 possible moves if no captures exist");
 
@@ -331,10 +331,10 @@ public class GameServiceTest {
         board[2][3] = new Piece(Color.BLACK, PieceType.PAWN);
 
         Move firstCapture = new Move(5, 0, 3, 2);
-        MoveOutput firstOutput = gameService.makeMove(gameId, firstCapture,"white");
+        MoveOutputMessage firstOutput = gameService.makeMove(gameId, firstCapture,"white");
 
         Move invalidCapture = new Move(3, 4, 1, 2);
-        MoveOutput invalidOutput = gameService.makeMove(gameId, invalidCapture,"white");
+        MoveOutputMessage invalidOutput = gameService.makeMove(gameId, invalidCapture,"white");
 
         assertNull(invalidOutput);
 
@@ -347,7 +347,7 @@ public class GameServiceTest {
         assertEquals(firstOutput.getPreviousTurn(), "white");
 
         Move secondCapture = new Move(3, 2, 1, 4);
-        MoveOutput secondOutput = gameService.makeMove(gameId, secondCapture, "white");
+        MoveOutputMessage secondOutput = gameService.makeMove(gameId, secondCapture, "white");
 
         assertNotNull(secondOutput);
         assertTrue(secondOutput.isCaptured());
@@ -377,7 +377,7 @@ public class GameServiceTest {
         board[5][1] = new Piece(Color.BLACK, PieceType.PAWN);
 
         Move firstCapture = new Move(4, 4, 6, 2);
-        MoveOutput firstOutput = gameService.makeMove(gameId, firstCapture, "white");
+        MoveOutputMessage firstOutput = gameService.makeMove(gameId, firstCapture, "white");
 
         assertNotNull(firstOutput);
         assertTrue(firstOutput.isCaptured());
@@ -389,7 +389,7 @@ public class GameServiceTest {
         board[4][4] = null;
 
         Move secondCapture = new Move(6, 2, 4, 0);
-        MoveOutput secondOutput = gameService.makeMove(gameId, secondCapture, "white");
+        MoveOutputMessage secondOutput = gameService.makeMove(gameId, secondCapture, "white");
 
         assertNotNull(secondOutput);
         assertTrue(secondOutput.isCaptured());
@@ -416,7 +416,7 @@ public class GameServiceTest {
         gameState.setWhitePiecesLeft(1);
 
         Move captureMove = new Move(4, 1, 2, 3);
-        MoveOutput result = gameService.makeMove(gameId, captureMove, "white");
+        MoveOutputMessage result = gameService.makeMove(gameId, captureMove, "white");
 
         assertNotNull(result);
         assertTrue(result.isCaptured());
@@ -450,7 +450,7 @@ public class GameServiceTest {
         String gameId = gameState.getGameId();
         gameState.setNoCapturesCounter(49);
         Move move = new Move(5, 2, 4, 3);
-        MoveOutput moveResult = gameService.makeMove(gameId, move, "white");
+        MoveOutputMessage moveResult = gameService.makeMove(gameId, move, "white");
 
         assertNotNull(moveResult, "Move itself should be valid (assuming it was indeed valid on board).");
         boolean isDraw = (gameState.isFinished() && gameState.getWinner() == null);

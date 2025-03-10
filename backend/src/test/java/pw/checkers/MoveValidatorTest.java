@@ -14,7 +14,7 @@ import pw.checkers.game.GameRules;
 import pw.checkers.game.MoveValidator;
 import pw.checkers.message.Move;
 import pw.checkers.message.MoveHelper;
-import pw.checkers.message.PossibilitiesOutput;
+import pw.checkers.message.PossibilitiesOutputMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -113,13 +113,13 @@ public class MoveValidatorTest {
             Move move = new Move(2, 2, 1, 1);
 
             // Create a PossibleMoves instance that includes the expected move.
-            PossibilitiesOutput possibilitiesOutput = new PossibilitiesOutput();
+            PossibilitiesOutputMessage possibilitiesOutputMessage = new PossibilitiesOutputMessage();
             List<MoveHelper> movesList = new ArrayList<>();
             movesList.add(new MoveHelper(1, 1));
-            possibilitiesOutput.setMoves(movesList);
+            possibilitiesOutputMessage.setMoves(movesList);
 
             // Stub gameRules.getPossibleMoves to return our possibleMoves for cell (2,2)
-            when(gameRules.getPossibleMoves(state, 2, 2)).thenReturn(possibilitiesOutput);
+            when(gameRules.getPossibleMoves(state, 2, 2)).thenReturn(possibilitiesOutputMessage);
 
             boolean result = moveValidator.validateMove(state, move);
             assertTrue(result, "The move should be valid since it is in possibleMoves.");
@@ -136,9 +136,9 @@ public class MoveValidatorTest {
         Move move = new Move(2, 2, 1, 1);
 
         // Return a PossibleMoves that does NOT include the move (1,1)
-        PossibilitiesOutput possibilitiesOutput = new PossibilitiesOutput();
-        possibilitiesOutput.setMoves(new ArrayList<>()); // empty list
-        when(gameRules.getPossibleMoves(state, 2, 2)).thenReturn(possibilitiesOutput);
+        PossibilitiesOutputMessage possibilitiesOutputMessage = new PossibilitiesOutputMessage();
+        possibilitiesOutputMessage.setMoves(new ArrayList<>()); // empty list
+        when(gameRules.getPossibleMoves(state, 2, 2)).thenReturn(possibilitiesOutputMessage);
 
         boolean result = moveValidator.validateMove(state, move);
         assertFalse(result, "The move should be invalid if it is not in the list of possible moves.");

@@ -11,10 +11,10 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PossibilitiesOutput extends Message{
+public class PossibilitiesOutputMessage extends Message{
     private List<MoveHelper> moves;
 
-    public PossibilitiesOutput() {
+    public PossibilitiesOutputMessage() {
         super(MessageType.POSSIBILITIES.getValue());
         this.moves = new ArrayList<>();
     }

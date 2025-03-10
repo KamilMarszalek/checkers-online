@@ -8,10 +8,11 @@ import java.io.IOException;
 public interface MessageVisitor {
     void visit(JoinQueueMessage message, WebSocketSession session) throws IOException;
     void visit(LeaveQueueMessage message, WebSocketSession session);
-    void visit(MoveInput message, WebSocketSession session) throws IOException;
-    void visit(PossibilitiesInput message, WebSocketSession session) throws IOException;
+    void visit(MoveInputMessage message, WebSocketSession session) throws IOException;
+    void visit(PossibilitiesInputMessage message, WebSocketSession session) throws IOException;
     void visit(RematchRequestMessage message, WebSocketSession session) throws IOException;
     void visit(AcceptRematchMessage message, WebSocketSession session) throws IOException;
     void visit(DeclineRematchMessage message, WebSocketSession session) throws IOException;
     void visit(LeaveMessage message, WebSocketSession session) throws IOException;
+    void visit(ResignMessage message, WebSocketSession session) throws IOException;
 }

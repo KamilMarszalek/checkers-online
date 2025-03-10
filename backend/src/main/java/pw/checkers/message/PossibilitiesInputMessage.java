@@ -10,12 +10,12 @@ import pw.checkers.sockets.MessageVisitor;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PossibilitiesInput extends Message implements MessageAccept{
+public class PossibilitiesInputMessage extends Message implements MessageAccept{
     private String gameId;
     private int row;
     private int col;
 
-    public PossibilitiesInput(String gameId, int row, int col) {
+    public PossibilitiesInputMessage(String gameId, int row, int col) {
         super(MessageType.POSSIBILITIES.getValue());
         this.gameId = gameId;
         this.row = row;

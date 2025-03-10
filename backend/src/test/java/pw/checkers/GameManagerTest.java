@@ -14,14 +14,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.socket.WebSocketSession;
 
 import pw.checkers.data.GameState;
+import pw.checkers.data.enums.Color;
+import pw.checkers.game.GameEndManager;
 import pw.checkers.game.GameService;
-import pw.checkers.message.GameIdMessage;
-import pw.checkers.message.Move;
-import pw.checkers.message.MoveOutput;
-import pw.checkers.message.PossibilitiesInput;
-import pw.checkers.message.PossibilitiesOutput;
-import pw.checkers.sockets.GameManager;
-import pw.checkers.sockets.SessionManager;
+import pw.checkers.message.*;
+import pw.checkers.sockets.services.GameManager;
+import pw.checkers.sockets.services.SessionManager;
 
 @ExtendWith(MockitoExtension.class)
 public class GameManagerTest {
@@ -33,13 +31,16 @@ public class GameManagerTest {
     private SessionManager sessionManager;
 
     @Mock
+    private GameEndManager gameEndManager;
+
+    @Mock
     private WebSocketSession session;
 
     private GameManager gameManager;
 
     @BeforeEach
     public void setUp() {
-        gameManager = new GameManager(gameService, sessionManager);
+        gameManager = new GameManager(gameService, sessionManager, gameEndManager);
     }
 
     @Test
@@ -77,12 +78,12 @@ public class GameManagerTest {
         String gameId = "game123";
         Move move = new Move(1, 2, 3, 4);
         String color = "white";
-        MoveOutput expectedOutput = new MoveOutput();
+        MoveOutputMessage expectedOutput = new MoveOutputMessage();
         expectedOutput.setMove(move);
         when(gameService.makeMove(gameId, move, color)).thenReturn(expectedOutput);
 
         // When
-        MoveOutput result = gameManager.makeMove(gameId, move, color);
+        MoveOutputMessage result = gameManager.makeMove(gameId, move, color);
 
         // Then
         assertEquals(expectedOutput, result);
@@ -108,12 +109,12 @@ public class GameManagerTest {
         // Given
         String gameId = "game123";
         // Create a PossibilitiesInput with fake values.
-        PossibilitiesInput input = new PossibilitiesInput(gameId, 2, 3);
+        PossibilitiesInputMessage input = new PossibilitiesInputMessage(gameId, 2, 3);
         // Stub SessionManager to return an empty Optional.
         when(sessionManager.getAssignedColor(gameId, session)).thenReturn(Optional.empty());
 
         // When
-        PossibilitiesOutput result = gameManager.getPossibleMoves(input, session);
+        PossibilitiesOutputMessage result = gameManager.getPossibleMoves(input, session);
 
         // Then
         assertNull(result, "When no color is assigned, getPossibleMoves should return null.");
@@ -125,7 +126,7 @@ public class GameManagerTest {
         String gameId = "game123";
         int row = 2;
         int col = 3;
-        PossibilitiesInput input = new PossibilitiesInput(gameId, row, col);
+        PossibilitiesInputMessage input = new PossibilitiesInputMessage(gameId, row, col);
         // Stub SessionManager to return an assigned color.
         when(sessionManager.getAssignedColor(gameId, session)).thenReturn(Optional.of("white"));
 
@@ -135,13 +136,32 @@ public class GameManagerTest {
         when(gameService.getGame(gameId)).thenReturn(dummyState);
 
         // Create fake PossibleMoves and stub gameService.getPossibleMoves
-        PossibilitiesOutput expectedMoves = new PossibilitiesOutput();
+        PossibilitiesOutputMessage expectedMoves = new PossibilitiesOutputMessage();
         when(gameService.getPossibleMoves(dummyState, row, col)).thenReturn(expectedMoves);
 
         // When
-        PossibilitiesOutput result = gameManager.getPossibleMoves(input, session);
+        PossibilitiesOutputMessage result = gameManager.getPossibleMoves(input, session);
 
         // Then
         assertEquals(expectedMoves, result);
+    }
+
+    @Test
+    public void testSetGameEnd() throws IOException {
+        String gameId = "game123";
+        GameState dummyGame = new GameState();
+        dummyGame.setGameId(gameId);
+        when(gameService.createGame()).thenReturn(dummyGame);
+
+        when(gameService.getGame(gameId)).thenReturn(dummyGame);
+
+        gameManager.createGame();
+        ResignMessage message = new ResignMessage();
+        message.setGameId(gameId);
+        message.setType("resign");
+        GameState updatedState = gameManager.setGameEnd(message, "white");
+        assertEquals(gameId, updatedState.getGameId());
+        assertTrue(updatedState.isFinished());
+        assertEquals(Color.WHITE, updatedState.getWinner());
     }
 }

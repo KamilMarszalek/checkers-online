@@ -41,6 +41,7 @@ channels:
           - $ref: "#/components/messages/AcceptRematchMessage"
           - $ref: "#/components/messages/DeclineRematchMessage"
           - $ref: "#/components/messages/LeaveMessage"
+          - $ref: "#/components/messages/ResignMessage"
       description: >
         Messages sent from client to server
 
@@ -195,6 +196,20 @@ components:
             description: "ID of the game being left"
         required: [type, gameId]
         additionalProperties: false
+    ResignMessage:
+      name: ResignMessage
+      title: "resign"
+      payload:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [ "resign" ]
+          gameId:
+            type: string
+            description: "ID of the game being resigned"
+        required: [type, gameId]
+        additionalProperties: false
 
     ############################################
     # MESSAGES SERVER -> CLIENT (publish)
@@ -316,6 +331,9 @@ components:
           result:
             type: string
             enum: ["draw", "white", "black"]
+          details:
+            type: string
+            enum: ["noPieces", "noMoves", "fiftyMoves", "threefoldRepetition", "resignation" ]
         required: [type, result]
         additionalProperties: false
 

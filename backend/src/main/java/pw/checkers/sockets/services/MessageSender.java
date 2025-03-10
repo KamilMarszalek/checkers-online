@@ -1,4 +1,4 @@
-package pw.checkers.sockets;
+package pw.checkers.sockets.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
-import pw.checkers.message.GameEnd;
+import pw.checkers.message.GameEndMessage;
 import pw.checkers.message.Message;
 import pw.checkers.message.PromptMessage;
 
@@ -23,24 +23,24 @@ public class MessageSender {
     private static final Logger logger = LoggerFactory.getLogger(MessageSender.class);
 
 
-    public void sendError(WebSocketSession session, String error) throws IOException {
+    public synchronized void sendError(WebSocketSession session, String error) throws IOException {
         Message errorMessage = new PromptMessage(ERROR.getValue(), error);
         sendMessage(session, errorMessage);
     }
 
-    public void sendMessage(WebSocketSession session, Message message) throws IOException {
+    public synchronized void sendMessage(WebSocketSession session, Message message) throws IOException {
         String messageJson = objectMapper.writeValueAsString(message);
         logger.debug("Message sent to session {}: {}", session.getId(), messageJson);
         session.sendMessage(new TextMessage(messageJson));
     }
 
-    public void sendMessage(WebSocketSession session, String color, Message message) throws IOException {
+    public synchronized void sendMessage(WebSocketSession session, String color, Message message) throws IOException {
         String messageJson = objectMapper.writeValueAsString(message);
         logger.debug("Message sent to color {} (session {}): {}", color, session.getId(), messageJson);
         session.sendMessage(new TextMessage(messageJson));
     }
 
-    public void broadcastToGame(Set<WebSocketSession> sessions, Message message, Map<WebSocketSession, String> colorByPlayer) throws IOException {
+    public synchronized void broadcastToGame(Set<WebSocketSession> sessions, Message message, Map<WebSocketSession, String> colorByPlayer) throws IOException {
         for (WebSocketSession ws : sessions) {
             if (ws.isOpen()) {
                 String wsColor = colorByPlayer.get(ws);
@@ -49,17 +49,19 @@ public class MessageSender {
         }
     }
 
-    public void broadcastGameEnd(Set<WebSocketSession> sessions, GameState updatedState, Map<WebSocketSession, String> colorByPlayer) throws IOException {
+    public synchronized void broadcastGameEnd(Set<WebSocketSession> sessions, GameState updatedState, Map<WebSocketSession, String> colorByPlayer) throws IOException {
         for (WebSocketSession ws : sessions) {
             if (ws.isOpen()) {
                 String wsColor = colorByPlayer.get(ws);
-                Message gameEndMsg;
+                GameEndMessage gameEndMessageMsg;
                 if (updatedState.getWinner() == null) {
-                    gameEndMsg = new GameEnd("draw");
+                    gameEndMessageMsg = new GameEndMessage("draw");
+                    gameEndMessageMsg.setDetails(updatedState.getGameEndReason().getValue());
                 } else {
-                    gameEndMsg = new GameEnd(updatedState.getWinner().toString().toLowerCase());
+                    gameEndMessageMsg = new GameEndMessage(updatedState.getWinner().toString().toLowerCase());
+                    gameEndMessageMsg.setDetails(updatedState.getGameEndReason().getValue());
                 }
-                sendMessage(ws, wsColor, gameEndMsg);
+                sendMessage(ws, wsColor, gameEndMessageMsg);
             }
         }
     }

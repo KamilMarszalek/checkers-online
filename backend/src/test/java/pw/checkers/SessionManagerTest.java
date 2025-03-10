@@ -16,8 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.socket.WebSocketSession;
 
 import pw.checkers.message.User;
-import pw.checkers.sockets.MessageSender;
-import pw.checkers.sockets.SessionManager;
+import pw.checkers.sockets.services.MessageSender;
+import pw.checkers.sockets.services.SessionManager;
 
 @ExtendWith(MockitoExtension.class)
 public class SessionManagerTest {

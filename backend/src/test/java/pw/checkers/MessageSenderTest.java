@@ -11,10 +11,11 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import pw.checkers.data.GameState;
 import pw.checkers.data.enums.Color;
-import pw.checkers.message.GameEnd;
+import pw.checkers.data.enums.GameEndReason;
+import pw.checkers.message.GameEndMessage;
 import pw.checkers.message.Message;
 import pw.checkers.message.PromptMessage;
-import pw.checkers.sockets.MessageSender;
+import pw.checkers.sockets.services.MessageSender;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -132,6 +133,7 @@ class MessageSenderTest {
         // Create a GameState with no winner (draw).
         GameState state = new GameState();
         state.setWinner(null);
+        state.setGameEndReason(GameEndReason.FIFTY_MOVES);
 
         Map<WebSocketSession, String> colorByPlayer = new HashMap<>();
         colorByPlayer.put(session1, "red");
@@ -145,7 +147,9 @@ class MessageSenderTest {
         String json = captor.getValue().getPayload();
         Message received = objectMapper.readValue(json, Message.class);
         assertEquals("gameEnd", received.getType());
-        assertEquals("draw", ((GameEnd) received).getResult());
+        assertEquals("draw", ((GameEndMessage) received).getResult());
+        assertEquals("draw", ((GameEndMessage) received).getResult());
+        assertEquals("fiftyMoves", ((GameEndMessage) received).getDetails());
     }
 
     @Test
@@ -160,6 +164,7 @@ class MessageSenderTest {
         // Create a GameState with a winner.
         GameState state = new GameState();
         state.setWinner(Color.WHITE);
+        state.setGameEndReason(GameEndReason.NO_PIECES);
 
         Map<WebSocketSession, String> colorByPlayer = new HashMap<>();
         colorByPlayer.put(session1, "red");
@@ -173,6 +178,6 @@ class MessageSenderTest {
         String json = captor.getValue().getPayload();
         Message received = objectMapper.readValue(json, Message.class);
         assertEquals("gameEnd", received.getType());
-        assertTrue(((GameEnd)received).getResult().equalsIgnoreCase("white"));
+        assertTrue(((GameEndMessage)received).getResult().equalsIgnoreCase("white"));
     }
 }

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pw.checkers.data.enums.Color;
+import pw.checkers.data.enums.GameEndReason;
 
 import java.util.Map;
 
@@ -25,6 +26,7 @@ public class GameState {
     private Map<String, Integer> numberOfPositions;
     private Integer lastCaptureCol;
     private Integer lastCaptureRow;
+    private GameEndReason gameEndReason;
 
     public String boardToString() {
         StringBuilder response = new StringBuilder();
