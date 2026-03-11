@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+backend/.venv/
+backend/bot/__pycache__/
+backend/bot/test/__pycache__/
+
