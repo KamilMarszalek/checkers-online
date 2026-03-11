@@ -1,7 +1,9 @@
-from fastapi import FastAPI
-import uuid
-from bot.bot_session import BotSession
 import asyncio
+import uuid
+
+from fastapi import FastAPI
+
+from bot.bot_session import BotSession
 
 URL = "ws://localhost:8080/ws"
 app = FastAPI()

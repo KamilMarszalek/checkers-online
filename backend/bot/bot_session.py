@@ -1,9 +1,11 @@
-import websockets
-import json
-from bot.bot import Bot
 import asyncio
-from typing import Optional, Any
+import json
 import random
+from typing import Any, Optional
+
+import websockets
+
+from bot.bot import Bot
 
 
 class BotSession:
